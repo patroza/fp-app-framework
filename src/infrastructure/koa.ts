@@ -3,10 +3,11 @@ import Koa from 'koa'
 import { Result } from 'neverthrow'
 import { CombinedValidationError, ErrorBase, FieldValidationError, ForbiddenError, ValidationError } from '../errors'
 import { calculateElapsed, logger } from '../utils'
-import { generateShortUuid } from '../utils/generateUuid'
 import { flatMap, PipeFunction, startWithVal } from '../utils/neverthrow-extensions'
 import { CouldNotAquireDbLockError, OptimisticLockError } from './diskdb'
 import { ConnectionError, RecordNotFound } from './errors'
+import { RequestContextBase } from './misc'
+import SimpleContainer from './SimpleContainer'
 
 export const generateKoaHandler = <I, T, E extends ErrorBase, E2 extends ValidationError>(
   handleRequest: PipeFunction<I, T, E>,
@@ -39,20 +40,17 @@ export const generateKoaHandler = <I, T, E extends ErrorBase, E2 extends Validat
 export const saveStartTime: Koa.Middleware = (ctx, next) => { ctx['start-time'] = process.hrtime(); return next() }
 
 export const setupNamespace = (
-  {setDependencyScope, ns}: { setDependencyScope: (context: any) => void, ns: Namespace},
+  {container, ns}: { container: SimpleContainer, ns: Namespace},
 ): Koa.Middleware => (ctx, next) => ns.runPromise(() => {
   ns.bindEmitter(ctx.req)
   ns.bindEmitter(ctx.res)
 
-  const id = generateShortUuid()
-  const correllationId = ctx.get('X-Request-ID') || id
+  container.createScope()
+  const context = container.get<RequestContextBase>('context')
+  const correllationId = ctx.get('X-Request-ID') || context.id
   ctx.set('X-Request-Id', correllationId)
+  Object.assign(context, { correllationId })
 
-  const context = {
-    correllationId,
-    id,
-  }
-  setDependencyScope({ context })
   return next()
 })
 

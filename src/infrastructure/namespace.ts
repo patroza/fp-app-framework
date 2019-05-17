@@ -5,32 +5,45 @@ import { flatMap, flatTee, liftType, mapErr, PipeFunction } from '../utils/never
 import { UnitOfWork } from './context.base'
 import { DbError } from './errors'
 import { RequestContextBase } from './misc'
+import SimpleContainer, { DependencyScope} from './SimpleContainer'
 
 export const createDependencyNamespace = (namespace: string) => {
   const ns = createNamespace(namespace)
-
-  type DependencyScope<T extends RequestContextBase = RequestContextBase> = { context: T } & { [key: string]: any }
   const dependencyScopeKey = 'dependencyScope'
   const getDependencyScope = (): DependencyScope => getNamespace(namespace).get(dependencyScopeKey)
   const setDependencyScope = (scope: DependencyScope) => getNamespace(namespace).set(dependencyScopeKey, scope)
+  const container = new SimpleContainer(getDependencyScope, setDependencyScope)
+  container.registerScoped<RequestContextBase>('context', () => {
+    const id = generateShortUuid()
+    return { id, correllationId: id }
+  })
+
+  const bindLogger = (fnc: (...args2: any[]) => void) => (...args: any[]) => {
+    const context = container.tryGet<RequestContextBase>('context')
+    // tslint:disable-next-line:no-console
+    if (!context) { return fnc('[root context]', ...args) }
+    // tslint:disable-next-line:no-console
+    const id = context.correllationId === context.id
+      ? context.id
+      : `${context.id} (${context.correllationId})`
+    return fnc(`[${id}]`, ...args)
+  }
 
   const setupChildContext = <T>(cb: () => Promise<T>) =>
     ns.runPromise(() => {
-      const scope = getDependencyScope()
-      if (!scope) { throw new Error('No namespace/dependencyScope found, are we in a test runner?') }
-
-      // we pass in correllation id, but not main id
-      const id = generateShortUuid()
-      const { context: { correllationId = id } } = scope
-      setDependencyScope({ context: { correllationId, id } })
+      let context = container.get<RequestContextBase>('context')
+      const { correllationId, id } = context
+      container.createScope()
+      context = container.get('context')
+      Object.assign(context, { correllationId: correllationId || id })
 
       return cb()
     })
 
   return {
-    getDependencyScope,
+    bindLogger,
+    container,
     ns,
-    setDependencyScope,
     setupChildContext,
   }
 }
