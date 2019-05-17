@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "allowJs": false,
+    "baseUrl": ".",
+    "experimentalDecorators": true,
+    "downlevelIteration": true,
+    "declaration": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "lib": ["es2015", "esnext"],
+    "module": "commonjs",
+    "outDir": "dist/ts",
+    "paths": {
+      "*": ["types/*"],
+      "@/*": ["src/*"],
+      "@fp-app-framework/*": ["../src/*"],
+    },
+    "esModuleInterop": true,
+    "removeComments": true,
+    "sourceMap": true,
+    "strict": true,
+    "target": "es5"
+  },
+  "exclude": ["dist", "node_modules"]
+}
