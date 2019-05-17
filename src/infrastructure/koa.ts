@@ -40,12 +40,14 @@ export const generateKoaHandler = <I, T, E extends ErrorBase, E2 extends Validat
 export const saveStartTime: Koa.Middleware = (ctx, next) => { ctx['start-time'] = process.hrtime(); return next() }
 
 export const setupNamespace = (
-  {container, ns}: { container: SimpleContainer, ns: Namespace},
-): Koa.Middleware => (ctx, next) => ns.runPromise(() => {
+  {container, ns, setupRootContext}: {
+    container: SimpleContainer,
+    setupRootContext: <T>(cb: () => Promise<T>) => Promise<T>,
+    ns: Namespace,
+}): Koa.Middleware => (ctx, next) => setupRootContext(() => {
   ns.bindEmitter(ctx.req)
   ns.bindEmitter(ctx.res)
 
-  container.createScope()
   const context = container.get<RequestContextBase>('context')
   const correllationId = ctx.get('X-Request-ID') || context.id
   ctx.set('X-Request-Id', correllationId)

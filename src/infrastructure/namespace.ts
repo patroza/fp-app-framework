@@ -5,7 +5,7 @@ import { flatMap, flatTee, liftType, mapErr, PipeFunction } from '../utils/never
 import { UnitOfWork } from './context.base'
 import { DbError } from './errors'
 import { RequestContextBase } from './misc'
-import SimpleContainer, { DependencyScope} from './SimpleContainer'
+import SimpleContainer, { DependencyScope } from './SimpleContainer'
 
 export const createDependencyNamespace = (namespace: string) => {
   const ns = createNamespace(namespace)
@@ -40,11 +40,18 @@ export const createDependencyNamespace = (namespace: string) => {
       return cb()
     })
 
+  const setupRootContext = <T>(cb: () => Promise<T>) =>
+    ns.runPromise(() => {
+      container.createScope()
+      return cb()
+    })
+
   return {
     bindLogger,
     container,
     ns,
     setupChildContext,
+    setupRootContext,
   }
 }
 
