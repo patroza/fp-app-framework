@@ -40,7 +40,7 @@ export const saveStartTime: Koa.Middleware = (ctx, next) => { ctx['start-time'] 
 
 export const setupNamespace = (
   {setDependencyScope, ns}: { setDependencyScope: (context: any) => void, ns: Namespace},
-): Koa.Middleware => (ctx, next) => new Promise(ns.bind((resolve, reject) => {
+): Koa.Middleware => (ctx, next) => ns.runPromise(() => {
   ns.bindEmitter(ctx.req)
   ns.bindEmitter(ctx.res)
 
@@ -53,8 +53,8 @@ export const setupNamespace = (
     id,
   }
   setDependencyScope({ context })
-  return next().then(resolve).catch(reject)
-}))
+  return next()
+})
 
 export const logRequestTime: Koa.Middleware = async (ctx, next) =>  {
   logger.log(`$$ ${ctx.method} ${ctx.path} Start request`)

@@ -1,4 +1,4 @@
-import { createNamespace, getNamespace } from 'cls-hooked'
+import { createNamespace, getNamespace, Namespace } from 'cls-hooked'
 import { benchLog, logger } from '../utils'
 import { generateShortUuid } from '../utils/generateUuid'
 import { flatMap, flatTee, liftType, mapErr, PipeFunction } from '../utils/neverthrow-extensions'
@@ -15,7 +15,7 @@ export const createDependencyNamespace = (namespace: string) => {
   const setDependencyScope = (scope: DependencyScope) => getNamespace(namespace).set(dependencyScopeKey, scope)
 
   const setupChildContext = <T>(cb: () => Promise<T>) =>
-    bindNamespace(() => {
+    ns.runPromise(() => {
       const scope = getDependencyScope()
       if (!scope) { throw new Error('No namespace/dependencyScope found, are we in a test runner?') }
 
@@ -25,7 +25,7 @@ export const createDependencyNamespace = (namespace: string) => {
       setDependencyScope({ context: { correllationId, id } })
 
       return cb()
-    }, ns)
+    })
 
   return {
     getDependencyScope,
@@ -35,8 +35,8 @@ export const createDependencyNamespace = (namespace: string) => {
   }
 }
 
-export const bindNamespace = <TRet>(next: () => Promise<TRet>, ns: any) =>
-  new Promise<TRet>(ns.bind((resolve: any, reject: any) => next().then(resolve).catch(reject)))
+export const bindNamespace = <TRet>(next: () => Promise<TRet>, ns: Namespace) =>
+  new Promise<TRet>(ns.bind((resolve: any, reject: any) => next().then(resolve).catch(reject), ns.createContext()))
 
 export const generateConfiguredHandler = <TInput, TDependencies extends { db: any }, TOutput, TErr>(
   // Have to specify name as we don't use classes to retrieve the name from
