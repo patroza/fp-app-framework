@@ -14,8 +14,13 @@ export default class SimpleContainer {
     return instance
   }
 
+  public tryGetF<T>(key: T) {
+    const instance = this.factories.get(key)() as T
+    return instance
+  }
+
   public getF<T>(key: T) {
-    const f = this.factories.get(key)() as T
+    const f = this.tryGetF<T>(key)
     if (!f) { throw new Error(`could not resolve ${key}`) }
     return f
   }

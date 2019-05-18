@@ -1,3 +1,4 @@
+import { RequestContextKey } from '@/ITP/usecases/types'
 import { Namespace } from 'cls-hooked'
 import Koa from 'koa'
 import { Result } from 'neverthrow'
@@ -6,7 +7,6 @@ import { calculateElapsed, logger } from '../utils'
 import { flatMap, PipeFunction, startWithVal } from '../utils/neverthrow-extensions'
 import { CouldNotAquireDbLockError, OptimisticLockError } from './diskdb'
 import { ConnectionError, RecordNotFound } from './errors'
-import { RequestContextBase } from './misc'
 import SimpleContainer from './SimpleContainer'
 
 export const generateKoaHandler = <I, T, E extends ErrorBase, E2 extends ValidationError>(
@@ -48,7 +48,7 @@ export const setupNamespace = (
   ns.bindEmitter(ctx.req)
   ns.bindEmitter(ctx.res)
 
-  const context = container.get<RequestContextBase>('context')
+  const context = container.getF(RequestContextKey)
   const correllationId = ctx.get('X-Request-ID') || context.id
   ctx.set('X-Request-Id', correllationId)
   Object.assign(context, { correllationId })

@@ -1,3 +1,4 @@
+import { RequestContextKey } from '@/ITP/usecases/types'
 import { createNamespace, getNamespace, Namespace } from 'cls-hooked'
 import { benchLog, logger } from '../utils'
 import { generateShortUuid } from '../utils/generateUuid'
@@ -13,13 +14,13 @@ export const createDependencyNamespace = (namespace: string) => {
   const getDependencyScope = (): DependencyScope => getNamespace(namespace).get(dependencyScopeKey)
   const setDependencyScope = (scope: DependencyScope) => getNamespace(namespace).set(dependencyScopeKey, scope)
   const container = new SimpleContainer(getDependencyScope, setDependencyScope)
-  container.registerScoped<RequestContextBase>('context', () => {
+  container.registerScopedF<RequestContextBase>(RequestContextKey, () => {
     const id = generateShortUuid()
     return { id, correllationId: id }
   })
 
   const bindLogger = (fnc: (...args2: any[]) => void) => (...args: any[]) => {
-    const context = container.tryGet<RequestContextBase>('context')
+    const context = container.tryGetF(RequestContextKey)
     // tslint:disable-next-line:no-console
     if (!context) { return fnc('[root context]', ...args) }
     // tslint:disable-next-line:no-console
@@ -31,10 +32,10 @@ export const createDependencyNamespace = (namespace: string) => {
 
   const setupChildContext = <T>(cb: () => Promise<T>) =>
     ns.runPromise(() => {
-      let context = container.get<RequestContextBase>('context')
+      let context = container.getF(RequestContextKey)
       const { correllationId, id } = context
       container.createScope()
-      context = container.get('context')
+      context = container.getF(RequestContextKey)
       Object.assign(context, { correllationId: correllationId || id })
 
       return cb()
