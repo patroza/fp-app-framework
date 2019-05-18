@@ -263,7 +263,7 @@ export const liftType = <T>() => <TInput extends T>(e: TInput) => e as T
 // Experiment
 
 // Very nasty, need to find a cleaner approach
-export const anyTrue = <TErr= any>(...mappers: any[]): Result<boolean, TErr> => {
+export const anyTrue = <TErr = any>(...mappers: any[]): Result<boolean, TErr> => {
   let hasChanged = false
 
   const mapHasChanged = map(a => a ? hasChanged = true : null) as any
@@ -324,7 +324,7 @@ export function pipe2(...pipes: any[]) {
 }
 
 // helper for addressing some issues with syntax highlighting in editor when using multiple generics
-export type AnyResult<T= any, TErr= any> = Result<T, TErr>
+export type AnyResult<T = any, TErr = any> = Result<T, TErr>
 
 // We create tuples in reverse, under the assumption that the further away we are
 // from previous statements, the less important their output becomes..

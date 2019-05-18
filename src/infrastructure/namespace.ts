@@ -1,4 +1,6 @@
-import { createNamespace, getNamespace, Namespace } from 'cls-hooked'
+import chalk from 'chalk'
+import { createNamespace, getNamespace } from 'cls-hooked'
+import format from 'date-fns/format'
 import { EventEmitter } from 'events'
 import { benchLog, logger } from '../utils'
 import { generateShortUuid } from '../utils/generateUuid'
@@ -7,9 +9,6 @@ import { UnitOfWork } from './context.base'
 import { DbError } from './errors'
 import { RequestContextBase } from './misc'
 import SimpleContainer, { DependencyScope, getRegisteredHandlers, UsecaseHandlerTuple } from './SimpleContainer'
-
-import chalk from 'chalk'
-import format from 'date-fns/format'
 
 export const createDependencyNamespace = (namespace: string, requestScopeKey: RequestContextBase, uowKey: UnitOfWork) => {
   const ns = createNamespace(namespace)
