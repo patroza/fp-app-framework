@@ -7,24 +7,32 @@ export default class SimpleContainer {
   constructor(private getDependencyScope: () => DependencyScope, private setDependencyScope: (scope: DependencyScope) => void) { }
 
   public getC<T>(key: Constructor<T>): T {
+    assert.isNotNull({ key })
+
     const instance = this.tryGetC<T>(key)
     if (!instance) { throw new Error(`could not resolve ${key}`) }
     return instance
   }
 
   public tryGetC<T>(key: Constructor<T>): T {
+    assert.isNotNull({ key })
+
     const factory = this.factories.get(key)
     const instance = factory() as T
     return instance
   }
 
   public tryGetF<T>(key: T) {
+    assert.isNotNull({ key })
+
     const factory = this.factories.get(key)
     const instance = factory() as T
     return instance
   }
 
   public getF<T>(key: T) {
+    assert.isNotNull({ key })
+
     const f = this.tryGetF<T>(key)
     if (!f) { throw new Error(`could not resolve ${key}`) }
     return f
@@ -39,6 +47,7 @@ export default class SimpleContainer {
   }
 
   public registerTransientC<T>(key: Constructor<T>, factory: () => T) {
+    assert.isNotNull({ key, factory })
     this.factories.set(key, factory)
   }
 
@@ -58,6 +67,7 @@ export default class SimpleContainer {
   }
 
   public registerTransientF<T>(key: T, factory: () => T) {
+    assert.isNotNull({ key, factory })
     this.factories.set(key, factory)
   }
 
@@ -108,7 +118,6 @@ export default class SimpleContainer {
   //   const instance = factory() as T
   //   return instance
   // }
-
 }
 
 const tryOrNull = <T, T2>(f: () => T | undefined, f2: (i: T) => T2) => {
