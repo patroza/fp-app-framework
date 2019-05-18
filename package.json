@@ -10,7 +10,7 @@
     "date-fns": "^1.30.1",
     "flatted": "^2.0.0",
     "invariant": "^2.2.4",
-    "joi": "^14.3.1",
+    "@hapi/joi": "^15.0.3",
     "koa": "^2.7.0",
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
