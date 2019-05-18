@@ -1,3 +1,5 @@
+import { PipeFunction } from '../utils/neverthrow-extensions'
+
 export default class SimpleContainer {
   private factories = new Map()
   private singletonScope = new DependencyScope()
@@ -93,3 +95,20 @@ export class DependencyScope {
 }
 
 export const generateKey = <T>(): T => (() => { throw new Error('not implemented function' )}) as any
+
+type WithDependencies<TDependencies, T> = (deps: TDependencies) => T
+
+// tslint:disable:max-line-length
+export const setup = <TDependencies, TInput, TOutput, TError>(handler: WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>): [WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>, PipeFunction<TInput, TOutput, TError>] => {
+  return [handler, generateKey<ReturnType<typeof handler>>()]
+}
+
+export const setupWithDependenciesInt = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TError>(
+  handler: WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>,
+): [WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>, PipeFunction<TInput, TOutput, TError>, TDependencies] => {
+  // TODO: store deps on key? But then key and deps are coupled
+  return [handler, generateKey<ReturnType<typeof handler>>(), deps]
+}
+
+export const setupWithExtraDependencies = <TExtraDependencies>(extraDeps: TExtraDependencies) =>
+  <TDeps>(deps: TDeps) => setupWithDependenciesInt({...extraDeps, ...deps})
