@@ -3,7 +3,7 @@ import chalk from 'chalk'
 export const asWritable = <T>(obj: T) => obj as Writeable<T>
 export type Writeable<T> = { -readonly [P in keyof T]-?: T[P] }
 
-type logger = Pick<typeof console, 'log' | 'error' | 'warn'>
+type logger = Pick<typeof console, 'log' | 'error' | 'warn' | 'debug'>
 
 export let logger: logger = console
 export const setLogger = (l: logger) => logger = l

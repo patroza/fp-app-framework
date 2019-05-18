@@ -8,7 +8,8 @@ import { flatMap, flatTee, liftType, mapErr, PipeFunction } from '../utils/never
 import { UnitOfWork } from './context.base'
 import { DbError } from './errors'
 import { RequestContextBase } from './misc'
-import SimpleContainer, { DependencyScope, getRegisteredHandlers, UsecaseHandlerTuple } from './SimpleContainer'
+import { getRegisteredHandlers, UsecaseHandlerTuple } from './requestHandlers'
+import SimpleContainer, { DependencyScope } from './SimpleContainer'
 
 export const createDependencyNamespace = (namespace: string, requestScopeKey: RequestContextBase, uowKey: UnitOfWork) => {
   const ns = createNamespace(namespace)
@@ -73,7 +74,12 @@ export const createDependencyNamespace = (namespace: string, requestScopeKey: Re
   }
 }
 
-export const generateConfiguredHandler = <TInput, TOutput, TErr>(
+// tslint:disable-next-line:max-line-length
+export type getHandlerType = <TDependencies, TInput, TOutput, TError>(usecaseHandler: UsecaseHandlerTuple<TDependencies, TInput, TOutput, TError>) => NamedRequestHandler<TInput, TOutput, TError>
+
+type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<TInput, TOutput, TErr | DbError> & { $name: string, $isCommand: boolean }
+
+const generateConfiguredHandler = <TInput, TOutput, TErr>(
   // Have to specify name as we don't use classes to retrieve the name from
   name: string,
   getFunc: () => PipeFunction<TInput, TOutput, TErr>,
@@ -108,11 +114,6 @@ export const generateConfiguredHandler = <TInput, TOutput, TErr>(
 
   return handler
 }
-
-// tslint:disable-next-line:max-line-length
-export type getHandlerType = <TDependencies, TInput, TOutput, TError>(usecaseHandler: UsecaseHandlerTuple<TDependencies, TInput, TOutput, TError>) => NamedRequestHandler<TInput, TOutput, TError>
-
-export type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<TInput, TOutput, TErr | DbError> & { $name: string, $isCommand: boolean }
 
 const resolveDependenciesImpl = (container: SimpleContainer) => <TDependencies>(deps: TDependencies) => Object.keys(deps).reduce((prev, cur) => {
   const dAny = deps as any

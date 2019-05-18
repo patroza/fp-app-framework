@@ -2,6 +2,7 @@ import chalk from 'chalk'
 import { EventEmitter } from 'events'
 import Koa from 'koa'
 import { Result } from 'neverthrow'
+import onFinished from 'on-finished'
 import { CombinedValidationError, ErrorBase, FieldValidationError, ForbiddenError, ValidationError } from '../errors'
 import { calculateElapsed, logger } from '../utils'
 import { flatMap, PipeFunction, startWithVal } from '../utils/neverthrow-extensions'
@@ -57,14 +58,25 @@ export const setupNamespace = (
 
 export const logRequestTime: Koa.Middleware = async (ctx, next) => {
   const reqPath = `${ctx.method} ${ctx.path}`
-  logger.log(`${chalk.bold(reqPath)} Start request`)
+  const reqHeaders = ctx.headers
+  logger.log(`${chalk.bold(reqPath)} Start request`, { headers: JSON.parse(JSON.stringify(reqHeaders)) })
+
+  onFinished(ctx.res, () => {
+    const elapsed = calculateElapsed(ctx['start-time'])
+    const elapsedFormatted = `${elapsed}ms`
+    logger.debug(`${chalk.bgWhite.black(elapsedFormatted)} ${chalk.bold(reqPath)} Closed request`)
+  })
+
   await next()
-  const contentLength = ctx.response.get('Content-Length')
+
+  const headers = ctx.response.headers
   const status = ctx.status
-  const type = ctx.response.get('Content-Type')
-  const elapsed = calculateElapsed(ctx['start-time'])
-  const elapsedFormatted = `${elapsed}ms`
-  logger.log(`${chalk.bgWhite.black(elapsedFormatted)} ${chalk.bold(reqPath)} End request`, { contentLength, status, type })
+  const elapsed2 = calculateElapsed(ctx['start-time'])
+  const elapsedFormatted2 = `${elapsed2}ms`
+  logger.log(
+    `${chalk.bgWhite.black(elapsedFormatted2)} ${chalk.bold(reqPath)} Finished processing`,
+    JSON.parse(JSON.stringify({ status, headers })),
+  )
 }
 
 const defaultErrorPassthrough = () => (err: any) => err

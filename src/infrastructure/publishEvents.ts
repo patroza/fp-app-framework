@@ -3,7 +3,7 @@ import { publishEventsKey } from '../infrastructure/domainEventHandler'
 import { DomainEventReturnType, IntegrationEventReturnType } from '../infrastructure/misc'
 import { isTruthyFilter, logger } from '../utils'
 import { PipeFunction } from '../utils/neverthrow-extensions'
-import { UsecaseHandlerTuple } from './SimpleContainer'
+import { UsecaseHandlerTuple } from './requestHandlers'
 
 const publishEvents = (handlers: EventHandlerMap, resolve: CreateHandlerType): typeof publishEventsKey =>
   async events => {
