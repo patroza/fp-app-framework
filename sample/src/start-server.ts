@@ -3,13 +3,15 @@ import { logger, setLogger } from 'fp-app-framework/src/utils'
 import Koa from 'koa'
 import bodyParser from 'koa-bodyparser'
 import KoaRouter from 'koa-router'
-import createITPRouter from './feature.router'
 import createRoot from './root'
+import createTrainTripRouter from './TrainTrip.router'
 
 const startServer = () => {
-  const { bindLogger, setDependencyScope, ns, usecases } = createRoot()
+  const { bindLogger, setupRootContext, getHandler } = createRoot()
 
   setLogger(({
+    // tslint:disable-next-line:no-console
+    debug: bindLogger(console.debug),
     // tslint:disable-next-line:no-console
     error: bindLogger(console.error),
     // tslint:disable-next-line:no-console
@@ -18,13 +20,13 @@ const startServer = () => {
     warn: bindLogger(console.warn),
   }))
 
-  const itpRouter = createITPRouter(usecases.feature)
+  const trainTripRouter = createTrainTripRouter(getHandler)
   const rootRouter = new KoaRouter()
-    .use('/itp', itpRouter.allowedMethods(), itpRouter.routes())
+    .use('/train-trip', trainTripRouter.allowedMethods(), trainTripRouter.routes())
 
   const app = new Koa()
     .use(saveStartTime)
-    .use(setupNamespace({ setDependencyScope, ns }))
+    .use(setupNamespace({ setupRootContext }))
     .use(logRequestTime)
     .use(bodyParser())
     .use(rootRouter.allowedMethods())

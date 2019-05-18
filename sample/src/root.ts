@@ -1,68 +1,65 @@
-import { createDependencyNamespace, generateConfiguredHandler } from 'fp-app-framework/src/infrastructure/namespace'
-
-import { RequestContextBase } from '@fp-app-framework/infrastructure/misc'
-import create from './feature/usecases/create'
-import get from './feature/usecases/get'
+import { UnitOfWork } from 'fp-app-framework/src/infrastructure/context.base'
+import DomainEventHandler, { executePostCommitHandlersKey, publishEventsKey } from 'fp-app-framework/src/infrastructure/domainEventHandler'
+import executePostCommitHandlers from 'fp-app-framework/src/infrastructure/executePostCommitHandlers'
+import { createDependencyNamespace } from 'fp-app-framework/src/infrastructure/namespace'
+import publishEvents from 'fp-app-framework/src/infrastructure/publishEvents'
+import { getRegisteredEvents } from 'fp-app-framework/src/infrastructure/requestHandlers'
+import './TrainTrip/eventhandlers' // To be ble to auto register them :/
+import { getPricingFake, getTemplateFake, getTrip, sendCloudSyncFake } from './TrainTrip/infrastructure/api'
+import DiskDBContext from './TrainTrip/infrastructure/TrainTripContext.disk'
+import TrainTripPublisherInMemory from './TrainTrip/infrastructure/trainTripPublisher.inMemory'
+import { DbContextKey, getTripKey, RequestContextKey, sendCloudSyncKey, TrainTripPublisherKey } from './TrainTrip/usecases/types'
 
 const createRoot = () => {
-  const { getDependencyScope, setDependencyScope, ns } = createDependencyNamespace(namespace)
-  const bindLogger = (fnc: (...args2: any[]) => void) => (...args: any[]) => {
-    const scope = getDependencyScope()
-    // tslint:disable-next-line:no-console
-    if (!scope) { return fnc('[root context]', ...args) }
-    // tslint:disable-next-line:no-console
-    const id = scope.context.correllationId === scope.context.id
-      ? scope.context.id
-      : `${scope.context.id} (${scope.context.correllationId})`
-    return fnc(`[${id}]`, ...args)
-  }
+  const {
+    bindLogger,
+    container,
+    getHandler,
+    setupRootContext,
+    setupChildContext,
+  } = createDependencyNamespace(
+    namespace,
+    RequestContextKey,
+    DbContextKey as any as UnitOfWork,
+  )
 
-  //////////////////
-  // singleton dependencies
-  // EventHandler dependencies
+  container.registerScopedF(DbContextKey, () => new DiskDBContext(container.getC(DomainEventHandler)))
 
-  //////////////////
-  // scoped dependencies
-  const createScopedDependencies = () => {
-    const scope = getDependencyScope()
-
-    // Usecases and Domain Events within the same Request, should execute within the same Dependency scope
-    // Integration Events should execute in a new scope.
-    // Circular dependencies between eventHandlers -> db -> publishEvents -> eventHandlers
-    // const eventHandlerMap = configureFeatureEventhandlers(() => ({ context: scope.context, db }))
-    // const publishEvents = publishEventsUnconfigured(eventHandlerMap)
-    // const eventHandler = new DomainEventHandler(
-    //   publishEvents,
-    //   postCommitHandlers => executePostCommitHandlers(postCommitHandlers, setupChildContext),
-    // )
-    // const db = new DiskDBContext(eventHandler)
-
-    const enhancedScope = Object.assign(scope) // , { db }
-    return enhancedScope
-  }
-
-  const usecases = {
-    feature: configureFeatureUsecases(createScopedDependencies),
-  }
+  container.registerSingletonF(sendCloudSyncKey, () => sendCloudSyncFake({ cloudUrl: '' }))
+  container.registerSingletonF(
+    getTripKey,
+    () => {
+      const { getTrip: getTripF } = createInventoryClient({ templateApiUrl: 'http://localhost:8110' })
+      return getTripF
+    },
+  )
+  container.registerSingletonF(executePostCommitHandlersKey, () => executePostCommitHandlers({ setupChildContext }))
+  container.registerSingletonF(
+    publishEventsKey,
+    () => publishEvents(new Map(getRegisteredEvents()), hndlr => container.getF(hndlr[1])),
+  )
+  container.registerSingletonC(
+    DomainEventHandler,
+    () => new DomainEventHandler(container.getF(publishEventsKey), container.getF(executePostCommitHandlersKey)),
+  )
+  container.registerSingletonF(TrainTripPublisherKey, () => new TrainTripPublisherInMemory(getHandler))
 
   return {
     bindLogger,
-    ns,
-    setDependencyScope,
-    usecases,
+    getHandler,
+    setupRootContext,
   }
 }
 
-const namespace = 'fw-itp-service'
+const namespace = 'fw-trainTrip-service'
 
 export default createRoot
 
-interface ScopedDependencies { context: RequestContextBase, db: any }
-
-const configureFeatureUsecases = (
-  createScopedDependencies: () => ScopedDependencies,
-) => ({
-  get: generateConfiguredHandler('get', get, createScopedDependencies),
-
-  create: generateConfiguredHandler('create', create, createScopedDependencies, true),
-})
+const createInventoryClient = ({ templateApiUrl }: { templateApiUrl: string }) => {
+  const getTemplate = getTemplateFake({ templateApiUrl })
+  return {
+    getPricing: getPricingFake({ getTemplate, pricingApiUrl: templateApiUrl }),
+    getTemplate,
+    getTrip: getTrip({ getTemplate }),
+  }
+}

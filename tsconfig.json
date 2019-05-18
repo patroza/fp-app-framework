@@ -16,7 +16,10 @@
     "paths": {
       "*": [
         "types/*"
-      ]
+      ],
+      "@/*": [
+        "./sample/src/*"
+      ],
     },
     "esModuleInterop": true,
     "removeComments": true,
@@ -26,7 +29,6 @@
   },
   "exclude": [
     "dist",
-    "node_modules",
-    "sample"
+    "node_modules"
   ]
 }

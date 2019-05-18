@@ -1,0 +1,64 @@
+import { CombinedValidationError, combineValidationErrors, toFieldError, ValidationError } from 'fp-app-framework/src/errors'
+import { ApiError, DbError } from 'fp-app-framework/src/infrastructure/errors'
+import { createCommandWithDeps } from 'fp-app-framework/src/infrastructure/requestHandlers'
+import { flatMap, map, mapErr, pipe, PipeFunction, resultTuple, tee, toTup } from 'fp-app-framework/src/utils/neverthrow-extensions'
+import { err, ok, Result } from 'neverthrow'
+import FutureDate from '../FutureDate'
+import PaxDefinition, { Pax } from '../PaxDefinition'
+import { CreateTrainTripInfo } from '../TrainTrip'
+import { DbContextKey, defaultDependencies, getTripKey } from './types'
+
+const createCommand = createCommandWithDeps({ db: DbContextKey, getTrip: getTripKey, ...defaultDependencies })
+
+const createTrainTrip = createCommand<Input, string, CreateError>('createTrainTrip',
+  ({ db, getTrip }) => pipe(
+    flatMap(validateInput),
+    flatMap(toTup(({ templateId }) => getTrip(templateId))),
+    map(([trip, proposal]) => trip.createTrainTrip(proposal)),
+    map(tee(db.trainTrips.add)),
+    map(trainTrip => trainTrip.id),
+  ),
+)
+
+export default createTrainTrip
+export interface Input { templateId: string, pax: Pax, startDate: string }
+
+const validateInput: PipeFunction<Input, CreateTrainTripInfo, ValidationError> =
+  pipe(
+    flatMap(({ pax, startDate, templateId }) =>
+      resultTuple(
+        PaxDefinition.create(pax).pipe(mapErr(toFieldError('pax'))),
+        FutureDate.create(startDate).pipe(mapErr(toFieldError('startDate'))),
+        validateString(templateId).pipe(mapErr(toFieldError('templateId'))),
+      ).pipe(mapErr(combineValidationErrors)),
+    ),
+
+    // Alt 1
+    // flatMap(input =>
+    //   resultTuple3(
+    //     input,
+    //     ({ pax }) => PaxDefinition.create(pax).pipe(mapErr(toFieldError('pax'))),
+    //     ({ startDate }) => FutureDate.create(startDate).pipe(mapErr(toFieldError('startDate'))),
+    //     ({ templateId }) => validateString(templateId).pipe(mapErr(toFieldError('templateId'))),
+    //   ).mapErr(combineValidationErrors),
+    // ),
+
+    // Alt 2
+    // Why doesn't this work?
+    // flatMap(resultTuple2(
+    //   ({pax}) => PaxDefinition.create(pax).pipe(mapErr(toFieldError('pax'))),
+    //   ({startDate}) => FutureDate.create(startDate).pipe(mapErr(toFieldError('startDate'))),
+    //   ({templateId}) => validateString(templateId).pipe(mapErr(toFieldError('templateId'))),
+    // )),
+    // mapErr(combineValidationErrors),
+
+    map(([pax, startDate, templateId]) => ({
+      pax, startDate, templateId,
+    })),
+  )
+
+// TODO
+const validateString = <T extends string>(str: string): Result<T, ValidationError> =>
+  str ? ok(str as T) : err(new ValidationError('not a valid str'))
+
+type CreateError = CombinedValidationError | ValidationError | ApiError | DbError
