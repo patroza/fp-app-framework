@@ -1,10 +1,10 @@
 import { err, ok, Result } from 'neverthrow'
-import { PublishEventsType } from '../infrastructure/domainEventHandler'
+import { PublishEventsTypeKey } from '../infrastructure/domainEventHandler'
 import { DomainEventReturnType, IntegrationEventReturnType } from '../infrastructure/misc'
 import { isTruthyFilter, logger } from '../utils'
 import { PipeFunction } from '../utils/neverthrow-extensions'
 
-const publishEvents = (handlers: EventHandlerMap): PublishEventsType => async events => {
+const publishEvents = (handlers: EventHandlerMap): typeof PublishEventsTypeKey => async events => {
   const values: DomainEventReturnType[] = []
   for (const evt of events) {
     const r = await processEvent(evt, handlers)

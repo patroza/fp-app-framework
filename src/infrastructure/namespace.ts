@@ -1,4 +1,4 @@
-import { RequestContextKey } from '@/ITP/usecases/types'
+import { ReadonlyContext, RequestContextKey } from '@/ITP/usecases/types'
 import { createNamespace, getNamespace, Namespace } from 'cls-hooked'
 import { benchLog, logger } from '../utils'
 import { generateShortUuid } from '../utils/generateUuid'
@@ -59,22 +59,22 @@ export const createDependencyNamespace = (namespace: string) => {
 export const bindNamespace = <TRet>(next: () => Promise<TRet>, ns: Namespace) =>
   new Promise<TRet>(ns.bind((resolve: any, reject: any) => next().then(resolve).catch(reject), ns.createContext()))
 
-export const generateConfiguredHandler = <TInput, TDependencies extends { db: any }, TOutput, TErr>(
+export const generateConfiguredHandler = <TInput, TOutput, TErr>(
   // Have to specify name as we don't use classes to retrieve the name from
   name: string,
-  func: (deps: TDependencies) => PipeFunction<TInput, TOutput, TErr>,
-  resolveDependencies: () => TDependencies,
+  getFunc: () => PipeFunction<TInput, TOutput, TErr>,
+  getDB: () => ReadonlyContext,
   isCommand = false,
 ): NamedRequestHandler<TInput, TOutput, TErr | DbError> => {
   const requestType = isCommand ? 'Command' : 'Query'
   const prefix = `${name} ${requestType}`
   const handler = (input: TInput) => benchLog(async () => {
-    const deps = resolveDependencies()
-    const execFunc = func(deps)
+    const execFunc = getFunc()
     logger.log(`${prefix} input`, input)
 
     if (isCommand) {
-      const writableDb = deps.db as any as UnitOfWork
+      const db = getDB()
+      const writableDb = db as UnitOfWork
       const result = await execFunc(input)
         .pipe(
           mapErr(liftType<TErr | DbError>()),

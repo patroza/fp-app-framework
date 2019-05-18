@@ -1,13 +1,14 @@
 import { ok, Result } from 'neverthrow'
 import { PipeFunction } from '../utils/neverthrow-extensions'
 import { IntegrationEventReturnType } from './misc'
+import { generateKey } from './SimpleContainer'
 
 // tslint:disable-next-line:max-classes-per-file
 export default class DomainEventHandler {
   private events: any[] = []
   private integrationEvents: IntegrationEventReturnType[] = []
 
-  constructor(private readonly publishEvents: PublishEventsType, private readonly executePostCommitHandlers: ExecutePostCommitHandlers) { }
+  constructor(private readonly publishEvents: typeof PublishEventsTypeKey, private readonly executePostCommitHandlers: ExecutePostCommitHandlers) { }
 
   public async postEvents(getAndClearEvents: () => any[]): Promise<Result<IntegrationEventReturnType[], any>> {
     const updateEvents = () => this.events = this.events.concat(getAndClearEvents())
@@ -38,5 +39,5 @@ export default class DomainEventHandler {
   }
 }
 
-export type PublishEventsType = PipeFunction<any[], IntegrationEventReturnType[], any>
+export const PublishEventsTypeKey = generateKey<PipeFunction<any[], IntegrationEventReturnType[], any>>()
 export type ExecutePostCommitHandlers = (postCommitEvents: IntegrationEventReturnType[]) => void
