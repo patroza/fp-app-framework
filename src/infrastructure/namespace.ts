@@ -74,9 +74,6 @@ export const createDependencyNamespace = (namespace: string, requestScopeKey: Re
   }
 }
 
-export const bindNamespace = <TRet>(next: () => Promise<TRet>, ns: Namespace) =>
-  new Promise<TRet>(ns.bind((resolve: any, reject: any) => next().then(resolve).catch(reject), ns.createContext()))
-
 export const generateConfiguredHandler = <TInput, TOutput, TErr>(
   // Have to specify name as we don't use classes to retrieve the name from
   name: string,
