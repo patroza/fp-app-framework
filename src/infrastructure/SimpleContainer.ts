@@ -1,5 +1,6 @@
 import assert from '../utils/assert'
 import { PipeFunction } from '../utils/neverthrow-extensions'
+import { registerEvent } from './eventRegistry'
 
 export default class SimpleContainer {
   private factories = new Map()
@@ -181,9 +182,31 @@ export const setupWithDependenciesInt = <TDependencies>(deps: TDependencies) =>
 
 export type Constructor<T> = new (...args: any[]) => T
 
+export const getRegisteredHandlers = () => [...dependencyMap.entries()]
+
+// tslint:disable-next-line:max-line-length
+export const createCommandWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
+  const setupWithDeps = setupWithDependenciesInt(deps)
+  const resolved = setupWithDeps(name, 'COMMAND')(handler)
+  return resolved
+}
+
+// tslint:disable-next-line:max-line-length
+export const createQueryWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
+  const setupWithDeps = setupWithDependenciesInt(deps)
+  const resolved = setupWithDeps(name, 'QUERY')(handler)
+  return resolved
+}
+
+// tslint:disable-next-line:max-line-length
+export const createEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(event: Constructor<TInput>, name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
+  const setupWithDeps = setupWithDependenciesInt(deps)
+  const resolved = setupWithDeps(`on${event.name}${name}`, 'EVENT')(handler)
+  registerEvent(event, resolved)
+  return resolved
+}
+
 // export const setupWithDependencies = setupWithExtraDependencies({ context: RequestContextKey })
 
-export const setupWithExtraDependencies = <TExtraDependencies>(extraDeps: TExtraDependencies) =>
-  <TDeps>(deps: TDeps) => setupWithDependenciesInt({ ...extraDeps, ...deps })
-
-export const getRegisteredHandlers = () => [...dependencyMap.entries()]
+// export const setupWithExtraDependencies = <TExtraDependencies>(extraDeps: TExtraDependencies) =>
+//   <TDeps>(deps: TDeps) => setupWithDependenciesInt({ ...extraDeps, ...deps })
