@@ -1,7 +1,9 @@
 import { IntegrationEventReturnType } from '../infrastructure/misc'
 import { benchLog, logger } from '../utils'
 
-const executePostCommitHandlers = (postCommitHandlers: IntegrationEventReturnType[], setupChildContext: <T>(cb: () => Promise<T>) => Promise<T>) => {
+const executePostCommitHandlers = (
+  {setupChildContext}: {setupChildContext: <T>(cb: () => Promise<T>) => Promise<T>},
+) => (postCommitHandlers: IntegrationEventReturnType[]) => {
   process.nextTick(async () => {
     try {
       for (const pch of postCommitHandlers) {

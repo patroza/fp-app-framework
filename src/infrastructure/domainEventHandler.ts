@@ -8,7 +8,10 @@ export default class DomainEventHandler {
   private events: any[] = []
   private integrationEvents: IntegrationEventReturnType[] = []
 
-  constructor(private readonly publishEvents: typeof PublishEventsTypeKey, private readonly executePostCommitHandlers: ExecutePostCommitHandlers) { }
+  constructor(
+    private readonly publishEvents: typeof publishEventsKey,
+    private readonly executePostCommitHandlers: typeof executePostCommitHandlersKey,
+  ) { }
 
   public async postEvents(getAndClearEvents: () => any[]): Promise<Result<IntegrationEventReturnType[], any>> {
     const updateEvents = () => this.events = this.events.concat(getAndClearEvents())
@@ -39,5 +42,5 @@ export default class DomainEventHandler {
   }
 }
 
-export const PublishEventsTypeKey = generateKey<PipeFunction<any[], IntegrationEventReturnType[], any>>()
-export type ExecutePostCommitHandlers = (postCommitEvents: IntegrationEventReturnType[]) => void
+export const publishEventsKey = generateKey<PipeFunction<any[], IntegrationEventReturnType[], any>>()
+export const executePostCommitHandlersKey = generateKey<(postCommitEvents: IntegrationEventReturnType[]) => void>()
