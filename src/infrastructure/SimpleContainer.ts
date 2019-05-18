@@ -4,7 +4,7 @@ import { PipeFunction } from '../utils/neverthrow-extensions'
 export default class SimpleContainer {
   private factories = new Map()
   private singletonScope = new DependencyScope()
-  constructor(private getDependencyScope: () => DependencyScope, private setDependencyScope: (scope: DependencyScope) => void) {}
+  constructor(private getDependencyScope: () => DependencyScope, private setDependencyScope: (scope: DependencyScope) => void) { }
 
   public getC<T>(key: Constructor<T>): T {
     const instance = this.tryGetC<T>(key)
@@ -43,17 +43,17 @@ export default class SimpleContainer {
   }
 
   public registerScopedC<T>(key: Constructor<T>, factory: () => T) {
-    assert.isNotNull({key, factory})
+    assert.isNotNull({ key, factory })
     this.factories.set(key, () => tryOrNull(() => this.getDependencyScope(), s => s.getOrCreate(key, factory)))
   }
 
   public registerSingletonC<T>(key: Constructor<T>, factory: () => T) {
-    assert.isNotNull({key, factory})
+    assert.isNotNull({ key, factory })
     this.factories.set(key, () => this.singletonScope.getOrCreate(key, factory))
   }
 
   public registerInstanceC<T>(key: Constructor<T>, instance: T) {
-    assert.isNotNull({key, instance})
+    assert.isNotNull({ key, instance })
     this.factories.set(key, () => this.singletonScope.getOrCreate(key, () => instance))
   }
 
@@ -62,17 +62,17 @@ export default class SimpleContainer {
   }
 
   public registerScopedF<T>(key: T, factory: () => T) {
-    assert.isNotNull({key, factory})
+    assert.isNotNull({ key, factory })
     this.factories.set(key, () => tryOrNull(() => this.getDependencyScope(), s => s.getOrCreate(key, factory)))
   }
 
   public registerSingletonF<T>(key: T, factory: () => T) {
-    assert.isNotNull({key, factory})
+    assert.isNotNull({ key, factory })
     this.factories.set(key, () => this.singletonScope.getOrCreate(key, factory))
   }
 
   public registerInstanceF<T>(key: T, instance: T) {
-    assert.isNotNull({key, instance})
+    assert.isNotNull({ key, instance })
     this.factories.set(key, () => this.singletonScope.getOrCreate(key, () => instance))
   }
 
@@ -143,15 +143,17 @@ export const generateKey = <T>(name?: string): T => {
   return f as any
 }
 
-type WithDependencies<TDependencies, T> = (deps: TDependencies) => T
+export type WithDependencies<TDependencies, T> = (deps: TDependencies) => T
+type HandlerType = 'COMMAND' | 'QUERY' | 'EVENT'
+
+export type UsecaseWithDependencies<TDependencies, TInput, TOutput, TError> = WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>
 
 // tslint:disable-next-line:max-line-length
 export type UsecaseHandlerTuple<TDependencies, TInput, TOutput, TError> = [
-  WithDependencies<TDependencies,
-  PipeFunction<TInput, TOutput, TError>>,
+  UsecaseWithDependencies<TDependencies, TInput, TOutput, TError>,
   PipeFunction<TInput, TOutput, TError>,
   TDependencies,
-  {name: string, type: 'COMMAND' | 'QUERY'}
+  { name: string, type: HandlerType }
 ]
 
 // tslint:disable:max-line-length
@@ -159,25 +161,29 @@ export type UsecaseHandlerTuple<TDependencies, TInput, TOutput, TError> = [
 //   return [handler, generateKey<ReturnType<typeof handler>>()]
 // }
 
+// Make variations for: createCommand, query and event, with auto stuff.
+
 const dependencyMap = new Map()
 
-export const setupWithDependenciesInt = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TError>(
-  name: string,
-  type: 'COMMAND' | 'QUERY',
-  handler: WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>,
-): UsecaseHandlerTuple<TDependencies, TInput, TOutput, TError> => {
-  // TODO: store deps on key? But then key and deps are coupled
-  assert(!Object.keys(deps).some(x => !(deps as any)[x]), 'Dependencies must not be null')
+export const setupWithDependenciesInt = <TDependencies>(deps: TDependencies) =>
+  (name: string, type: HandlerType) =>
+    <TInput, TOutput, TError>(
+      handler: WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>,
+    ): UsecaseHandlerTuple<TDependencies, TInput, TOutput, TError> => {
+      // TODO: store deps on key? But then key and deps are coupled
+      assert(!Object.keys(deps).some(x => !(deps as any)[x]), 'Dependencies must not be null')
 
-  const key = generateKey<ReturnType<typeof handler>>(name)
-  const r = [handler, key, deps, { name, type }]
-  dependencyMap.set(handler, r)
-  return r as any
-}
+      const key = generateKey<ReturnType<typeof handler>>(name)
+      const r = [handler, key, deps, { name, type }]
+      dependencyMap.set(handler, r)
+      return r as any
+    }
+
+export type Constructor<T> = new (...args: any[]) => T
+
+// export const setupWithDependencies = setupWithExtraDependencies({ context: RequestContextKey })
 
 export const setupWithExtraDependencies = <TExtraDependencies>(extraDeps: TExtraDependencies) =>
-  <TDeps>(deps: TDeps) => setupWithDependenciesInt({...extraDeps, ...deps})
-
-type Constructor<T> = new (...args: any[]) => T
+  <TDeps>(deps: TDeps) => setupWithDependenciesInt({ ...extraDeps, ...deps })
 
 export const getRegisteredHandlers = () => [...dependencyMap.entries()]

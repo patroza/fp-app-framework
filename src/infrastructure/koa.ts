@@ -22,13 +22,13 @@ export const generateKoaHandler = <I, T, E extends ErrorBase, E2 extends Validat
         flatMap(handleRequest),
       )
     result.match(t => {
-        if (ctx.method === 'POST' && t) {
-          ctx.status = 201
-          ctx.body = { id: t, self: `${ctx.path}/${t}` }
-        } else {
-          ctx.body = t
-        }
-      },
+      if (ctx.method === 'POST' && t) {
+        ctx.status = 201
+        ctx.body = { id: t, self: `${ctx.path}/${t}` }
+      } else {
+        ctx.body = t
+      }
+    },
       err => handleErrorOrPassthrough(ctx)(err) ? handleDefaultError(ctx)(err) : undefined,
     )
   } catch (err) {
@@ -40,22 +40,22 @@ export const generateKoaHandler = <I, T, E extends ErrorBase, E2 extends Validat
 export const saveStartTime: Koa.Middleware = (ctx, next) => { ctx['start-time'] = process.hrtime(); return next() }
 
 export const setupNamespace = (
-  {setupRootContext}: {
+  { setupRootContext }: {
     setupRootContext: <T>(
       cb: (context: RequestContextBase, bindEmitter: (emitter: EventEmitter) => void) => Promise<T>,
     ) => Promise<T>,
-}): Koa.Middleware => (ctx, next) => setupRootContext((context, bindEmitter) => {
-  bindEmitter(ctx.req)
-  bindEmitter(ctx.res)
+  }): Koa.Middleware => (ctx, next) => setupRootContext((context, bindEmitter) => {
+    bindEmitter(ctx.req)
+    bindEmitter(ctx.res)
 
-  const correllationId = ctx.get('X-Request-ID') || context.id
-  ctx.set('X-Request-Id', correllationId)
-  Object.assign(context, { correllationId })
+    const correllationId = ctx.get('X-Request-ID') || context.id
+    ctx.set('X-Request-Id', correllationId)
+    Object.assign(context, { correllationId })
 
-  return next()
-})
+    return next()
+  })
 
-export const logRequestTime: Koa.Middleware = async (ctx, next) =>  {
+export const logRequestTime: Koa.Middleware = async (ctx, next) => {
   const reqPath = `${ctx.method} ${ctx.path}`
   logger.log(`${chalk.bold(reqPath)} Start request`)
   await next()
