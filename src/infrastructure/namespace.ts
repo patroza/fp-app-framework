@@ -68,29 +68,32 @@ export const generateConfiguredHandler = <TInput, TOutput, TErr>(
 ): NamedRequestHandler<TInput, TOutput, TErr | DbError> => {
   const requestType = isCommand ? 'Command' : 'Query'
   const prefix = `${name} ${requestType}`
-  const handler = (input: TInput) => benchLog(async () => {
-    const execFunc = getFunc()
-    logger.log(`${prefix} input`, input)
 
-    if (isCommand) {
-      const db = getDB()
-      const writableDb = db as UnitOfWork
-      const result = await execFunc(input)
-        .pipe(
-          mapErr(liftType<TErr | DbError>()),
-          flatMap(flatTee(() => writableDb.save())),
-        )
-      logger.log(`${prefix} result`, result)
-      return result
-    } else {
+  const handler = (input: TInput) => benchLog(async () => {
+    logger.log(`${prefix} input`, input)
+    const execFunc = getFunc()
+
+    if (!isCommand) {
       const result = await execFunc(input)
       logger.log(`${prefix} result`, result)
       return result
     }
+
+    const db = getDB()
+    const writableDb = db as UnitOfWork
+    const savedResult = await execFunc(input)
+      .pipe(
+        mapErr(liftType<TErr | DbError>()),
+        flatMap(flatTee(writableDb.save)),
+      )
+    logger.log(`${prefix} result`, savedResult)
+    return savedResult
   }, prefix)
+
   handler.$name = name
   handler.$isCommand = isCommand
+
   return handler
 }
 
-type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<TInput, TOutput, TErr> & { $name: string, $isCommand: boolean }
+export type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<TInput, TOutput, TErr> & { $name: string, $isCommand: boolean }

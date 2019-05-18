@@ -145,17 +145,28 @@ export const generateKey = <T>(name?: string): T => {
 
 type WithDependencies<TDependencies, T> = (deps: TDependencies) => T
 
+// tslint:disable-next-line:max-line-length
+export type UsecaseHandlerTuple<TDependencies, TInput, TOutput, TError> = [
+  WithDependencies<TDependencies,
+  PipeFunction<TInput, TOutput, TError>>,
+  PipeFunction<TInput, TOutput, TError>,
+  TDependencies,
+  {name: string, type: 'COMMAND' | 'QUERY'}
+]
+
 // tslint:disable:max-line-length
-export const setup = <TDependencies, TInput, TOutput, TError>(handler: WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>): [WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>, PipeFunction<TInput, TOutput, TError>] => {
-  return [handler, generateKey<ReturnType<typeof handler>>()]
-}
+// export const setup = <TDependencies, TInput, TOutput, TError>(handler: WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>): [WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>, PipeFunction<TInput, TOutput, TError>] => {
+//   return [handler, generateKey<ReturnType<typeof handler>>()]
+// }
 
 export const setupWithDependenciesInt = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TError>(
+  name: string,
+  type: 'COMMAND' | 'QUERY',
   handler: WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>,
-): [WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>, PipeFunction<TInput, TOutput, TError>, TDependencies] => {
+): UsecaseHandlerTuple<TDependencies, TInput, TOutput, TError> => {
   // TODO: store deps on key? But then key and deps are coupled
   assert(!Object.keys(deps).some(x => !(deps as any)[x]), 'Dependencies must not be null')
-  return [handler, generateKey<ReturnType<typeof handler>>(), deps]
+  return [handler, generateKey<ReturnType<typeof handler>>(name), deps, { name, type }]
 }
 
 export const setupWithExtraDependencies = <TExtraDependencies>(extraDeps: TExtraDependencies) =>
