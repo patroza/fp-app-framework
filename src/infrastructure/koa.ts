@@ -1,3 +1,4 @@
+import chalk from 'chalk'
 import { EventEmitter } from 'events'
 import Koa from 'koa'
 import { Result } from 'neverthrow'
@@ -55,13 +56,15 @@ export const setupNamespace = (
 })
 
 export const logRequestTime: Koa.Middleware = async (ctx, next) =>  {
-  logger.log(`$$ ${ctx.method} ${ctx.path} Start request`)
+  const reqPath = `${ctx.method} ${ctx.path}`
+  logger.log(`${chalk.bold(reqPath)} Start request`)
   await next()
   const contentLength = ctx.response.get('Content-Length')
   const status = ctx.status
   const type = ctx.response.get('Content-Type')
   const elapsed = calculateElapsed(ctx['start-time'])
-  logger.log(`$$ ${elapsed}ms ${ctx.method} ${ctx.path} End request`, { contentLength, status, type })
+  const elapsedFormatted = `${elapsed}ms`
+  logger.log(`${chalk.bgWhite.black(elapsedFormatted)} ${chalk.bold(reqPath)} End request`, { contentLength, status, type })
 }
 
 const defaultErrorPassthrough = () => (err: any) => err

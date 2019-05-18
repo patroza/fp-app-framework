@@ -1,3 +1,5 @@
+import chalk from 'chalk'
+
 export const asWritable = <T>(obj: T) => obj as Writeable<T>
 export type Writeable<T> = { -readonly [P in keyof T]-?: T[P] }
 
@@ -29,4 +31,4 @@ export const calculateElapsed = (start: [number, number]) => {
 export const benchLog = <T>(
   wrappedFunction: () => Promise<T>,
   title?: string,
-) => bench<T>(wrappedFunction, (t, elapsed) => logger.log(`$$ ${elapsed}ms`, t), title)
+) => bench<T>(wrappedFunction, (t, elapsed) => logger.log(chalk.bgWhite.black(`${elapsed}ms`), t), title)

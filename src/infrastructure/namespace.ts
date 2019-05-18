@@ -8,6 +8,9 @@ import { DbError } from './errors'
 import { RequestContextBase } from './misc'
 import SimpleContainer, { DependencyScope, getRegisteredHandlers, UsecaseHandlerTuple } from './SimpleContainer'
 
+import chalk from 'chalk'
+import format from 'date-fns/format'
+
 export const createDependencyNamespace = (namespace: string, requestScopeKey: RequestContextBase, uowKey: UnitOfWork) => {
   const ns = createNamespace(namespace)
   const dependencyScopeKey = 'dependencyScope'
@@ -33,13 +36,13 @@ export const createDependencyNamespace = (namespace: string, requestScopeKey: Re
 
   const bindLogger = (fnc: (...args2: any[]) => void) => (...args: any[]) => {
     const context = container.tryGetF(requestScopeKey)
-    // tslint:disable-next-line:no-console
-    if (!context) { return fnc('[root context]', ...args) }
-    // tslint:disable-next-line:no-console
-    const id = context.correllationId === context.id
+    const datetime = new Date()
+    const timestamp = format(datetime, 'YYYY-MM-DD HH:mm:ss')
+    const id = context ? (context.correllationId === context.id
       ? context.id
-      : `${context.id} (${context.correllationId})`
-    return fnc(`[${id}]`, ...args)
+      : `${context.id} (${context.correllationId})`)
+      : 'root context'
+    return fnc(`${chalk.green(timestamp)} ${chalk.blue(`[${id}]`)}`, ...args)
   }
 
   const setupChildContext = <T>(cb: () => Promise<T>) =>
