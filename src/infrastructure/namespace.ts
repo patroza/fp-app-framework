@@ -1,4 +1,5 @@
 import { createNamespace, getNamespace, Namespace } from 'cls-hooked'
+import { EventEmitter } from 'events'
 import { benchLog, logger } from '../utils'
 import { generateShortUuid } from '../utils/generateUuid'
 import { flatMap, flatTee, liftType, mapErr, PipeFunction } from '../utils/neverthrow-extensions'
@@ -52,17 +53,19 @@ export const createDependencyNamespace = (namespace: string, requestScopeKey: Re
       return cb()
     })
 
-  const setupRootContext = <T>(cb: () => Promise<T>) =>
+  const setupRootContext = <T>(cb: (context: RequestContextBase, bindEmitter: (typeof ns)['bindEmitter']) => Promise<T>) =>
     ns.runPromise(() => {
       container.createScope()
-      return cb()
+      return cb(
+        container.getF(requestScopeKey),
+        (emitter: EventEmitter) => ns.bindEmitter(emitter),
+      )
     })
 
   return {
     bindLogger,
     container,
     getHandler,
-    ns,
     setupChildContext,
     setupRootContext,
   }

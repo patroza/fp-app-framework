@@ -1,5 +1,4 @@
-import { RequestContextKey } from '@/ITP/usecases/types'
-import { Namespace } from 'cls-hooked'
+import { EventEmitter } from 'events'
 import Koa from 'koa'
 import { Result } from 'neverthrow'
 import { CombinedValidationError, ErrorBase, FieldValidationError, ForbiddenError, ValidationError } from '../errors'
@@ -7,7 +6,7 @@ import { calculateElapsed, logger } from '../utils'
 import { flatMap, PipeFunction, startWithVal } from '../utils/neverthrow-extensions'
 import { CouldNotAquireDbLockError, OptimisticLockError } from './diskdb'
 import { ConnectionError, RecordNotFound } from './errors'
-import SimpleContainer from './SimpleContainer'
+import { RequestContextBase } from './misc'
 
 export const generateKoaHandler = <I, T, E extends ErrorBase, E2 extends ValidationError>(
   handleRequest: PipeFunction<I, T, E>,
@@ -40,15 +39,14 @@ export const generateKoaHandler = <I, T, E extends ErrorBase, E2 extends Validat
 export const saveStartTime: Koa.Middleware = (ctx, next) => { ctx['start-time'] = process.hrtime(); return next() }
 
 export const setupNamespace = (
-  {container, ns, setupRootContext}: {
-    container: SimpleContainer,
-    setupRootContext: <T>(cb: () => Promise<T>) => Promise<T>,
-    ns: Namespace,
-}): Koa.Middleware => (ctx, next) => setupRootContext(() => {
-  ns.bindEmitter(ctx.req)
-  ns.bindEmitter(ctx.res)
+  {setupRootContext}: {
+    setupRootContext: <T>(
+      cb: (context: RequestContextBase, bindEmitter: (emitter: EventEmitter) => void) => Promise<T>,
+    ) => Promise<T>,
+}): Koa.Middleware => (ctx, next) => setupRootContext((context, bindEmitter) => {
+  bindEmitter(ctx.req)
+  bindEmitter(ctx.res)
 
-  const context = container.getF(RequestContextKey)
   const correllationId = ctx.get('X-Request-ID') || context.id
   ctx.set('X-Request-Id', correllationId)
   Object.assign(context, { correllationId })
