@@ -159,6 +159,8 @@ export type UsecaseHandlerTuple<TDependencies, TInput, TOutput, TError> = [
 //   return [handler, generateKey<ReturnType<typeof handler>>()]
 // }
 
+const dependencyMap = new Map()
+
 export const setupWithDependenciesInt = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TError>(
   name: string,
   type: 'COMMAND' | 'QUERY',
@@ -166,10 +168,16 @@ export const setupWithDependenciesInt = <TDependencies>(deps: TDependencies) => 
 ): UsecaseHandlerTuple<TDependencies, TInput, TOutput, TError> => {
   // TODO: store deps on key? But then key and deps are coupled
   assert(!Object.keys(deps).some(x => !(deps as any)[x]), 'Dependencies must not be null')
-  return [handler, generateKey<ReturnType<typeof handler>>(name), deps, { name, type }]
+
+  const key = generateKey<ReturnType<typeof handler>>(name)
+  const r = [handler, key, deps, { name, type }]
+  dependencyMap.set(handler, r)
+  return r as any
 }
 
 export const setupWithExtraDependencies = <TExtraDependencies>(extraDeps: TExtraDependencies) =>
   <TDeps>(deps: TDeps) => setupWithDependenciesInt({...extraDeps, ...deps})
 
 type Constructor<T> = new (...args: any[]) => T
+
+export const getRegisteredHandlers = () => [...dependencyMap.entries()]

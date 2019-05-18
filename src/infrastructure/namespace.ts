@@ -1,4 +1,3 @@
-import { ReadonlyContext, RequestContextKey } from '@/ITP/usecases/types'
 import { createNamespace, getNamespace, Namespace } from 'cls-hooked'
 import { benchLog, logger } from '../utils'
 import { generateShortUuid } from '../utils/generateUuid'
@@ -6,21 +5,33 @@ import { flatMap, flatTee, liftType, mapErr, PipeFunction } from '../utils/never
 import { UnitOfWork } from './context.base'
 import { DbError } from './errors'
 import { RequestContextBase } from './misc'
-import SimpleContainer, { DependencyScope } from './SimpleContainer'
+import SimpleContainer, { DependencyScope, getRegisteredHandlers, UsecaseHandlerTuple } from './SimpleContainer'
 
-export const createDependencyNamespace = (namespace: string) => {
+export const createDependencyNamespace = (namespace: string, requestScopeKey: RequestContextBase, uowKey: UnitOfWork) => {
   const ns = createNamespace(namespace)
   const dependencyScopeKey = 'dependencyScope'
   const getDependencyScope = (): DependencyScope => getNamespace(namespace).get(dependencyScopeKey)
   const setDependencyScope = (scope: DependencyScope) => getNamespace(namespace).set(dependencyScopeKey, scope)
+
   const container = new SimpleContainer(getDependencyScope, setDependencyScope)
-  container.registerScopedF<RequestContextBase>(RequestContextKey, () => {
+  const resolveDependencies = resolveDependenciesImpl(container)
+  const create = ([impl, _, deps]: any) => impl(resolveDependencies(deps))
+
+  const getUnitOfWork = () => container.getF(uowKey)
+  const getHandler: getHandlerType = usecaseHandler => {
+    const { name, type } = usecaseHandler[3]
+    return generateConfiguredHandler(name, () => container.getF(usecaseHandler[1]), getUnitOfWork, type === 'COMMAND')
+  }
+
+  container.registerScopedF(requestScopeKey, () => {
     const id = generateShortUuid()
     return { id, correllationId: id }
   })
 
+  getRegisteredHandlers().forEach(([_, v]) => container.registerScopedF(v[1], () => create(v)))
+
   const bindLogger = (fnc: (...args2: any[]) => void) => (...args: any[]) => {
-    const context = container.tryGetF(RequestContextKey)
+    const context = container.tryGetF(requestScopeKey)
     // tslint:disable-next-line:no-console
     if (!context) { return fnc('[root context]', ...args) }
     // tslint:disable-next-line:no-console
@@ -32,10 +43,10 @@ export const createDependencyNamespace = (namespace: string) => {
 
   const setupChildContext = <T>(cb: () => Promise<T>) =>
     ns.runPromise(() => {
-      let context = container.getF(RequestContextKey)
+      let context = container.getF(requestScopeKey)
       const { correllationId, id } = context
       container.createScope()
-      context = container.getF(RequestContextKey)
+      context = container.getF(requestScopeKey)
       Object.assign(context, { correllationId: correllationId || id })
 
       return cb()
@@ -50,6 +61,7 @@ export const createDependencyNamespace = (namespace: string) => {
   return {
     bindLogger,
     container,
+    getHandler,
     ns,
     setupChildContext,
     setupRootContext,
@@ -63,9 +75,9 @@ export const generateConfiguredHandler = <TInput, TOutput, TErr>(
   // Have to specify name as we don't use classes to retrieve the name from
   name: string,
   getFunc: () => PipeFunction<TInput, TOutput, TErr>,
-  getDB: () => ReadonlyContext,
+  getUnitOfWork: () => UnitOfWork,
   isCommand = false,
-): NamedRequestHandler<TInput, TOutput, TErr | DbError> => {
+): NamedRequestHandler<TInput, TOutput, TErr> => {
   const requestType = isCommand ? 'Command' : 'Query'
   const prefix = `${name} ${requestType}`
 
@@ -79,12 +91,11 @@ export const generateConfiguredHandler = <TInput, TOutput, TErr>(
       return result
     }
 
-    const db = getDB()
-    const writableDb = db as UnitOfWork
+    const unitOfWork = getUnitOfWork()
     const savedResult = await execFunc(input)
       .pipe(
         mapErr(liftType<TErr | DbError>()),
-        flatMap(flatTee(writableDb.save)),
+        flatMap(flatTee(unitOfWork.save)),
       )
     logger.log(`${prefix} result`, savedResult)
     return savedResult
@@ -96,4 +107,15 @@ export const generateConfiguredHandler = <TInput, TOutput, TErr>(
   return handler
 }
 
-export type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<TInput, TOutput, TErr> & { $name: string, $isCommand: boolean }
+// tslint:disable-next-line:max-line-length
+export type getHandlerType = <TDependencies, TInput, TOutput, TError>(usecaseHandler: UsecaseHandlerTuple<TDependencies, TInput, TOutput, TError>) => NamedRequestHandler<TInput, TOutput, TError>
+
+export type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<TInput, TOutput, TErr | DbError> & { $name: string, $isCommand: boolean }
+
+const resolveDependenciesImpl = (container: SimpleContainer) => <TDependencies>(deps: TDependencies) => Object.keys(deps).reduce((prev, cur) => {
+  const dAny = deps as any
+  const key = dAny[cur]
+  const pAny = prev as any
+  pAny[cur] = container.getF(key)
+  return prev
+}, {} as TDependencies)
