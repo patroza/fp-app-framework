@@ -1,3 +1,4 @@
+import assert from '../utils/assert'
 import { PipeFunction } from '../utils/neverthrow-extensions'
 
 export default class SimpleContainer {
@@ -5,19 +6,21 @@ export default class SimpleContainer {
   private singletonScope = new DependencyScope()
   constructor(private getDependencyScope: () => DependencyScope, private setDependencyScope: (scope: DependencyScope) => void) {}
 
-  public get<T>(key: string) {
-    const instance = this.tryGet<T>(key)
+  public getC<T>(key: Constructor<T>): T {
+    const instance = this.tryGetC<T>(key)
     if (!instance) { throw new Error(`could not resolve ${key}`) }
     return instance
   }
 
-  public tryGet<T>(key: string) {
-    const instance = this.factories.get(key)() as T
+  public tryGetC<T>(key: Constructor<T>): T {
+    const factory = this.factories.get(key)
+    const instance = factory() as T
     return instance
   }
 
   public tryGetF<T>(key: T) {
-    const instance = this.factories.get(key)() as T
+    const factory = this.factories.get(key)
+    const instance = factory() as T
     return instance
   }
 
@@ -35,37 +38,77 @@ export default class SimpleContainer {
     // }
   }
 
-  public registerTransientF<T>(key: string, factory: () => T) {
+  public registerTransientC<T>(key: Constructor<T>, factory: () => T) {
+    this.factories.set(key, factory)
+  }
+
+  public registerScopedC<T>(key: Constructor<T>, factory: () => T) {
+    assert.isNotNull({key, factory})
+    this.factories.set(key, () => tryOrNull(() => this.getDependencyScope(), s => s.getOrCreate(key, factory)))
+  }
+
+  public registerSingletonC<T>(key: Constructor<T>, factory: () => T) {
+    assert.isNotNull({key, factory})
+    this.factories.set(key, () => this.singletonScope.getOrCreate(key, factory))
+  }
+
+  public registerInstanceC<T>(key: Constructor<T>, instance: T) {
+    assert.isNotNull({key, instance})
+    this.factories.set(key, () => this.singletonScope.getOrCreate(key, () => instance))
+  }
+
+  public registerTransientF<T>(key: T, factory: () => T) {
     this.factories.set(key, factory)
   }
 
   public registerScopedF<T>(key: T, factory: () => T) {
+    assert.isNotNull({key, factory})
     this.factories.set(key, () => tryOrNull(() => this.getDependencyScope(), s => s.getOrCreate(key, factory)))
   }
 
   public registerSingletonF<T>(key: T, factory: () => T) {
+    assert.isNotNull({key, factory})
     this.factories.set(key, () => this.singletonScope.getOrCreate(key, factory))
   }
 
   public registerInstanceF<T>(key: T, instance: T) {
+    assert.isNotNull({key, instance})
     this.factories.set(key, () => this.singletonScope.getOrCreate(key, () => instance))
   }
 
-  public registerTransient<T>(key: string, factory: () => T) {
-    this.factories.set(key, factory)
-  }
+  // public registerTransient<T>(key: string, factory: () => T) {
+  //   assert.isNotNull({key, factory})
+  //   this.factories.set(key, factory)
+  // }
 
-  public registerScoped<T>(key: string, factory: () => T) {
-    this.factories.set(key, () => tryOrNull(() => this.getDependencyScope(), s => s.getOrCreate(key, factory)))
-  }
+  // public registerScoped<T>(key: string, factory: () => T) {
+  //   assert.isNotNull({key, factory})
+  //   this.factories.set(key, () => tryOrNull(() => this.getDependencyScope(), s => s.getOrCreate(key, factory)))
+  // }
 
-  public registerSingleton<T>(key: string, factory: () => T) {
-    this.factories.set(key, () => this.singletonScope.getOrCreate(key, factory))
-  }
+  // public registerSingleton<T>(key: string, factory: () => T) {
+  //   assert.isNotNull({key, factory})
+  //   this.factories.set(key, () => this.singletonScope.getOrCreate(key, factory))
+  // }
 
-  public registerInstance<T>(key: string, instance: T) {
-    this.factories.set(key, () => this.singletonScope.getOrCreate(key, () => instance))
-  }
+  // public registerInstance<T>(key: string, instance: T) {
+  //   assert.isNotNull({key, instance})
+  //   this.factories.set(key, () => this.singletonScope.getOrCreate(key, () => instance))
+  // }
+
+  // public get<T>(key: string) {
+  //   const instance = this.tryGet<T>(key)
+  //   if (!instance) { throw new Error(`could not resolve ${key}`) }
+  //   return instance
+  // }
+
+  // public tryGet<T>(key: string) {
+  //   const factory = this.factories.get(key)
+  //   console.log('factory', key, factory)
+  //   const instance = factory() as T
+  //   return instance
+  // }
+
 }
 
 const tryOrNull = <T, T2>(f: () => T | undefined, f2: (i: T) => T2) => {
@@ -94,7 +137,11 @@ export class DependencyScope {
   }
 }
 
-export const generateKey = <T>(): T => (() => { throw new Error('not implemented function' )}) as any
+export const generateKey = <T>(name?: string): T => {
+  const f = () => { throw new Error(`${name} not implemented function`) }
+  f.$$name = name
+  return f as any
+}
 
 type WithDependencies<TDependencies, T> = (deps: TDependencies) => T
 
@@ -107,8 +154,11 @@ export const setupWithDependenciesInt = <TDependencies>(deps: TDependencies) => 
   handler: WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>,
 ): [WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>, PipeFunction<TInput, TOutput, TError>, TDependencies] => {
   // TODO: store deps on key? But then key and deps are coupled
+  assert(!Object.keys(deps).some(x => !(deps as any)[x]), 'Dependencies must not be null')
   return [handler, generateKey<ReturnType<typeof handler>>(), deps]
 }
 
 export const setupWithExtraDependencies = <TExtraDependencies>(extraDeps: TExtraDependencies) =>
   <TDeps>(deps: TDeps) => setupWithDependenciesInt({...extraDeps, ...deps})
+
+type Constructor<T> = new (...args: any[]) => T
