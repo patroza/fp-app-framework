@@ -11,7 +11,7 @@ import { RequestContextBase } from './misc'
 import { getRegisteredHandlers, UsecaseHandlerTuple } from './requestHandlers'
 import SimpleContainer, { DependencyScope } from './SimpleContainer'
 
-export const createDependencyNamespace = (namespace: string, requestScopeKey: RequestContextBase, uowKey: UnitOfWork) => {
+export function createDependencyNamespace(namespace: string, requestScopeKey: RequestContextBase, uowKey: UnitOfWork) {
   const ns = createNamespace(namespace)
   const dependencyScopeKey = 'dependencyScope'
   const getDependencyScope = (): DependencyScope => getNamespace(namespace).get(dependencyScopeKey)

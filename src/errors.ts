@@ -1,8 +1,13 @@
 // tslint:disable:max-classes-per-file
 
-export const combineValidationErrors = <E extends ValidationError>(errors: E[]) => new CombinedValidationError(errors)
+const combineValidationErrors = <E extends ValidationError>(errors: E[]) => new CombinedValidationError(errors)
 
-export const toFieldError = (fieldName: string) => (err: ValidationError) => new FieldValidationError(fieldName, err)
+const toFieldError = (fieldName: string) => (err: ValidationError) => new FieldValidationError(fieldName, err)
+
+export {
+  combineValidationErrors,
+  toFieldError,
+}
 
 export abstract class ErrorBase {
   constructor(public readonly message: string) { }
@@ -18,7 +23,7 @@ export class Error extends ErrorBase {
 export class ValidationError extends ErrorBase {
 }
 
-export class ForbiddenError extends ErrorBase {}
+export class ForbiddenError extends ErrorBase { }
 
 export class FieldValidationError extends ValidationError {
   constructor(public readonly fieldName: string, public readonly error: ValidationError) { super(error.message) }

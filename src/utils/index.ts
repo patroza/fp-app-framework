@@ -1,20 +1,20 @@
 import chalk from 'chalk'
 
-export const asWritable = <T>(obj: T) => obj as Writeable<T>
+const asWritable = <T>(obj: T) => obj as Writeable<T>
 export type Writeable<T> = { -readonly [P in keyof T]-?: T[P] }
 
 type logger = Pick<typeof console, 'log' | 'error' | 'warn' | 'debug'>
 
 export let logger: logger = console
-export const setLogger = (l: logger) => logger = l
+const setLogger = (l: logger) => logger = l
 
-export const isTruthyFilter = <T>(item: T | null | undefined | void): item is T => Boolean(item)
+const isTruthyFilter = <T>(item: T | null | undefined | void): item is T => Boolean(item)
 
-export const bench = async <T>(
+export async function bench<T>(
   wrappedFunction: () => Promise<T>,
   log: (title: string, elapsed: number) => void,
   title?: string,
-) => {
+) {
   const start = process.hrtime()
   try {
     return await wrappedFunction()
@@ -23,12 +23,19 @@ export const bench = async <T>(
   }
 }
 
-export const calculateElapsed = (start: [number, number]) => {
+export function calculateElapsed(start: [number, number]) {
   const elapsed = process.hrtime(start)
   return (elapsed[0] * 1000) + (elapsed[1] / 1000000)
 }
 
-export const benchLog = <T>(
+const benchLog = <T>(
   wrappedFunction: () => Promise<T>,
   title?: string,
 ) => bench<T>(wrappedFunction, (t, elapsed) => logger.log(chalk.bgWhite.black(`${elapsed}ms`), t), title)
+
+export {
+  asWritable,
+  benchLog,
+  setLogger,
+  isTruthyFilter,
+}

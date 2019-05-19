@@ -17,11 +17,11 @@ export type UsecaseHandlerTuple<TDependencies, TInput, TOutput, TError> = [
 ]
 
 // tslint:disable:max-line-length
-// export const setup = <TDependencies, TInput, TOutput, TError>(handler: WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>): [WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>, PipeFunction<TInput, TOutput, TError>] => {
+// export function setup<TDependencies, TInput, TOutput, TError>(handler: WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>): [WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>, PipeFunction<TInput, TOutput, TError>] {
 //   return [handler, generateKey<ReturnType<typeof handler>>()]
 // }
 
-export const setupWithDependenciesInt = <TDependencies>(deps: TDependencies) =>
+const setupWithDependenciesInt = <TDependencies>(deps: TDependencies) =>
   (name: string, type: HandlerType) =>
     <TInput, TOutput, TError>(
       handler: WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>,
@@ -36,38 +36,44 @@ export const setupWithDependenciesInt = <TDependencies>(deps: TDependencies) =>
     }
 
 // tslint:disable-next-line:max-line-length
-export const createCommandWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
+const createCommandWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
   const setupWithDeps = setupWithDependenciesInt(deps)
   const resolved = setupWithDeps(name, 'COMMAND')(handler)
   return resolved
 }
 
 // tslint:disable-next-line:max-line-length
-export const createQueryWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
+const createQueryWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
   const setupWithDeps = setupWithDependenciesInt(deps)
   const resolved = setupWithDeps(name, 'QUERY')(handler)
   return resolved
 }
 
 // tslint:disable-next-line:max-line-length
-export const createEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(event: Constructor<TInput>, name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
+const createEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(event: Constructor<TInput>, name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
   const setupWithDeps = setupWithDependenciesInt(deps)
   const resolved = setupWithDeps(`on${event.name}${name}`, 'EVENT')(handler)
   registerEvent(event, resolved)
   return resolved
 }
 
-// export const setupWithDependencies = setupWithExtraDependencies({ context: RequestContextKey })
+// const setupWithDependencies = setupWithExtraDependencies({ context: RequestContextKey })
 
-// export const setupWithExtraDependencies = <TExtraDependencies>(extraDeps: TExtraDependencies) =>
+// const setupWithExtraDependencies = <TExtraDependencies>(extraDeps: TExtraDependencies) =>
 //   <TDeps>(deps: TDeps) => setupWithDependenciesInt({ ...extraDeps, ...deps })
 
-export const getRegisteredHandlers = () => [...dependencyMap.entries()]
-export const getRegisteredEvents = () => [...handlerMap.entries()]
-export const registerEvent = (event: any, handler: any) => {
+const getRegisteredHandlers = () => [...dependencyMap.entries()]
+const getRegisteredEvents = () => [...handlerMap.entries()]
+const registerEvent = (event: any, handler: any) => {
   const current = handlerMap.get(event) || []
   current.push(handler)
   handlerMap.set(event, current)
+}
+
+export {
+  getRegisteredHandlers, getRegisteredEvents, registerEvent,
+  setupWithDependenciesInt, createCommandWithDeps, createEventHandlerWithDeps,
+  createQueryWithDeps,
 }
 
 const dependencyMap = new Map()

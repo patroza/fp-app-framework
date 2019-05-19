@@ -146,15 +146,14 @@ export class DependencyScope {
   }
 }
 
-export const generateKey = <T>(name?: string): T => {
+export function generateKey<T>(name?: string): T {
   const f = () => { throw new Error(`${name} not implemented function`) }
   Object.defineProperty(f, 'name', { value: name })
   return f as any
 }
 
-export const generateKeyFromFn = <T>(fun: (...args: any[]) => T): T => {
-  const name = fun.name
-  const f = () => { throw new Error(`${name} not implemented function`) }
-  Object.defineProperty(f, 'name', { value: name })
-  return f as any
+const generateKeyFromFn = <T>(fun: (...args: any[]) => T): T => generateKey(fun.name)
+
+export {
+  generateKeyFromFn,
 }
