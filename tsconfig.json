@@ -20,6 +20,9 @@
       "@/*": [
         "./sample/src/*"
       ],
+      "fp-app-framework/*": [
+        "./src/*"
+      ],
     },
     "esModuleInterop": true,
     "removeComments": true,

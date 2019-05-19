@@ -1,11 +1,11 @@
 // tslint:disable:max-classes-per-file
 
-import Entity from 'fp-app-framework/src/entity'
-import { ForbiddenError, ValidationError } from 'fp-app-framework/src/errors'
-import { asWritable } from 'fp-app-framework/src/utils'
-import assert from 'fp-app-framework/src/utils/assert'
-import { anyTrue, applyIfNotUndefined, flatMap, map, mapStatic, valueOrUndefined } from 'fp-app-framework/src/utils/neverthrow-extensions'
-import { valueEquals } from 'fp-app-framework/src/utils/validation'
+import Entity from 'fp-app-framework/entity'
+import { ForbiddenError, ValidationError } from 'fp-app-framework/errors'
+import { asWritable } from 'fp-app-framework/utils'
+import assert from 'fp-app-framework/utils/assert'
+import { anyTrue, applyIfNotUndefined, flatMap, map, mapStatic, valueOrUndefined } from 'fp-app-framework/utils/neverthrow-extensions'
+import { valueEquals } from 'fp-app-framework/utils/validation'
 import isEqual from 'lodash/fp/isEqual'
 import { err, ok, Result } from 'neverthrow'
 import FutureDate from './FutureDate'

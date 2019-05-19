@@ -151,3 +151,9 @@ export const generateKey = <T>(name?: string): T => {
   f.$$name = name
   return f as any
 }
+
+export const generateKeyFromFn = <T>(fun: (...args: any[]) => T): T => {
+  const f = () => { throw new Error(`${fun.name} not implemented function`) }
+  f.$$name = fun.name
+  return f as any
+}

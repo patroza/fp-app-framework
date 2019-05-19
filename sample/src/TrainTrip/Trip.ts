@@ -1,4 +1,4 @@
-import assert from 'fp-app-framework/src/utils/assert'
+import assert from 'fp-app-framework/utils/assert'
 import TrainTrip, { CreateTrainTripInfo, TemplateId } from './TrainTrip'
 import { TravelClassName } from './TravelClassDefinition'
 

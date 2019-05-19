@@ -5,9 +5,9 @@
 // to make sure accidental `any` casts are catched.
 
 import TrainTrip from '@/TrainTrip/TrainTrip'
-import { DbError } from 'fp-app-framework/src/infrastructure/errors'
-import { createQueryWithDeps } from 'fp-app-framework/src/infrastructure/requestHandlers'
-import { flatMap, map, pipe } from 'fp-app-framework/src/utils/neverthrow-extensions'
+import { DbError } from 'fp-app-framework/infrastructure/errors'
+import { createQueryWithDeps } from 'fp-app-framework/infrastructure/requestHandlers'
+import { flatMap, map, pipe } from 'fp-app-framework/utils/neverthrow-extensions'
 import { Pax } from '../PaxDefinition'
 import { TravelClassName } from '../TravelClassDefinition'
 import { DbContextKey, defaultDependencies } from './types'

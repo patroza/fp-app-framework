@@ -1,4 +1,4 @@
-import { ValidationError } from 'fp-app-framework/src/errors'
+import { ValidationError } from 'fp-app-framework/errors'
 import { err, ok, Result } from 'neverthrow'
 
 export default class TravelClassDefinition {

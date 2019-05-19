@@ -1,5 +1,5 @@
-import { ValidationError } from 'fp-app-framework/src/errors'
-import assert from 'fp-app-framework/src/utils/assert'
+import { ValidationError } from 'fp-app-framework/errors'
+import assert from 'fp-app-framework/utils/assert'
 import { err, ok, Result } from 'neverthrow'
 
 // Can use for input, but for storage we should just store as date.

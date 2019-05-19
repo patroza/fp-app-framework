@@ -1,5 +1,5 @@
-import { logRequestTime, saveStartTime, setupNamespace } from 'fp-app-framework/src/infrastructure/koa'
-import { logger, setLogger } from 'fp-app-framework/src/utils'
+import { logRequestTime, saveStartTime, setupNamespace } from 'fp-app-framework/infrastructure/koa'
+import { logger, setLogger } from 'fp-app-framework/utils'
 import Koa from 'koa'
 import bodyParser from 'koa-bodyparser'
 import KoaRouter from 'koa-router'

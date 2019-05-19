@@ -1,7 +1,7 @@
-import { ValidationError } from 'fp-app-framework/src/errors'
-import assert from 'fp-app-framework/src/utils/assert'
-import { flatMap, map } from 'fp-app-framework/src/utils/neverthrow-extensions'
-import { createValidator, Joi, predicate } from 'fp-app-framework/src/utils/validation'
+import { ValidationError } from 'fp-app-framework/errors'
+import assert from 'fp-app-framework/utils/assert'
+import { flatMap, map } from 'fp-app-framework/utils/neverthrow-extensions'
+import { createValidator, Joi, predicate } from 'fp-app-framework/utils/validation'
 import { Result } from 'neverthrow'
 
 export default class PaxDefinition {

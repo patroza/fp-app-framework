@@ -1,8 +1,8 @@
-jest.mock('fp-app-framework/src/infrastructure/executePostCommitHandlers')
+jest.mock('fp-app-framework/infrastructure/executePostCommitHandlers')
 
-import { CombinedValidationError, ValidationError } from 'fp-app-framework/src/errors'
-import executePostCommitHandlers from 'fp-app-framework/src/infrastructure/executePostCommitHandlers'
-import { logger, setLogger } from 'fp-app-framework/src/utils'
+import { CombinedValidationError, ValidationError } from 'fp-app-framework/errors'
+import executePostCommitHandlers from 'fp-app-framework/infrastructure/executePostCommitHandlers'
+import { logger, setLogger } from 'fp-app-framework/utils'
 import { Ok } from 'neverthrow'
 import createRoot from '../root'
 import changeTrainTrip, { StateProposition } from './usecases/changeTrainTrip'

@@ -1,7 +1,7 @@
 import { TrainTripPublisher } from '@/TrainTrip/eventhandlers'
 import { TrainTripId } from '@/TrainTrip/TrainTrip'
-import { getHandlerType } from 'fp-app-framework/src/infrastructure/namespace'
-import { logger } from 'fp-app-framework/src/utils'
+import { getHandlerType } from 'fp-app-framework/infrastructure/namespace'
+import { logger } from 'fp-app-framework/utils'
 import registerCloud from '../usecases/registerCloud'
 
 export default class TrainTripPublisherInMemory implements TrainTripPublisher {
