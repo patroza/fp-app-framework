@@ -5,10 +5,10 @@ import { createDependencyNamespace } from 'fp-app-framework/infrastructure/names
 import publishEvents from 'fp-app-framework/infrastructure/publishEvents'
 import { getRegisteredEvents } from 'fp-app-framework/infrastructure/requestHandlers'
 import './TrainTrip/eventhandlers' // To be ble to auto register them :/
-import { getPricingFake, getTemplateFake, getTrip, sendCloudSyncFake } from './TrainTrip/infrastructure/api'
+import { getPricingFake, getTemplateFake, getTrip, getTripKey, sendCloudSyncFake, sendCloudSyncKey } from './TrainTrip/infrastructure/api'
 import DiskDBContext from './TrainTrip/infrastructure/TrainTripContext.disk'
 import TrainTripPublisherInMemory from './TrainTrip/infrastructure/trainTripPublisher.inMemory'
-import { DbContextKey, getTripKey, RequestContextKey, sendCloudSyncKey, TrainTripPublisherKey } from './TrainTrip/usecases/types'
+import { DbContextKey, RequestContextKey, TrainTripPublisherKey } from './TrainTrip/usecases/types'
 
 const createRoot = () => {
   const {

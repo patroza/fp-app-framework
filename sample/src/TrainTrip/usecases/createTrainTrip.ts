@@ -4,9 +4,10 @@ import { createCommandWithDeps } from 'fp-app-framework/infrastructure/requestHa
 import { flatMap, map, mapErr, pipe, PipeFunction, resultTuple, tee, toTup } from 'fp-app-framework/utils/neverthrow-extensions'
 import { err, ok, Result } from 'neverthrow'
 import FutureDate from '../FutureDate'
+import { getTripKey } from '../infrastructure/api'
 import PaxDefinition, { Pax } from '../PaxDefinition'
 import { CreateTrainTripInfo } from '../TrainTrip'
-import { DbContextKey, defaultDependencies, getTripKey } from './types'
+import { DbContextKey, defaultDependencies } from './types'
 
 const createCommand = createCommandWithDeps({ db: DbContextKey, getTrip: getTripKey, ...defaultDependencies })
 
