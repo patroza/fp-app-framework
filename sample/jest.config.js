@@ -16,6 +16,5 @@ module.exports = {
     "jsx",
     "json",
     "node"
-  ],
-  "testPathIgnorePatterns": ["/node_modules/", "/sample/"]
+  ]
 }

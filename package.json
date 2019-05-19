@@ -45,11 +45,12 @@
     "tslint": "^5.16.0"
   },
   "scripts": {
-    "start": "nodemon --exec ts-node --transpile-only -r tsconfig-paths/register --files sample/src/start-server.ts",
-    "start:prod": "ts-node --transpile-only -r tsconfig-paths/register --files sample/src/start-server.ts",
+    "start": "cd sample && nodemon --exec ts-node --transpile-only -r tsconfig-paths/register --files src/start-server.ts",
+    "start:prod": "cd sample && ts-node --transpile-only -r tsconfig-paths/register --files src/start-server.ts",
     "test": "jest",
     "test:compile": "tsc --noEmit",
     "test:lint": "tslint --project .",
-    "testsuite": "yarn test:compile && yarn test:lint && yarn test"
+    "test_sample": "cd sample && yarn test",
+    "testsuite": "yarn test:compile && yarn test:lint && yarn test && yarn test_sample"
   }
 }
