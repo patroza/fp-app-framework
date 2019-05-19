@@ -1,17 +1,17 @@
 import TrainTrip, { Price } from '@/TrainTrip/TrainTrip'
-import { createTravelPlanType, getTemplateType, getTravelPlanType, getTripKey, sendCloudSyncKey } from '@/TrainTrip/usecases/types'
-import { ApiError, RecordNotFound } from 'fp-app-framework/infrastructure/errors'
+import { createTravelPlanType, getTemplateType, getTravelPlanType } from '@/TrainTrip/usecases/types'
+import { ApiError, ConnectionError, RecordNotFound } from 'fp-app-framework/infrastructure/errors'
 import assert from 'fp-app-framework/utils/assert'
-import { flatMap, map, sequenceAsync, startWithVal } from 'fp-app-framework/utils/neverthrow-extensions'
+import { flatMap, map, PipeFunction, sequenceAsync, startWithVal } from 'fp-app-framework/utils/neverthrow-extensions'
 import { err, ok } from 'neverthrow'
 import { v4 } from 'uuid'
 import PaxDefinition, { Pax } from '../PaxDefinition'
 import { TravelClassName } from '../TravelClassDefinition'
 import Trip, { TravelClass } from '../Trip'
 
-export const getTrip = (
+const getTrip = (
   { getTemplate }: { getTemplate: getTemplateType },
-): typeof getTripKey => templateId => {
+): PipeFunction<string, Trip, ApiError> => templateId => {
   assert.isNotNull({ templateId })
 
   return getTemplate(templateId)
@@ -36,7 +36,7 @@ const getTplLevelName = (tpl: any) => Object.keys(tpl.travelClasss).find(x => (t
 
 // Typescript support for partial application is not really great, so we try currying instead for now
 // https://stackoverflow.com/questions/50400120/using-typescript-for-partial-application
-export const getTemplateFake = (
+const getTemplateFake = (
   { }: { templateApiUrl: string },
 ): getTemplateType => async templateId => {
   assert.isNotNull({ templateId })
@@ -51,7 +51,7 @@ const mockedTemplates: () => { [key: string]: Template } = () => ({
   'template-id2': { id: 'template-id2', travelClasss: { second: { id: 'template-id1' }, first: { id: 'template-id2' } } } as Template,
 })
 
-export const getPricingFake = (
+const getPricingFake = (
   { getTemplate }: { pricingApiUrl: string, getTemplate: getTemplateType },
 ) => (templateId: string, pax: PaxDefinition, startDate: Date) => {
   assert.isNotNull({ templateId, pax, startDate })
@@ -62,7 +62,7 @@ export const getPricingFake = (
 
 const getFakePriceFromTemplate = (_: any) => ({ price: { amount: 100, currency: 'EUR' } })
 
-export const createTravelPlanFake = (
+const createTravelPlanFake = (
   { }: { travelPlanApiUrl: string },
 ): createTravelPlanType => async (templateId, info) => {
   assert.isNotNull({ templateId, info })
@@ -70,20 +70,29 @@ export const createTravelPlanFake = (
   return ok(v4())
 }
 
-export const sendCloudSyncFake = (
+const sendCloudSyncFake = (
   { }: { cloudUrl: string },
-): typeof sendCloudSyncKey => async ({ currentTravelClassConfiguration: { travelClass: templateId } }: TrainTrip) => {
+): PipeFunction<TrainTrip, string, ConnectionError> => async ({ currentTravelClassConfiguration: { travelClass: templateId } }: TrainTrip) => {
   assert.isNotNull({ templateId })
 
   return ok(v4())
 }
 
-export const getTravelPlanFake = (
+const getTravelPlanFake = (
   { }: { travelPlanApiUrl: string },
 ): getTravelPlanType => async travelPlanId => {
   assert.isNotNull({ travelPlanId })
 
   return ok({ id: travelPlanId } as TravelPlan)
+}
+
+export {
+  createTravelPlanFake,
+  getPricingFake,
+  getTemplateFake,
+  getTrip,
+  sendCloudSyncFake,
+  getTravelPlanFake,
 }
 
 export interface Conversation {

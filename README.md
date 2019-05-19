@@ -32,6 +32,8 @@ Access over `http://localhost:3535/train-trip` (see `TrainTrip.router.ts` for pa
   - Based on command/query metadata or is it infrastructure concern?
 - Authorization
 - Function names (named functions)
+  `function someName()` and `const someName =` (only works if `export` is done separately!)
+  set a generated function's name: `Object.defineProperty(f, 'name', { value: name })`
 - Decorators (classes) and functions (ie save command)
 
 ### Additional usecase samples
