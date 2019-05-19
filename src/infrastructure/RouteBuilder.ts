@@ -22,17 +22,17 @@ export default class RouteBuilder {
     return obj
   }
 
-  public readonly basicAuthEnabled: boolean = false
+  readonly basicAuthEnabled: boolean = false
 
-  public post = RouteBuilder.register('POST', this)
-  public get = RouteBuilder.register('GET', this)
-  public delete = RouteBuilder.register('DELETE', this)
-  public patch = RouteBuilder.register('PATCH', this)
+  post = RouteBuilder.register('POST', this)
+  get = RouteBuilder.register('GET', this)
+  delete = RouteBuilder.register('DELETE', this)
+  patch = RouteBuilder.register('PATCH', this)
 
   private userPass?: string
   private setup: any[] = []
 
-  public build = (getHandler: getHandlerType) => {
+  build = (getHandler: getHandlerType) => {
     const router = new KoaRouter()
     if (this.basicAuthEnabled) {
       if (!this.userPass) { throw new Error('cannot enable auth without loginPass') }
@@ -53,13 +53,13 @@ export default class RouteBuilder {
     return router
   }
 
-  public getJsonSchema() {
+  getJsonSchema() {
     return this.setup.map(({ method, path, validator }) =>
       [method, path, validator.jsonSchema],
     )
   }
 
-  public enableBasicAuth(userPass: string) {
+  enableBasicAuth(userPass: string) {
     assert.isNotNull({ userPass })
 
     this.w.basicAuthEnabled = true

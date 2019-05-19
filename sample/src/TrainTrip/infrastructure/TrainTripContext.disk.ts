@@ -12,7 +12,7 @@ import Trip, { TravelClass } from '../Trip'
 // TODO: hide fact that this is a class? :-)
 // tslint:disable-next-line:max-classes-per-file
 export default class DiskDBContext extends ContextBase implements TrainTripContext {
-  public get trainTrips() { return this.trainTripsi as RecordContext<TrainTrip> }
+  get trainTrips() { return this.trainTripsi as RecordContext<TrainTrip> }
 
   private readonly trainTripsi = new DiskRecordContext<TrainTrip>('trainTrip', serializeTrainTrip, deserializeDbTrainTrip)
 

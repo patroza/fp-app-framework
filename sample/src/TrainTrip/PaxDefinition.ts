@@ -4,7 +4,7 @@ import { flatMap, map, Result } from 'fp-app-framework/utils/neverthrow-extensio
 import { createValidator, Joi, predicate } from 'fp-app-framework/utils/validation'
 
 export default class PaxDefinition {
-  public static create(pax: Pax): Result<PaxDefinition, ValidationError> {
+  static create(pax: Pax): Result<PaxDefinition, ValidationError> {
     assert.isNotNull({ pax })
 
     return validate(pax)
@@ -15,7 +15,7 @@ export default class PaxDefinition {
       )
   }
 
-  private constructor(public readonly value: Pax) { }
+  private constructor(readonly value: Pax) { }
 }
 
 const paxEntrySchema = Joi.number().integer().min(0).max(6).required()

@@ -6,7 +6,7 @@ import { DbError } from './errors'
 export default abstract class ContextBase {
   constructor(private readonly eventHandler: DomainEventHandler) { }
 
-  public readonly save = (): Promise<Result<void, DbError>> =>
+  readonly save = (): Promise<Result<void, DbError>> =>
     this.eventHandler.postEvents(() => this.intGetAndClearEvents()).pipe(
       flatMap(() => this.intSave()),
       map(this.eventHandler.publishPostCommitEventHandlers),

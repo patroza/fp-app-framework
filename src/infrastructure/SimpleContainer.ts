@@ -7,7 +7,7 @@ export default class SimpleContainer {
   private singletonScope = new DependencyScope()
   constructor(private getDependencyScope: () => DependencyScope, private setDependencyScope: (scope: DependencyScope) => void) { }
 
-  public getC<T>(key: Constructor<T>): T {
+  getC<T>(key: Constructor<T>): T {
     assert.isNotNull({ key })
 
     const instance = this.tryGetC<T>(key)
@@ -15,7 +15,7 @@ export default class SimpleContainer {
     return instance
   }
 
-  public tryGetC<T>(key: Constructor<T>): T {
+  tryGetC<T>(key: Constructor<T>): T {
     assert.isNotNull({ key })
 
     const factory = this.factories.get(key)
@@ -23,7 +23,7 @@ export default class SimpleContainer {
     return instance
   }
 
-  public tryGetF<T>(key: T) {
+  tryGetF<T>(key: T) {
     assert.isNotNull({ key })
 
     const factory = this.factories.get(key)
@@ -31,7 +31,7 @@ export default class SimpleContainer {
     return instance
   }
 
-  public getF<T>(key: T) {
+  getF<T>(key: T) {
     assert.isNotNull({ key })
 
     const f = this.tryGetF<T>(key)
@@ -39,7 +39,7 @@ export default class SimpleContainer {
     return f
   }
 
-  public createScope() {
+  createScope() {
     const scope = new DependencyScope()
     this.setDependencyScope(scope)
     // return {
@@ -47,42 +47,42 @@ export default class SimpleContainer {
     // }
   }
 
-  public registerTransientC<T>(key: Constructor<T>, factory: () => T) {
+  registerTransientC<T>(key: Constructor<T>, factory: () => T) {
     assert.isNotNull({ key, factory })
     this.factories.set(key, factory)
   }
 
-  public registerScopedC<T>(key: Constructor<T>, factory: () => T) {
+  registerScopedC<T>(key: Constructor<T>, factory: () => T) {
     assert.isNotNull({ key, factory })
     this.factories.set(key, () => tryOrNull(() => this.getDependencyScope(), s => s.getOrCreate(key, factory)))
   }
 
-  public registerSingletonC<T>(key: Constructor<T>, factory: () => T) {
+  registerSingletonC<T>(key: Constructor<T>, factory: () => T) {
     assert.isNotNull({ key, factory })
     this.factories.set(key, () => this.singletonScope.getOrCreate(key, factory))
   }
 
-  public registerInstanceC<T>(key: Constructor<T>, instance: T) {
+  registerInstanceC<T>(key: Constructor<T>, instance: T) {
     assert.isNotNull({ key, instance })
     this.factories.set(key, () => this.singletonScope.getOrCreate(key, () => instance))
   }
 
-  public registerTransientF<T>(key: T, factory: () => T) {
+  registerTransientF<T>(key: T, factory: () => T) {
     assert.isNotNull({ key, factory })
     this.factories.set(key, factory)
   }
 
-  public registerScopedF<T>(key: T, factory: () => T) {
+  registerScopedF<T>(key: T, factory: () => T) {
     assert.isNotNull({ key, factory })
     this.factories.set(key, () => tryOrNull(() => this.getDependencyScope(), s => s.getOrCreate(key, factory)))
   }
 
-  public registerSingletonF<T>(key: T, factory: () => T) {
+  registerSingletonF<T>(key: T, factory: () => T) {
     assert.isNotNull({ key, factory })
     this.factories.set(key, () => this.singletonScope.getOrCreate(key, factory))
   }
 
-  public registerInstanceF<T>(key: T, instance: T) {
+  registerInstanceF<T>(key: T, instance: T) {
     assert.isNotNull({ key, instance })
     this.factories.set(key, () => this.singletonScope.getOrCreate(key, () => instance))
   }
@@ -129,16 +129,16 @@ const tryOrNull = <T, T2>(f: () => T | undefined, f2: (i: T) => T2) => {
 
 // tslint:disable-next-line:max-classes-per-file
 export class DependencyScope {
-  public instances: Map<any, any> = new Map()
+  instances: Map<any, any> = new Map()
 
-  public getOrCreate<T>(key: any, instanceCreator: () => T) {
+  getOrCreate<T>(key: any, instanceCreator: () => T) {
     if (this.instances.has(key)) { return this.instances.get(key) }
     const instance = instanceCreator()
     this.instances.set(key, instance)
     return instance
   }
 
-  public dispose() {
+  dispose() {
     for (const d of this.instances.values()) {
       if (d.dispose) {
         d.dispose()

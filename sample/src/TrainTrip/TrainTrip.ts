@@ -18,19 +18,19 @@ export default class TrainTrip extends Entity {
   // workaround so that we can make props look readonly on the outside, but allow to change on the inside.
   // doesn't work if assigned as property :/
   private get w() { return asWritable(this) }
-  public readonly createdAt = new Date()
+  readonly createdAt = new Date()
 
-  public readonly pax: PaxDefinition
-  public readonly startDate: Date
-  public readonly isLocked: boolean = false
-  public readonly lockedAt?: Date
-  public readonly opportunityId?: string
-  public readonly travelClassConfiguration: TravelClassConfiguration[] = []
-  public readonly currentTravelClassConfiguration: TravelClassConfiguration
+  readonly pax: PaxDefinition
+  readonly startDate: Date
+  readonly isLocked: boolean = false
+  readonly lockedAt?: Date
+  readonly opportunityId?: string
+  readonly travelClassConfiguration: TravelClassConfiguration[] = []
+  readonly currentTravelClassConfiguration: TravelClassConfiguration
 
   constructor(
     { startDate, pax }: { startDate: FutureDate, pax: PaxDefinition },
-    public readonly trip: Trip,
+    readonly trip: Trip,
     currentTravelClass: TravelClass,
   ) {
     super()
@@ -48,7 +48,7 @@ export default class TrainTrip extends Entity {
     this.registerDomainEvent(new TrainTripCreated(this.id))
   }
 
-  public proposeChanges(state: StateProposition) {
+  proposeChanges(state: StateProposition) {
     assert.isNotNull({ state })
 
     return this.confirmUserChangeAllowed()
@@ -59,16 +59,16 @@ export default class TrainTrip extends Entity {
       )
   }
 
-  public lock() {
+  lock() {
     this.w.isLocked = true
     this.w.lockedAt = new Date()
   }
 
-  public assignOpportunity(opportunityId: string) {
+  assignOpportunity(opportunityId: string) {
     this.w.opportunityId = opportunityId
   }
 
-  public updateTrip = (trip: Trip) => {
+  updateTrip = (trip: Trip) => {
     assert.isNotNull({ trip })
 
     this.w.trip = trip
@@ -83,7 +83,7 @@ export default class TrainTrip extends Entity {
 
   ////////////
   //// Separate sample; not used other than testing
-  public async changeStartDate(startDate: FutureDate) {
+  async changeStartDate(startDate: FutureDate) {
     assert.isNotNull({ startDate })
 
     return this.confirmUserChangeAllowed()
@@ -94,7 +94,7 @@ export default class TrainTrip extends Entity {
       )
   }
 
-  public async changePax(pax: PaxDefinition) {
+  async changePax(pax: PaxDefinition) {
     assert.isNotNull({ pax })
 
     return this.confirmUserChangeAllowed()
@@ -105,7 +105,7 @@ export default class TrainTrip extends Entity {
       )
   }
 
-  public async changeTravelClass(travelClass: TravelClassDefinition) {
+  async changeTravelClass(travelClass: TravelClassDefinition) {
     assert.isNotNull({ travelClass })
 
     return this.confirmUserChangeAllowed()
@@ -169,12 +169,12 @@ export class TravelClassConfiguration {
   // doesn't work if assigned as property :/
   private get w() { return asWritable(this) }
 
-  public readonly priceLastUpdated?: Date
-  public readonly price!: Price
+  readonly priceLastUpdated?: Date
+  readonly price!: Price
 
-  constructor(public readonly travelClass: TravelClass) { }
+  constructor(readonly travelClass: TravelClass) { }
 
-  public updateTravelClass(travelClass: TravelClass) {
+  updateTravelClass(travelClass: TravelClass) {
     assert.isNotNull({ travelClass })
 
     this.w.travelClass = travelClass
@@ -182,15 +182,15 @@ export class TravelClassConfiguration {
 }
 
 export class TrainTripCreated {
-  constructor(public readonly id: TrainTripId) { }
+  constructor(readonly id: TrainTripId) { }
 }
 
 export class UserInputReceived {
-  constructor(public readonly id: TrainTripId) { }
+  constructor(readonly id: TrainTripId) { }
 }
 
 export class TrainTripStateChanged {
-  constructor(public readonly id: TrainTripId) { }
+  constructor(readonly id: TrainTripId) { }
 }
 
 export interface StateProposition {

@@ -10,9 +10,9 @@ export {
 }
 
 export abstract class ErrorBase {
-  constructor(public readonly message: string) { }
+  constructor(readonly message: string) { }
 
-  public toString() {
+  toString() {
     return `${this.constructor.name}\n${this.message}`
   }
 }
@@ -26,15 +26,15 @@ export class ValidationError extends ErrorBase {
 export class ForbiddenError extends ErrorBase { }
 
 export class FieldValidationError extends ValidationError {
-  constructor(public readonly fieldName: string, public readonly error: ValidationError) { super(error.message) }
+  constructor(readonly fieldName: string, readonly error: ValidationError) { super(error.message) }
 
-  public toString() {
+  toString() {
     return `${this.fieldName}: ${this.message}`
   }
 }
 
 export class CombinedValidationError extends ValidationError {
-  constructor(public readonly errors: ValidationError[]) {
+  constructor(readonly errors: ValidationError[]) {
     super(errors.join('\n'))
   }
 }

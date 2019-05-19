@@ -9,12 +9,12 @@ export default class TrainTripPublisherInMemory implements TrainTripPublisher {
 
   constructor(private readonly getHandler: getHandlerType) { }
 
-  public registerIfPending = async (trainTripId: TrainTripId) => {
+  registerIfPending = async (trainTripId: TrainTripId) => {
     if (!this.trainTripIsPending(trainTripId)) { return }
     return await this.register(trainTripId)
   }
 
-  public register = async (trainTripId: TrainTripId) => {
+  register = async (trainTripId: TrainTripId) => {
     const current = this.map.get(trainTripId)
     if (current) { clearTimeout(current) }
     this.map.set(

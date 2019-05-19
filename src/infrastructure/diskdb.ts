@@ -17,17 +17,17 @@ export class DiskRecordContext<T extends DBRecord> implements RecordContext<T> {
     private readonly deserializer: (serialized: string) => Result<T, never>,
   ) { }
 
-  public add = (record: T) => {
+  add = (record: T) => {
     assert.isNotNull({ record })
     this.cache.set(record.id, { version: 0, data: record })
   }
 
-  public remove = (record: T) => {
+  remove = (record: T) => {
     assert.isNotNull({ record })
     this.removals.push(record)
   }
 
-  public load = async (id: string): Promise<Result<T, DbError>> => {
+  load = async (id: string): Promise<Result<T, DbError>> => {
     assert.isNotNull({ id })
     const cachedRecord = this.cache.get(id)
     if (cachedRecord) { return ok(cachedRecord.data) }
@@ -43,7 +43,7 @@ export class DiskRecordContext<T extends DBRecord> implements RecordContext<T> {
   }
 
   // Internal
-  public intGetAndClearEvents = () => {
+  intGetAndClearEvents = () => {
     let events: any[] = []
     const items = [...this.cache.values()]
     items.forEach(r => {
@@ -54,7 +54,7 @@ export class DiskRecordContext<T extends DBRecord> implements RecordContext<T> {
     return events
   }
 
-  public intSave = async (): Promise<Result<void, DbError>> => {
+  intSave = async (): Promise<Result<void, DbError>> => {
     for (const e of this.removals) {
       const r = await this.deleteRecord(e)
       if (r.isErr()) {
@@ -155,14 +155,14 @@ const deleteFile = promisify(fs.unlink)
 
 // tslint:disable-next-line:max-classes-per-file
 export class CouldNotAquireDbLockError extends Error {
-  constructor(public readonly type: string, public readonly id: string, public readonly error: Error) {
+  constructor(readonly type: string, readonly id: string, readonly error: Error) {
     super(`Couldn't lock db record ${type}: ${id}`)
   }
 }
 
 // tslint:disable-next-line:max-classes-per-file
 export class OptimisticLockError extends Error {
-  constructor(public readonly type: string, public readonly id: string) {
+  constructor(readonly type: string, readonly id: string) {
     super(`Existing ${type} ${id} record changed`)
   }
 }

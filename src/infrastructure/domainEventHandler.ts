@@ -12,7 +12,7 @@ export default class DomainEventHandler {
     private readonly executePostCommitHandlers: typeof executePostCommitHandlersKey,
   ) { }
 
-  public async postEvents(getAndClearEvents: () => any[]): Promise<Result<IntegrationEventReturnType[], any>> {
+  async postEvents(getAndClearEvents: () => any[]): Promise<Result<IntegrationEventReturnType[], any>> {
     const updateEvents = () => this.events = this.events.concat(getAndClearEvents())
     updateEvents()
     let processedEvents: any[] = []
@@ -35,7 +35,7 @@ export default class DomainEventHandler {
     return ok(integrationEvents)
   }
 
-  public publishPostCommitEventHandlers = () => {
+  publishPostCommitEventHandlers = () => {
     this.events = []
     if (this.integrationEvents.length) { this.executePostCommitHandlers(this.integrationEvents) }
   }
