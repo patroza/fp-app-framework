@@ -24,7 +24,18 @@ export function createDependencyNamespace(namespace: string, requestScopeKey: Re
   const getUnitOfWork = () => container.getF(uowKey)
   const getHandler: getHandlerType = usecaseHandler => {
     const { name, type } = usecaseHandler[3]
-    return generateConfiguredHandler(name, () => container.getF(usecaseHandler[1]), getUnitOfWork, type === 'COMMAND')
+
+    // These execute in reverse order
+    const decorators = [
+      uowDecorator(getUnitOfWork),
+      loggingDecorator(),
+    ]
+    return generateConfiguredHandler(
+      name,
+      () => container.getF(usecaseHandler[1]),
+      decorators,
+      type === 'COMMAND',
+    )
   }
 
   container.registerScopedF(requestScopeKey, () => {
@@ -77,42 +88,62 @@ export function createDependencyNamespace(namespace: string, requestScopeKey: Re
 // tslint:disable-next-line:max-line-length
 export type getHandlerType = <TDependencies, TInput, TOutput, TError>(usecaseHandler: UsecaseHandlerTuple<TDependencies, TInput, TOutput, TError>) => NamedRequestHandler<TInput, TOutput, TError>
 
-type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<TInput, TOutput, TErr | DbError> & { $name: string, $isCommand: boolean }
+type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<TInput, TOutput, TErr | DbError> & { name: string, isCommand: boolean }
 
 const generateConfiguredHandler = <TInput, TOutput, TErr>(
   // Have to specify name as we don't use classes to retrieve the name from
   name: string,
   getFunc: () => PipeFunction<TInput, TOutput, TErr>,
-  getUnitOfWork: () => UnitOfWork,
+  decorators: any[],
   isCommand = false,
 ): NamedRequestHandler<TInput, TOutput, TErr> => {
-  const requestType = isCommand ? 'Command' : 'Query'
-  const prefix = `${name} ${requestType}`
-
-  const handler = (input: TInput) => benchLog(async () => {
-    logger.log(`${prefix} input`, input)
+  let handler = (input: TInput) => {
     const execFunc = getFunc()
+    return execFunc(input)
+  }
 
-    if (!isCommand) {
-      const result = await execFunc(input)
-      logger.log(`${prefix} result`, result)
-      return result
-    }
+  // TODO: manage way how we don't have to apply this to every decorator.
+  Object.defineProperty(handler, 'name', { value: name })
+  let handlerAny = handler as any
+  handlerAny.isCommand = isCommand
 
-    const unitOfWork = getUnitOfWork()
-    const savedResult = await execFunc(input)
-      .pipe(
-        mapErr(liftType<TErr | DbError>()),
-        flatMap(flatTee(unitOfWork.save)),
-      )
-    logger.log(`${prefix} result`, savedResult)
-    return savedResult
-  }, prefix)
+  decorators.forEach(x => {
+    handler = x(handler)
+    Object.defineProperty(handler, 'name', { value: name })
+    handlerAny = handler as any
+    handlerAny.isCommand = isCommand
+  })
 
-  handler.$name = name
-  handler.$isCommand = isCommand
+  return handler as any
+}
 
-  return handler
+const loggingDecorator = (
+) => <TInput, TOutput, TErr>(handler: NamedRequestHandler<TInput, TOutput, TErr>) => (
+  input: TInput,
+) => benchLog(async () => {
+  const requestType = handler.isCommand ? 'Command' : 'Query'
+  const prefix = `${handler.name} ${requestType}`
+  logger.log(`${prefix} input`, input)
+  const result = await handler(input)
+  logger.log(`${prefix} result`, result)
+  return result
+})
+
+const uowDecorator = (
+  getUnitOfWork: () => UnitOfWork,
+) => <TInput, TOutput, TErr>(handler: NamedRequestHandler<TInput, TOutput, TErr>) => (
+  input: TInput,
+) => {
+  if (!handler.isCommand) {
+    return handler(input)
+  }
+
+  const unitOfWork = getUnitOfWork()
+  return handler(input)
+    .pipe(
+      mapErr(liftType<TErr | DbError>()),
+      flatMap(flatTee(unitOfWork.save)),
+    )
 }
 
 const resolveDependenciesImpl = (container: SimpleContainer) => <TDependencies>(deps: TDependencies) => Object.keys(deps).reduce((prev, cur) => {
