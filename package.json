@@ -44,7 +44,8 @@
     "tslint": "^5.16.0"
   },
   "scripts": {
-    "start": "ts-node --transpile-only -r tsconfig-paths/register sample/src/start-server.ts",
+    "start": "nodemon --exec ts-node --transpile-only -r tsconfig-paths/register --files sample/src/start-server.ts",
+    "start:prod": "ts-node --transpile-only -r tsconfig-paths/register --files sample/src/start-server.ts",
     "test": "jest",
     "test:compile": "tsc --noEmit",
     "test:lint": "tslint --project .",
