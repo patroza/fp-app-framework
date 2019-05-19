@@ -23,7 +23,8 @@
 
 - `yarn testsuite`
 
-Access over `http://localhost:3535/train-trip` (see `TrainTrip.router.ts` for paths and methods)
+Access over `http://localhost:3535/train-trip`
+see `TrainTrip.router.ts` for paths and methods, and `router-schema.json` for a complete picture.
 
 
 ## Thoughts
