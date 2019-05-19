@@ -3,7 +3,7 @@ import DomainEventHandler, { executePostCommitHandlersKey, publishEventsKey } fr
 import executePostCommitHandlers from 'fp-app-framework/infrastructure/executePostCommitHandlers'
 import { createDependencyNamespace } from 'fp-app-framework/infrastructure/namespace'
 import publishEvents from 'fp-app-framework/infrastructure/publishEvents'
-import { getRegisteredEvents } from 'fp-app-framework/infrastructure/requestHandlers'
+import { getRegisteredEventHandlers } from 'fp-app-framework/infrastructure/requestHandlers'
 import './TrainTrip/eventhandlers' // To be ble to auto register them :/
 import { getPricingFake, getTemplateFake, getTrip, sendCloudSyncFake } from './TrainTrip/infrastructure/api'
 import DiskDBContext from './TrainTrip/infrastructure/TrainTripContext.disk'
@@ -36,7 +36,7 @@ const createRoot = () => {
   container.registerSingletonF(executePostCommitHandlersKey, () => executePostCommitHandlers({ setupChildContext }))
   container.registerSingletonF(
     publishEventsKey,
-    () => publishEvents(new Map(getRegisteredEvents()), hndlr => container.getF(hndlr[1])),
+    () => publishEvents(new Map(getRegisteredEventHandlers()), hndlr => container.getF(hndlr[1])),
   )
   container.registerSingletonC(
     DomainEventHandler,

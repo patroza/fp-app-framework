@@ -1,5 +1,6 @@
 import assert from '../utils/assert'
 import { Constructor } from './misc'
+import { setFunctionName } from './namespace'
 
 export default class SimpleContainer {
   private factories = new Map()
@@ -148,7 +149,7 @@ export class DependencyScope {
 
 export function generateKey<T>(name?: string): T {
   const f = () => { throw new Error(`${name} not implemented function`) }
-  Object.defineProperty(f, 'name', { value: name })
+  if (name) { setFunctionName(f, name) }
   return f as any
 }
 

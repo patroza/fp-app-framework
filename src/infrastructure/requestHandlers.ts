@@ -53,7 +53,7 @@ const createQueryWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOu
 const createEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(event: Constructor<TInput>, name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
   const setupWithDeps = setupWithDependenciesInt(deps)
   const resolved = setupWithDeps(`on${event.name}${name}`, 'EVENT')(handler)
-  registerEvent(event, resolved)
+  registerEventHandler(event, resolved)
   return resolved
 }
 
@@ -62,16 +62,16 @@ const createEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <TInp
 // const setupWithExtraDependencies = <TExtraDependencies>(extraDeps: TExtraDependencies) =>
 //   <TDeps>(deps: TDeps) => setupWithDependenciesInt({ ...extraDeps, ...deps })
 
-const getRegisteredHandlers = () => [...dependencyMap.entries()]
-const getRegisteredEvents = () => [...handlerMap.entries()]
-const registerEvent = (event: any, handler: any) => {
+const getRegisteredRequestAndEventHandlers = () => [...dependencyMap.entries()]
+const getRegisteredEventHandlers = () => [...handlerMap.entries()]
+const registerEventHandler = (event: any, handler: any) => {
   const current = handlerMap.get(event) || []
   current.push(handler)
   handlerMap.set(event, current)
 }
 
 export {
-  getRegisteredHandlers, getRegisteredEvents, registerEvent,
+  getRegisteredRequestAndEventHandlers, getRegisteredEventHandlers, registerEventHandler,
   setupWithDependenciesInt, createCommandWithDeps, createEventHandlerWithDeps,
   createQueryWithDeps,
 }
