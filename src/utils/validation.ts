@@ -3,13 +3,21 @@ import { CombinedValidationError, FieldValidationError, ValidationError } from '
 import { err, ok, Result } from './neverthrow-extensions'
 export { Joi }
 
-const createValidator = <TIn>(schema: any) => (object: TIn): Result<TIn, ValidationError> => {
-  const r = Joi.validate(object, schema, { abortEarly: false })
-  if (r.error) {
-    return err(new CombinedValidationError(r.error.details.map(x => new FieldValidationError(x.path.join('.'), x))))
+import convert from 'joi-to-json-schema'
+
+const createValidator = <TIn>(schema: any): ValidatorType<TIn, ValidationError> => {
+  const validator = (object: TIn): Result<TIn, ValidationError> => {
+    const r = Joi.validate(object, schema, { abortEarly: false })
+    if (r.error) {
+      return err(new CombinedValidationError(r.error.details.map(x => new FieldValidationError(x.path.join('.'), x))))
+    }
+    return ok(r.value)
   }
-  return ok(r.value)
+  validator.jsonSchema = convert(schema)
+  return validator
 }
+
+export type ValidatorType<TIn, TErr> = ((object: TIn) => Result<TIn, TErr>) & { jsonSchema: any }
 
 const predicate = <T, E extends ValidationError>(pred: (inp: T) => boolean, errMsg: string) => (inp: T): Result<T, E | ValidationError> => {
   if (pred(inp)) {
