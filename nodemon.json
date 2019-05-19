@@ -4,6 +4,9 @@
     "src/**/*",
     "sample/**/*"
   ],
-  "ignore": "data/**/*",
+  "ignore": [
+    "data/**/*",
+    "router-schema.json"
+  ],
   "ext": "js, css, json, ts"
 }

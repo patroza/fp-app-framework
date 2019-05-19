@@ -1,0 +1,162 @@
+[
+  [
+    "GET",
+    "/train-trip/:trainTripId",
+    {
+      "type": "object",
+      "properties": {
+        "trainTripId": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "patterns": [],
+      "required": [
+        "trainTripId"
+      ]
+    }
+  ],
+  [
+    "POST",
+    "/train-trip/",
+    {
+      "type": "object",
+      "properties": {
+        "pax": {
+          "type": "object",
+          "properties": {
+            "adults": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 6
+            },
+            "babies": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 6
+            },
+            "children": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 6
+            },
+            "infants": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 6
+            },
+            "teenagers": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 6
+            }
+          },
+          "additionalProperties": false,
+          "patterns": [],
+          "required": [
+            "adults",
+            "babies",
+            "children",
+            "infants",
+            "teenagers"
+          ]
+        },
+        "startDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "templateId": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "patterns": [],
+      "required": [
+        "pax",
+        "startDate",
+        "templateId"
+      ]
+    }
+  ],
+  [
+    "PATCH",
+    "/train-trip/:trainTripId",
+    {
+      "type": "object",
+      "properties": {
+        "pax": {
+          "type": "object",
+          "properties": {
+            "adults": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 6
+            },
+            "babies": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 6
+            },
+            "children": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 6
+            },
+            "infants": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 6
+            },
+            "teenagers": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 6
+            }
+          },
+          "additionalProperties": false,
+          "patterns": [],
+          "required": [
+            "adults",
+            "babies",
+            "children",
+            "infants",
+            "teenagers"
+          ]
+        },
+        "startDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "trainTripId": {
+          "type": "string"
+        },
+        "travelClass": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "patterns": [],
+      "required": [
+        "pax",
+        "trainTripId"
+      ]
+    }
+  ],
+  [
+    "POST",
+    "/train-trip/:trainTripId/lock",
+    {
+      "type": "object",
+      "properties": {
+        "trainTripId": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "patterns": [],
+      "required": [
+        "trainTripId"
+      ]
+    }
+  ]
+]

@@ -2631,6 +2631,11 @@ jest@^24.8.0:
     import-local "^2.0.0"
     jest-cli "^24.8.0"
 
+joi-to-json-schema@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/joi-to-json-schema/-/joi-to-json-schema-5.0.0.tgz#f7157593f7d2ef7b97b23c5c06320daf88c19ff6"
+  integrity sha512-3XIo2xLp7CdgWfmWC82cSByZSv7a1GS6nPZDc2CfOaHKcvG+75BXoH9+TFxVnxd8wt4QtRGsxupVMLAw9TleGw==
+
 "js-tokens@^3.0.0 || ^4.0.0", js-tokens@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"

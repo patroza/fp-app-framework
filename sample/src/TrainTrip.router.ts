@@ -7,20 +7,29 @@ import createTrainTrip from './TrainTrip/usecases/createTrainTrip'
 import getTrainTrip from './TrainTrip/usecases/getTrainTrip'
 import lockTrainTrip from './TrainTrip/usecases/lockTrainTrip'
 
+import convert from 'joi-to-json-schema'
+import { paxSchema } from './TrainTrip/PaxDefinition'
+
 const createTrainTripRouter = (getHandler: getHandlerType) => {
+  const jsonSchemas: any[] = []
+  const createValidatorLocal = <T>(schema: any) => {
+    jsonSchemas.push(convert(schema))
+    return createValidator<T>(schema)
+  }
+
   const router = new KoaRouter()
     .get('/:trainTripId',
       generateKoaHandler(
         getHandler(getTrainTrip),
-        createValidator(routeWithTrainTripId),
+        createValidatorLocal(routeWithTrainTripId),
       ),
     )
 
     .post('/',
       generateKoaHandler(
         getHandler(createTrainTrip),
-        createValidator(Joi.object({
-          pax: Joi.object().required(),
+        createValidatorLocal(Joi.object({
+          pax: paxSchema.required(),
           startDate: Joi.date().required(),
           templateId: Joi.string().required(),
         }).required()),
@@ -29,8 +38,8 @@ const createTrainTripRouter = (getHandler: getHandlerType) => {
     .patch('/:trainTripId',
       generateKoaHandler(
         getHandler(changeTrainTrip),
-        createValidator(Joi.object({
-          pax: Joi.object(),
+        createValidatorLocal(Joi.object({
+          pax: paxSchema,
           startDate: Joi.date(),
           trainTripId: trainTripIdValidator,
           travelClass: Joi.string(),
@@ -40,11 +49,15 @@ const createTrainTripRouter = (getHandler: getHandlerType) => {
     .post('/:trainTripId/lock',
       generateKoaHandler(
         getHandler(lockTrainTrip),
-        createValidator(routeWithTrainTripId),
+        createValidatorLocal(routeWithTrainTripId),
       ),
     )
 
-  return router
+  const jsonSchema = router.stack.map((x, i) =>
+    [x.methods[x.methods.length - 1], x.path, jsonSchemas[i]],
+  )
+
+  return [router, jsonSchema] as [typeof router, typeof jsonSchema]
 }
 
 const trainTripIdValidator = Joi.string().guid().required()

@@ -19,13 +19,14 @@ export default class PaxDefinition {
 }
 
 const paxEntrySchema = Joi.number().integer().min(0).max(6).required()
-const validate = createValidator<Pax>(Joi.object({
+export const paxSchema = Joi.object({
   adults: paxEntrySchema,
   babies: paxEntrySchema,
   children: paxEntrySchema,
   infants: paxEntrySchema,
   teenagers: paxEntrySchema,
-}).required())
+}).required()
+const validate = createValidator<Pax>(paxSchema)
 
 export interface Pax {
   adults: number
