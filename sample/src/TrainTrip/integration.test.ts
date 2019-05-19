@@ -3,7 +3,7 @@ jest.mock('fp-app-framework/infrastructure/executePostCommitHandlers')
 import { CombinedValidationError, ValidationError } from 'fp-app-framework/errors'
 import executePostCommitHandlers from 'fp-app-framework/infrastructure/executePostCommitHandlers'
 import { logger, setLogger } from 'fp-app-framework/utils'
-import { Ok } from 'neverthrow'
+import { Ok } from 'fp-app-framework/utils/neverthrow-extensions'
 import createRoot from '../root'
 import changeTrainTrip, { StateProposition } from './usecases/changeTrainTrip'
 import createTrainTrip from './usecases/createTrainTrip'

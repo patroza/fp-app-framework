@@ -1,5 +1,4 @@
-import { flatMap, map, PipeFunction, PipeFunctionN } from 'fp-app-framework/utils/neverthrow-extensions'
-import { Result } from 'neverthrow'
+import { flatMap, map, PipeFunction, PipeFunctionN, Result } from 'fp-app-framework/utils/neverthrow-extensions'
 import DomainEventHandler from './domainEventHandler'
 import { DbError } from './errors'
 

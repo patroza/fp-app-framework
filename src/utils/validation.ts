@@ -1,6 +1,6 @@
 import Joi from '@hapi/joi'
-import { err, ok, Result } from 'neverthrow'
 import { CombinedValidationError, FieldValidationError, ValidationError } from '../errors'
+import { err, ok, Result } from './neverthrow-extensions'
 export { Joi }
 
 const createValidator = <TIn>(schema: any) => (object: TIn): Result<TIn, ValidationError> => {

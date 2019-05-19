@@ -1,9 +1,8 @@
 import fs from 'fs'
-import { err, ok, Result } from 'neverthrow'
 import { lock } from 'proper-lockfile'
 import { promisify } from 'util'
 import assert from '../utils/assert'
-import { flatMap, liftType, map, mapErr, PipeFunctionN } from '../utils/neverthrow-extensions'
+import { err, flatMap, liftType, map, mapErr, ok, PipeFunctionN, Result } from '../utils/neverthrow-extensions'
 import { RecordContext } from './context.base'
 import { ConnectionError, DbError, RecordNotFound } from './errors'
 

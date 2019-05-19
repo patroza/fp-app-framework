@@ -3,9 +3,8 @@ import { combineValidationErrors, toFieldError, ValidationError } from 'fp-app-f
 import { DbError } from 'fp-app-framework/infrastructure/errors'
 import { createCommandWithDeps } from 'fp-app-framework/infrastructure/requestHandlers'
 import {
-  flatMap, map, mapErr, pipe, PipeFunction, resultTuple, toFlatTup, toTup, valueOrUndefined,
+  flatMap, map, mapErr, ok, pipe, PipeFunction, resultTuple, toFlatTup, toTup, valueOrUndefined,
 } from 'fp-app-framework/utils/neverthrow-extensions'
-import { ok } from 'neverthrow'
 import FutureDate from '../FutureDate'
 import PaxDefinition, { Pax } from '../PaxDefinition'
 import TravelClassDefinition from '../TravelClassDefinition'

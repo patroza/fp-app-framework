@@ -1,5 +1,4 @@
-import { ok, Result } from 'neverthrow'
-import { PipeFunction } from '../utils/neverthrow-extensions'
+import { ok, PipeFunction, Result } from '../utils/neverthrow-extensions'
 import { IntegrationEventReturnType } from './misc'
 import { generateKey } from './SimpleContainer'
 

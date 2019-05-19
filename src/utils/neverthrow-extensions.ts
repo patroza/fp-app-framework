@@ -8,6 +8,7 @@
 
 import { flatten, zip } from 'lodash'
 import { err, Err, ok, Ok, Result } from 'neverthrow'
+export * from 'neverthrow'
 import { ErrorBase } from '../errors'
 import './promise-pipe'
 

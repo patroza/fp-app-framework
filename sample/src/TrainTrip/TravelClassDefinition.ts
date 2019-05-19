@@ -1,5 +1,5 @@
 import { ValidationError } from 'fp-app-framework/errors'
-import { err, ok, Result } from 'neverthrow'
+import { err, ok, Result } from 'fp-app-framework/utils/neverthrow-extensions'
 
 export default class TravelClassDefinition {
   public static create(travelClassName: string): Result<TravelClassDefinition, ValidationError> {

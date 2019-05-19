@@ -1,8 +1,7 @@
-import { err, ok, Result } from 'neverthrow'
 import { publishEventsKey } from '../infrastructure/domainEventHandler'
 import { DomainEventReturnType, IntegrationEventReturnType } from '../infrastructure/misc'
 import { isTruthyFilter, logger } from '../utils'
-import { PipeFunction } from '../utils/neverthrow-extensions'
+import { err, ok, PipeFunction, Result } from '../utils/neverthrow-extensions'
 import { UsecaseHandlerTuple } from './requestHandlers'
 
 const publishEvents = (handlers: EventHandlerMap, resolve: CreateHandlerType): typeof publishEventsKey =>
