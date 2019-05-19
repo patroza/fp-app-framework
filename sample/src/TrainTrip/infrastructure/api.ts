@@ -1,16 +1,16 @@
 import TrainTrip, { Price } from '@/TrainTrip/TrainTrip'
+import { createTravelPlanType, getTemplateType, getTravelPlanType } from '@/TrainTrip/usecases/types'
 import { ApiError, ConnectionError, RecordNotFound } from 'fp-app-framework/infrastructure/errors'
-import { generateKeyFromFn } from 'fp-app-framework/infrastructure/SimpleContainer'
 import assert from 'fp-app-framework/utils/assert'
 import { flatMap, map, PipeFunction, sequenceAsync, startWithVal } from 'fp-app-framework/utils/neverthrow-extensions'
-import { err, ok, Result } from 'neverthrow'
+import { err, ok } from 'neverthrow'
 import { v4 } from 'uuid'
 import PaxDefinition, { Pax } from '../PaxDefinition'
 import { TravelClassName } from '../TravelClassDefinition'
 import Trip, { TravelClass } from '../Trip'
 
 const getTrip = (
-  { getTemplate }: { getTemplate: typeof getTemplateKey },
+  { getTemplate }: { getTemplate: getTemplateType },
 ): PipeFunction<string, Trip, ApiError> => templateId => {
   assert.isNotNull({ templateId })
 
@@ -18,7 +18,7 @@ const getTrip = (
     .pipe(flatMap(toTrip(getTemplate)))
 }
 
-const toTrip = (getTemplate: typeof getTemplateKey) => (tpl: Template) => {
+const toTrip = (getTemplate: getTemplateType) => (tpl: Template) => {
   const currentTravelClass = tplToTravelClass(tpl)
   return sequenceAsync(
     [startWithVal<ApiError>()(currentTravelClass)].concat(
@@ -38,7 +38,7 @@ const getTplLevelName = (tpl: any) => Object.keys(tpl.travelClasss).find(x => (t
 // https://stackoverflow.com/questions/50400120/using-typescript-for-partial-application
 const getTemplateFake = (
   { }: { templateApiUrl: string },
-): PipeFunction<string, Template, ApiError> => async templateId => {
+): getTemplateType => async templateId => {
   assert.isNotNull({ templateId })
 
   const tpl = mockedTemplates()[templateId] as Template | undefined
@@ -52,7 +52,7 @@ const mockedTemplates: () => { [key: string]: Template } = () => ({
 })
 
 const getPricingFake = (
-  { getTemplate }: { pricingApiUrl: string, getTemplate: typeof getTemplateKey },
+  { getTemplate }: { pricingApiUrl: string, getTemplate: getTemplateType },
 ) => (templateId: string, pax: PaxDefinition, startDate: Date) => {
   assert.isNotNull({ templateId, pax, startDate })
 
@@ -64,7 +64,7 @@ const getFakePriceFromTemplate = (_: any) => ({ price: { amount: 100, currency: 
 
 const createTravelPlanFake = (
   { }: { travelPlanApiUrl: string },
-) => async (templateId: string, info: { pax: PaxDefinition, startDate: Date }): Promise<Result<string, ConnectionError>> => {
+): createTravelPlanType => async (templateId, info) => {
   assert.isNotNull({ templateId, info })
 
   return ok(v4())
@@ -80,7 +80,7 @@ const sendCloudSyncFake = (
 
 const getTravelPlanFake = (
   { }: { travelPlanApiUrl: string },
-): PipeFunction<string, TravelPlan, ApiError> => async travelPlanId => {
+): getTravelPlanType => async travelPlanId => {
   assert.isNotNull({ travelPlanId })
 
   return ok({ id: travelPlanId } as TravelPlan)
@@ -131,10 +131,3 @@ interface Stop { }
 interface TravelPlanStop extends Stop { }
 // tslint:disable-next-line:no-empty-interface
 interface TemplateStop extends Stop { }
-
-export const getTripKey = generateKeyFromFn(getTrip)
-export const sendCloudSyncKey = generateKeyFromFn(sendCloudSyncFake)
-export const getTravelPlanKey = generateKeyFromFn(getTravelPlanFake)
-export const getTemplateKey = generateKeyFromFn(getTemplateFake)
-export const getPricingType = generateKeyFromFn(getPricingFake)
-export const createTravelPlanType = generateKeyFromFn(createTravelPlanFake)
