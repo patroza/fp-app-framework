@@ -46,3 +46,12 @@ see `TrainTrip.router.ts` for paths and methods, and `router-schema.json` for a 
 ### Additional usecase samples
 
 - Soft delete
+
+## Resources
+
+- https://fsharpforfunandprofit.com/ddd/
+- https://fsharpforfunandprofit.com/rop/
+- https://github.com/gcanti/fp-ts
+- https://dev.to/_gdelgado/type-safe-error-handling-in-typescript-1p4n
+- https://khalilstemmler.com/articles/enterprise-typescript-nodejs/handling-errors-result-class/
+  - & more: https://khalilstemmler.com/articles
