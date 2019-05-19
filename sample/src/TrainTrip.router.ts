@@ -1,31 +1,25 @@
 import { generateKoaHandler } from 'fp-app-framework/infrastructure/koa'
 import { getHandlerType } from 'fp-app-framework/infrastructure/namespace'
 import { createValidator, Joi } from 'fp-app-framework/utils/validation'
+import convert from 'joi-to-json-schema'
 import KoaRouter from 'koa-router'
+import { authMiddleware } from './koa'
+import { paxSchema } from './TrainTrip/PaxDefinition'
 import changeTrainTrip from './TrainTrip/usecases/changeTrainTrip'
 import createTrainTrip from './TrainTrip/usecases/createTrainTrip'
 import deleteTrainTrip from './TrainTrip/usecases/deleteTrainTrip'
 import getTrainTrip from './TrainTrip/usecases/getTrainTrip'
 import lockTrainTrip from './TrainTrip/usecases/lockTrainTrip'
 
-import convert from 'joi-to-json-schema'
-import { paxSchema } from './TrainTrip/PaxDefinition'
-
-const createTrainTripRouter = (getHandler: getHandlerType) => {
+const createTrainTripRouter = (getHandler: getHandlerType, auth: boolean) => {
   const jsonSchemas: any[] = []
   const createValidatorLocal = <T>(schema: any) => {
     jsonSchemas.push(convert(schema))
     return createValidator<T>(schema)
   }
 
-  const router = new KoaRouter()
-    .get('/:trainTripId',
-      generateKoaHandler(
-        getHandler(getTrainTrip),
-        createValidatorLocal(routeWithTrainTripId),
-      ),
-    )
-
+  const r = new KoaRouter()
+  const router = (auth ? r.use(authMiddleware()) : r)
     .post('/',
       generateKoaHandler(
         getHandler(createTrainTrip),
@@ -34,6 +28,13 @@ const createTrainTripRouter = (getHandler: getHandlerType) => {
           startDate: Joi.date().required(),
           templateId: Joi.string().required(),
         }).required()),
+      ),
+    )
+
+    .get('/:trainTripId',
+      generateKoaHandler(
+        getHandler(getTrainTrip),
+        createValidatorLocal(routeWithTrainTripId),
       ),
     )
     .patch('/:trainTripId',
@@ -60,7 +61,7 @@ const createTrainTripRouter = (getHandler: getHandlerType) => {
       ),
     )
 
-  const jsonSchema = router.stack.map((x, i) =>
+  const jsonSchema = router.stack.filter(x => x.methods[0]).map((x, i) =>
     [x.methods[x.methods.length - 1], x.path, jsonSchemas[i]],
   )
 

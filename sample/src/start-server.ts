@@ -1,4 +1,4 @@
-import { logRequestTime, saveStartTime, setupNamespace } from 'fp-app-framework/infrastructure/koa'
+import { handleAuthenticationFailedMiddleware, logRequestTime, saveStartTime, setupNamespace } from 'fp-app-framework/infrastructure/koa'
 import { logger, setLogger } from 'fp-app-framework/utils'
 import fs from 'fs'
 import Koa from 'koa'
@@ -21,11 +21,19 @@ const startServer = () => {
     warn: bindLogger(console.warn),
   }))
 
-  const [trainTripRouter, trainTripSchema] = createTrainTripRouter(getHandler)
-  const rootRouter = new KoaRouter()
-    .use('/train-trip', trainTripRouter.allowedMethods(), trainTripRouter.routes())
+  const routerMap = new Map<string, [KoaRouter, any[][]]>()
 
-  const schema = trainTripSchema.map(x => [x[0], `/train-trip${x[1]}`, x[2]])
+  // Cannot re-use a router :/
+  routerMap.set('/train-trip', createTrainTripRouter(getHandler, false))
+  routerMap.set('/train-trip-auth', createTrainTripRouter(getHandler, true))
+
+  const rootRouter = [...routerMap.entries()].reduce((prev, cur) => prev.use(cur[0], cur[1][0].allowedMethods(), cur[1][0].routes()), new KoaRouter())
+
+  const schema = [...routerMap.entries()].reduce((prev, [path, [_, s]]) => {
+    prev[path] = s.map(([method, p, s2]) => ({ method, subPath: p, fullPath: `${path}${p}`, schema: s2 }))
+    return prev
+  }, {} as any)
+
   fs.writeFileSync('./router-schema.json', JSON.stringify(schema, undefined, 2))
 
   const app = new Koa()
@@ -33,6 +41,7 @@ const startServer = () => {
     .use(setupNamespace({ setupRootContext }))
     .use(logRequestTime)
     .use(bodyParser())
+    .use(handleAuthenticationFailedMiddleware)
     .use(rootRouter.allowedMethods())
     .use(rootRouter.routes())
 

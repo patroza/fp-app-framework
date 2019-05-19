@@ -9,6 +9,8 @@ import { CouldNotAquireDbLockError, OptimisticLockError } from './diskdb'
 import { ConnectionError, RecordNotFound } from './errors'
 import { RequestContextBase } from './misc'
 
+import auth from 'koa-basic-auth'
+
 export const generateKoaHandler = <I, T, E extends ErrorBase, E2 extends ValidationError>(
   handleRequest: PipeFunction<I, T, E>,
   validate: (i: I) => Result<I, E2>,
@@ -127,6 +129,25 @@ const handleDefaultError = (ctx: Koa.Context) => (err: ErrorBase) => {
   } else {
     // Unknown error
     ctx.status = 500
+  }
+}
+
+export const authMiddleware = (defaultNamePass: string) => (namePass: string = defaultNamePass) => {
+  const [name, pass] = namePass.split(':')
+  return auth({ name, pass })
+}
+
+export const handleAuthenticationFailedMiddleware: Koa.Middleware = async (ctx, next) => {
+  try {
+    await next()
+  } catch (err) {
+    if (401 === err.status) {
+      ctx.status = 401
+      ctx.set('WWW-Authenticate', 'Basic')
+      ctx.body = { messsage: 'Unauthorized' }
+    } else {
+      throw err
+    }
   }
 }
 
