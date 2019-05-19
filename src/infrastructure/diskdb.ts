@@ -2,13 +2,14 @@ import fs from 'fs'
 import { lock } from 'proper-lockfile'
 import { promisify } from 'util'
 import assert from '../utils/assert'
-import { err, flatMap, liftType, map, mapErr, ok, PipeFunctionN, Result } from '../utils/neverthrow-extensions'
+import { err, flatMap, liftType, map, mapErr, ok, PipeFunctionN, Result, startWithVal } from '../utils/neverthrow-extensions'
 import { RecordContext } from './context.base'
 import { ConnectionError, DbError, RecordNotFound } from './errors'
 
 // tslint:disable-next-line:max-classes-per-file
 export class DiskRecordContext<T extends DBRecord> implements RecordContext<T> {
   private cache = new Map<string, CachedRecord<T>>()
+  private removals: T[] = []
 
   constructor(
     private readonly type: string,
@@ -19,6 +20,11 @@ export class DiskRecordContext<T extends DBRecord> implements RecordContext<T> {
   public add = (record: T) => {
     assert.isNotNull({ record })
     this.cache.set(record.id, { version: 0, data: record })
+  }
+
+  public remove = (record: T) => {
+    assert.isNotNull({ record })
+    this.removals.push(record)
   }
 
   public load = async (id: string): Promise<Result<T, DbError>> => {
@@ -49,6 +55,13 @@ export class DiskRecordContext<T extends DBRecord> implements RecordContext<T> {
   }
 
   public intSave = async (): Promise<Result<void, DbError>> => {
+    for (const e of this.removals) {
+      const r = await this.deleteRecord(e)
+      if (r.isErr()) {
+        return r
+      }
+      this.cache.delete(e.id)
+    }
     for (const e of this.cache.entries()) {
       const r = await this.saveRecord(e[1].data)
       if (r.isErr()) {
@@ -78,6 +91,13 @@ export class DiskRecordContext<T extends DBRecord> implements RecordContext<T> {
           return ok(void 0)
         }),
       ))
+  }
+
+  private deleteRecord = async (record: T): Promise<Result<void, DbError>> => {
+    assert.isNotNull({ record })
+    return await lockRecordOnDisk(this.type, record.id, () =>
+      startWithVal<DbError>()(void 0).pipe(map(() => deleteFile(getFn(this.type, record.id)))),
+    )
   }
 
   private actualSave = async (record: T, version: number) => {
@@ -131,6 +151,7 @@ const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
 const mkdir = promisify(fs.mkdir)
+const deleteFile = promisify(fs.unlink)
 
 // tslint:disable-next-line:max-classes-per-file
 export class CouldNotAquireDbLockError extends Error {

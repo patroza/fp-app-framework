@@ -4,6 +4,7 @@ import { createValidator, Joi } from 'fp-app-framework/utils/validation'
 import KoaRouter from 'koa-router'
 import changeTrainTrip from './TrainTrip/usecases/changeTrainTrip'
 import createTrainTrip from './TrainTrip/usecases/createTrainTrip'
+import deleteTrainTrip from './TrainTrip/usecases/deleteTrainTrip'
 import getTrainTrip from './TrainTrip/usecases/getTrainTrip'
 import lockTrainTrip from './TrainTrip/usecases/lockTrainTrip'
 
@@ -44,6 +45,12 @@ const createTrainTripRouter = (getHandler: getHandlerType) => {
           trainTripId: trainTripIdValidator,
           travelClass: Joi.string(),
         }).or('pax', 'travelClass', 'startDate').required()),
+      ),
+    )
+    .delete('/:trainTripId',
+      generateKoaHandler(
+        getHandler(deleteTrainTrip),
+        createValidatorLocal(routeWithTrainTripId),
       ),
     )
     .post('/:trainTripId/lock',

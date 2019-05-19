@@ -1,12 +1,14 @@
 jest.mock('fp-app-framework/infrastructure/executePostCommitHandlers')
 
 import { CombinedValidationError, ValidationError } from 'fp-app-framework/errors'
+import { RecordNotFound } from 'fp-app-framework/infrastructure/errors'
 import executePostCommitHandlers from 'fp-app-framework/infrastructure/executePostCommitHandlers'
 import { logger, setLogger } from 'fp-app-framework/utils'
-import { Ok } from 'fp-app-framework/utils/neverthrow-extensions'
+import { Err, Ok } from 'fp-app-framework/utils/neverthrow-extensions'
 import createRoot from '../root'
 import changeTrainTrip, { StateProposition } from './usecases/changeTrainTrip'
 import createTrainTrip from './usecases/createTrainTrip'
+import deleteTrainTrip from './usecases/deleteTrainTrip'
 import getTrainTrip from './usecases/getTrainTrip'
 import lockTrainTrip from './usecases/lockTrainTrip'
 import registerCloud from './usecases/registerCloud'
@@ -132,6 +134,24 @@ describe('able to lock the TrainTrip', () => {
     expect(currentTrainTripResult).toBeInstanceOf(Ok)
     expect(currentTrainTripResult._unsafeUnwrap().allowUserModification).toBe(true)
     expect(newTrainTripResult._unsafeUnwrap().allowUserModification).toBe(false)
+    expect(executePostCommitHandlersMock).toBeCalledTimes(0)
+  }))
+})
+
+describe('able to delete the TrainTrip', () => {
+  it('deletes accordingly', bind(async () => {
+    const currentTrainTripResult = await root.getHandler(getTrainTrip)({ trainTripId })
+
+    const result = await root.getHandler(deleteTrainTrip)({ trainTripId })
+
+    const newTrainTripResult = await root.getHandler(getTrainTrip)({ trainTripId })
+    expect(result).toBeInstanceOf(Ok)
+    // We don't want to leak accidentally domain objects
+    expect(result._unsafeUnwrap()).toBe(void 0)
+    expect(currentTrainTripResult).toBeInstanceOf(Ok)
+    expect(currentTrainTripResult._unsafeUnwrap().allowUserModification).toBe(true)
+    expect(newTrainTripResult).toBeInstanceOf(Err)
+    expect(newTrainTripResult._unsafeUnwrapErr()).toBeInstanceOf(RecordNotFound)
     expect(executePostCommitHandlersMock).toBeCalledTimes(0)
   }))
 })

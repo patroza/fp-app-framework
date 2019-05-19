@@ -143,6 +143,23 @@
     }
   ],
   [
+    "DELETE",
+    "/train-trip/:trainTripId",
+    {
+      "type": "object",
+      "properties": {
+        "trainTripId": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "patterns": [],
+      "required": [
+        "trainTripId"
+      ]
+    }
+  ],
+  [
     "POST",
     "/train-trip/:trainTripId/lock",
     {

@@ -23,5 +23,6 @@ export interface UnitOfWork {
 
 export interface RecordContext<T> {
   add: (record: T) => void
+  remove: (record: T) => void
   load: PipeFunction<string, T, DbError>
 }

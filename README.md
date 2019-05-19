@@ -39,4 +39,4 @@ see `TrainTrip.router.ts` for paths and methods, and `router-schema.json` for a 
 
 ### Additional usecase samples
 
-- Delete (soft/hard)
+- Soft delete
