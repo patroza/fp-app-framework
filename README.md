@@ -39,9 +39,11 @@ see `TrainTrip.router.ts` for paths and methods, and `router-schema.json` for a 
 ## After stabilization
 
 - Enhance container to prevent dependency capturing (ie a singleton that 'captures' a transient or scoped dependency)
-- Extract Infrastructure framework implementations to separate packages
-  - hosting-koa
-  - io-disk
+- Remove "opinionation"
+  - Make it easy to use any validation framework
+  - Extract Infrastructure framework implementations to separate packages
+    - hosting-koa
+    - io-disk
 
 ### Additional usecase samples
 
@@ -55,3 +57,5 @@ see `TrainTrip.router.ts` for paths and methods, and `router-schema.json` for a 
 - https://dev.to/_gdelgado/type-safe-error-handling-in-typescript-1p4n
 - https://khalilstemmler.com/articles/enterprise-typescript-nodejs/handling-errors-result-class/
   - & more: https://khalilstemmler.com/articles
+- SimpleInjector
+- MediatR Request/Event handlers and Pipelines.
