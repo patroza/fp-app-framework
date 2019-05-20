@@ -1,9 +1,9 @@
+import { ErrorBase } from 'fp-app-framework/errors'
 import fs from 'fs'
 import { Writeable } from '../utils'
 import assert from '../utils/assert'
 import { ValidatorType } from '../utils/validation'
 import { DbError } from './errors'
-import { ErrorHandlerType } from './hosting.koa'
 import { requestType, UsecaseWithDependencies } from './requestHandlers'
 
 export default abstract class RouteBuilder<TContext> {
@@ -52,6 +52,10 @@ export function writeRouterSchema(routerMap: Map<string, RouteBuilder<any>>) {
   }, {} as any)
   fs.writeFileSync('./router-schema.json', JSON.stringify(schema, undefined, 2))
 }
+
+export type ErrorHandlerType<TContext, TError> = <TErr extends ErrorBase>(ctx: TContext) => (err: TError) => TErr | TError | void
+
+export const defaultErrorPassthrough = () => (err: any) => err
 
 interface RegisteredRoute<TContext> {
   method: METHODS,

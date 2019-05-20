@@ -17,11 +17,9 @@ export abstract class ErrorBase {
   }
 }
 
-export class Error extends ErrorBase {
-}
+export class Error extends ErrorBase { }
 
-export class ValidationError extends ErrorBase {
-}
+export class ValidationError extends ErrorBase { }
 
 export class ForbiddenError extends ErrorBase { }
 

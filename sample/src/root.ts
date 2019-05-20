@@ -1,7 +1,7 @@
 import { UnitOfWork } from 'fp-app-framework/infrastructure/context.base'
+import createDependencyNamespace from 'fp-app-framework/infrastructure/createDependencyNamespace'
 import DomainEventHandler, { executePostCommitHandlersKey, publishEventsKey } from 'fp-app-framework/infrastructure/domainEventHandler'
 import executePostCommitHandlers from 'fp-app-framework/infrastructure/executePostCommitHandlers'
-import { createDependencyNamespace } from 'fp-app-framework/infrastructure/namespace'
 import publishEvents from 'fp-app-framework/infrastructure/publishEvents'
 import { getRegisteredEventHandlers } from 'fp-app-framework/infrastructure/requestHandlers'
 import './TrainTrip/eventhandlers' // To be ble to auto register them :/
