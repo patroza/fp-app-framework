@@ -1,13 +1,13 @@
 import { TrainTripPublisher } from '@/TrainTrip/eventhandlers'
 import { TrainTripId } from '@/TrainTrip/TrainTrip'
-import { getHandlerType } from 'fp-app-framework/infrastructure/requestHandlers'
+import { getRequestHandlerType } from 'fp-app-framework/infrastructure/requestHandlers'
 import { logger } from 'fp-app-framework/utils'
 import registerCloud from '../usecases/registerCloud'
 
 export default class TrainTripPublisherInMemory implements TrainTripPublisher {
   private readonly map = new Map<TrainTripId, NodeJS.Timeout>()
 
-  constructor(private readonly getHandler: getHandlerType) { }
+  constructor(private readonly getRequestHandler: getRequestHandlerType) { }
 
   registerIfPending = async (trainTripId: TrainTripId) => {
     if (!this.trainTripIsPending(trainTripId)) { return }
@@ -27,7 +27,7 @@ export default class TrainTripPublisherInMemory implements TrainTripPublisher {
     try {
       logger.log(`Publishing TrainTrip to Cloud: ${trainTripId}`)
       // Talk to the Cloud Service to sync with Cloud
-      const result = await this.getHandler(registerCloud)({ trainTripId })
+      const result = await this.getRequestHandler(registerCloud)({ trainTripId })
       if (result.isErr()) {
         // TODO: really handle error
         logger.error(result.error)
@@ -43,6 +43,6 @@ export default class TrainTripPublisherInMemory implements TrainTripPublisher {
   private trainTripIsPending(trainTripID: TrainTripId) { return this.map.has(trainTripID) }
 }
 
-export interface IntegrationEventCommands { registerCloud: typeof registerCloud[1] }
+export interface IntegrationEventCommands { registerCloud: typeof registerCloud }
 
 const CLOUD_PUBLISH_DELAY = 10 * 1000

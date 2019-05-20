@@ -18,7 +18,7 @@ export function createDependencyNamespace(namespace: string, requestScopeKey: Re
   const resolveDependencies = resolveDependenciesImpl(container)
   const create = ([impl, _, deps]: any) => impl(resolveDependencies(deps))
 
-  const getHandler = getHandlerImpl(container, uowKey)
+  const getRequestHandler = getHandlerImpl(container, uowKey)
 
   const bindLogger = (fnc: (...args2: any[]) => void) => (...args: any[]) => {
     const context = container.tryGetF(requestScopeKey)
@@ -61,7 +61,7 @@ export function createDependencyNamespace(namespace: string, requestScopeKey: Re
   return {
     bindLogger,
     container,
-    getHandler,
+    getRequestHandler,
     setupChildContext,
     setupRootContext,
   }

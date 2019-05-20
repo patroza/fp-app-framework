@@ -7,9 +7,9 @@ import createRoot from './root'
 import createRootRouter from './root.router'
 
 const startServer = () => {
-  const { bindLogger, setupRootContext, getHandler } = createRoot()
+  const { bindLogger, setupRootContext, getRequestHandler } = createRoot()
 
-  const rootRouter = createRootRouter(getHandler)
+  const rootRouter = createRootRouter(getRequestHandler)
 
   setLogger(({
     // tslint:disable-next-line:no-console

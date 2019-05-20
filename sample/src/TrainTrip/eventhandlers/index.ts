@@ -30,7 +30,7 @@ createEventHandler<TrainTripCreated, IntegrationEventReturnType, any>(
   ),
 )
 
-createEventHandler<TrainTripStateChanged, IntegrationEventReturnType, DbError>(
+createEventHandler<TrainTripStateChanged, IntegrationEventReturnType, any>(
   /* on */ TrainTripStateChanged, 'EitherDebounceOrScheduleCloudSync',
   ({ trainTripPublisher }) => pipe(
     map(createRegisterIntegrationEvent(trainTripPublisher)),

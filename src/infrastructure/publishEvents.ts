@@ -2,7 +2,6 @@ import { publishEventsKey } from '../infrastructure/domainEventHandler'
 import { DomainEventReturnType, IntegrationEventReturnType } from '../infrastructure/misc'
 import { isTruthyFilter, logger } from '../utils'
 import { err, ok, PipeFunction, Result } from '../utils/neverthrow-extensions'
-import { UsecaseHandlerTuple } from './requestHandlers'
 
 const publishEvents = (handlers: EventHandlerMap, resolve: CreateHandlerType): typeof publishEventsKey =>
   async events => {
@@ -33,7 +32,7 @@ const processEvent = async (
 
   for (const evtHandler of hndl) {
     const h = createHandler(evtHandler)
-    logger.log(`Handling ${evtHandler[3].name}`)
+    logger.log(`Handling ${evtHandler.name}`)
     const r = await h(evt)
     if (r.isErr()) { return err(r.error) }
     if (r.value) { commitHandlers.push(r.value) }
@@ -45,5 +44,5 @@ const processEvent = async (
 
 type IntegrationEventResult = Result<IntegrationEventReturnType[], any>
 
-type EventHandlerMap = Map<any, Array<UsecaseHandlerTuple<any, any, any, any>>>
-export type CreateHandlerType = (hndlr: UsecaseHandlerTuple<any, any, any, any>) => PipeFunction<any, any, any>
+type EventHandlerMap = Map<any, any[]>
+export type CreateHandlerType = (hndlr: any) => PipeFunction<any, any, any>
