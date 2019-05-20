@@ -1,22 +1,22 @@
 import chalk from 'chalk'
 import { EventEmitter } from 'events'
 import Koa from 'koa'
+import auth from 'koa-basic-auth'
+import KoaRouter from 'koa-router'
 import onFinished from 'on-finished'
 import { CombinedValidationError, ErrorBase, FieldValidationError, ForbiddenError, ValidationError } from '../errors'
 import { calculateElapsed, logger } from '../utils'
 import { flatMap, Result, startWithVal } from '../utils/neverthrow-extensions'
-import { CouldNotAquireDbLockError, OptimisticLockError } from './diskdb'
-import { ConnectionError, DbError, RecordNotFound } from './errors'
+import { ConnectionError, CouldNotAquireDbLockError, DbError, OptimisticLockError, RecordNotFound } from './errors'
 import { RequestContextBase } from './misc'
-
-import auth from 'koa-basic-auth'
 import { requestType, UsecaseWithDependencies } from './requestHandlers'
+import RouteBuilder from './RouteBuilder'
 
 export const generateKoaHandler = <I, T, E extends ErrorBase, E2 extends ValidationError>(
   request: requestType,
   handler: UsecaseWithDependencies<any, I, T, E>,
   validate: (i: I) => Result<I, E2>,
-  handleErrorOrPassthrough: <TErr extends ErrorBase>(ctx: Koa.Context) => (err: DbError | E | E2) => TErr | E | E2 | void = defaultErrorPassthrough,
+  handleErrorOrPassthrough: ErrorHandlerType<Koa.Context, DbError | E | E2> = defaultErrorPassthrough,
 ) => async (ctx: Koa.Context) => {
   try {
     const input = { ...ctx.request.body, ...ctx.request.query, ...ctx.params } // query, headers etc
@@ -42,6 +42,37 @@ export const generateKoaHandler = <I, T, E extends ErrorBase, E2 extends Validat
     logger.error(err)
     ctx.status = 500
   }
+}
+
+export class KoaRouteBuilder extends RouteBuilder<Koa.Context> {
+  build(request: requestType) {
+    const router = new KoaRouter()
+    if (this.basicAuthEnabled) {
+      if (!this.userPass) { throw new Error('cannot enable auth without loginPass') }
+      router.use(authMiddleware(this.userPass)())
+    }
+
+    this.setup.forEach(({ method, path, requestHandler, validator, errorHandler }) => {
+      router.register(
+        path, [method],
+        generateKoaHandler(
+          request,
+          requestHandler,
+          validator,
+          errorHandler,
+        ),
+      )
+    })
+
+    return router
+  }
+}
+
+export function createRouterFromMap(routerMap: Map<string, RouteBuilder<Koa.Context>>, request: requestType) {
+  return [...routerMap.entries()].reduce((prev, cur) => {
+    const koaRouter = cur[1].build(request)
+    return prev.use(cur[0], koaRouter.allowedMethods(), koaRouter.routes())
+  }, new KoaRouter())
 }
 
 export const saveStartTime: Koa.Middleware = (ctx, next) => { ctx['start-time'] = process.hrtime(); return next() }
@@ -155,6 +186,8 @@ export const handleAuthenticationFailedMiddleware: Koa.Middleware = async (ctx, 
     }
   }
 }
+
+export type ErrorHandlerType<TContext, TError> = <TErr extends ErrorBase>(ctx: TContext) => (err: TError) => TErr | TError | void
 
 const combineErrors = (ers: any[]) => ers.reduce((prev: any, cur) => {
   if (cur instanceof FieldValidationError) {

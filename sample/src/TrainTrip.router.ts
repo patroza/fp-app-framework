@@ -1,4 +1,4 @@
-import RouteBuilder from 'fp-app-framework/infrastructure/RouteBuilder'
+import { KoaRouteBuilder } from 'fp-app-framework/infrastructure/koa'
 import { createValidator, Joi } from 'fp-app-framework/utils/validation'
 import { paxSchema } from './TrainTrip/PaxDefinition'
 import changeTrainTrip from './TrainTrip/usecases/changeTrainTrip'
@@ -7,7 +7,7 @@ import deleteTrainTrip from './TrainTrip/usecases/deleteTrainTrip'
 import getTrainTrip from './TrainTrip/usecases/getTrainTrip'
 import lockTrainTrip from './TrainTrip/usecases/lockTrainTrip'
 
-const createTrainTripRouter = () => new RouteBuilder()
+const createTrainTripRouter = () => new KoaRouteBuilder()
   .post('/',
     createTrainTrip,
     createValidator(Joi.object({

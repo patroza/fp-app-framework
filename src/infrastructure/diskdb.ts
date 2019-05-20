@@ -4,7 +4,7 @@ import { promisify } from 'util'
 import assert from '../utils/assert'
 import { err, flatMap, liftType, map, mapErr, ok, PipeFunctionN, Result, startWithVal } from '../utils/neverthrow-extensions'
 import { RecordContext } from './context.base'
-import { ConnectionError, DbError, RecordNotFound } from './errors'
+import { ConnectionError, CouldNotAquireDbLockError, DbError, OptimisticLockError, RecordNotFound } from './errors'
 
 // tslint:disable-next-line:max-classes-per-file
 export class DiskRecordContext<T extends DBRecord> implements RecordContext<T> {
@@ -152,17 +152,3 @@ const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
 const mkdir = promisify(fs.mkdir)
 const deleteFile = promisify(fs.unlink)
-
-// tslint:disable-next-line:max-classes-per-file
-export class CouldNotAquireDbLockError extends Error {
-  constructor(readonly type: string, readonly id: string, readonly error: Error) {
-    super(`Couldn't lock db record ${type}: ${id}`)
-  }
-}
-
-// tslint:disable-next-line:max-classes-per-file
-export class OptimisticLockError extends Error {
-  constructor(readonly type: string, readonly id: string) {
-    super(`Existing ${type} ${id} record changed`)
-  }
-}

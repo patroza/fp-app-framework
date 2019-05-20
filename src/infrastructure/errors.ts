@@ -1,6 +1,7 @@
+// tslint:disable:max-classes-per-file
+
 import { ErrorBase } from '../errors'
 import assert from '../utils/assert'
-import { CouldNotAquireDbLockError, OptimisticLockError } from './diskdb'
 
 export type DbError = RecordNotFound | ConnectionError | OptimisticLockError | CouldNotAquireDbLockError
 export type ApiError = RecordNotFound | ConnectionError
@@ -12,11 +13,22 @@ export class ConnectionError extends ErrorBase {
   }
 }
 
-// tslint:disable-next-line:max-classes-per-file
 export class RecordNotFound extends ErrorBase {
   readonly name = 'RecordNotFound'
   constructor(readonly id: string, readonly type: string) {
     super(`The ${type} with ${id} was not found`)
-    assert.isNotNull({id, type})
+    assert.isNotNull({ id, type })
+  }
+}
+
+export class CouldNotAquireDbLockError extends Error {
+  constructor(readonly type: string, readonly id: string, readonly error: Error) {
+    super(`Couldn't lock db record ${type}: ${id}`)
+  }
+}
+
+export class OptimisticLockError extends Error {
+  constructor(readonly type: string, readonly id: string) {
+    super(`Existing ${type} ${id} record changed`)
   }
 }
