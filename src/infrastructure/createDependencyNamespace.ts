@@ -57,20 +57,6 @@ export default function createDependencyNamespace(namespace: string, requestScop
       )
     })
 
-  container.registerScopedF(requestScopeKey, () => {
-    const id = generateShortUuid()
-    return { id, correllationId: id }
-  })
-
-  container.registerSingletonF(executePostCommitHandlersKey, () => executePostCommitHandlers({ setupChildContext }))
-  container.registerSingletonF(publishEventsKey, () => publishEvents(new Map(getRegisteredEventHandlers()), publish))
-  container.registerSingletonC(
-    DomainEventHandler,
-    () => new DomainEventHandler(container.getF(publishEventsKey), container.getF(executePostCommitHandlersKey)),
-  )
-
-  getRegisteredRequestAndEventHandlers().forEach(([_, v]) => container.registerScopedF(v[1], () => create(v)))
-
   const request: requestType = <TInput, TOutput, TError>(requestHandler: UsecaseWithDependencies<any, TInput, TOutput, TError>, input: TInput) => {
     const handler = getRequestHandler(requestHandler)
     return handler(input)
@@ -80,6 +66,16 @@ export default function createDependencyNamespace(namespace: string, requestScop
     const handler = container.getF(eventHandler)
     return handler(event)
   }
+
+  container.registerScopedC(
+    DomainEventHandler,
+    () => new DomainEventHandler(container.getF(publishEventsKey), container.getF(executePostCommitHandlersKey)),
+  )
+  container.registerScopedF(requestScopeKey, () => { const id = generateShortUuid(); return { id, correllationId: id } })
+  getRegisteredRequestAndEventHandlers().forEach(([_, v]) => container.registerScopedF(v[1], () => create(v)))
+
+  container.registerSingletonF(executePostCommitHandlersKey, () => executePostCommitHandlers({ setupChildContext }))
+  container.registerSingletonF(publishEventsKey, () => publishEvents(new Map(getRegisteredEventHandlers()), publish))
 
   return {
     bindLogger,
