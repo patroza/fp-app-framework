@@ -2,12 +2,13 @@ import { publishEventsKey } from '../infrastructure/domainEventHandler'
 import { DomainEventReturnType, IntegrationEventReturnType } from '../infrastructure/misc'
 import { isTruthyFilter, logger } from '../utils'
 import { err, ok, PipeFunction, Result } from '../utils/neverthrow-extensions'
+import { publishType } from './requestHandlers'
 
-const publishEvents = (handlers: EventHandlerMap, resolve: CreateHandlerType): typeof publishEventsKey =>
+const publishEvents = (handlers: EventHandlerMap, publish: publishType): typeof publishEventsKey =>
   async events => {
     const values: DomainEventReturnType[] = []
     for (const evt of events) {
-      const r = await processEvent(evt, handlers, resolve)
+      const r = await processEvent(evt, handlers, publish)
       if (!r) { continue }
       if (r.isErr()) { return err(r) }
       r.value.forEach(x => values.push(x))
@@ -21,7 +22,7 @@ export default publishEvents
 const processEvent = async (
   evt: any,
   handlers: EventHandlerMap,
-  createHandler: CreateHandlerType,
+  publish: publishType,
 ): Promise<IntegrationEventResult> => {
   const hndl = handlers.get(evt.constructor)
 
@@ -31,9 +32,8 @@ const processEvent = async (
   if (!hndl) { return ok(commitHandlers) }
 
   for (const evtHandler of hndl) {
-    const h = createHandler(evtHandler)
     logger.log(`Handling ${evtHandler.name}`)
-    const r = await h(evt)
+    const r = await publish(evtHandler, evt)
     if (r.isErr()) { return err(r.error) }
     if (r.value) { commitHandlers.push(r.value) }
   }
@@ -44,5 +44,5 @@ const processEvent = async (
 
 type IntegrationEventResult = Result<IntegrationEventReturnType[], any>
 
-type EventHandlerMap = Map<any, any[]>
+type EventHandlerMap = Map<any, Array<PipeFunction<any, any, any>>>
 export type CreateHandlerType = (hndlr: any) => PipeFunction<any, any, any>

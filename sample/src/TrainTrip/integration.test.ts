@@ -40,7 +40,7 @@ beforeEach(bind(async () => {
   executePostCommitHandlersMock.mockClear()
   const templateId = 'template-id1'
 
-  const result = await root.getRequestHandler(createTrainTrip)({
+  const result = await root.request(createTrainTrip, {
     pax: { adults: 2, children: 0, babies: 0, infants: 0, teenagers: 0 },
     startDate: '2020-01-01',
     templateId,
@@ -53,7 +53,7 @@ beforeEach(bind(async () => {
 
 describe('get', () => {
   it('works', bind(async () => {
-    const result = await root.getRequestHandler(getTrainTrip)({ trainTripId })
+    const result = await root.request(getTrainTrip, { trainTripId })
 
     expect(result).toBeInstanceOf(Ok)
     // We don't want to leak accidentally domain objects
@@ -80,8 +80,8 @@ describe('propose new state', () => {
       travelClass: 'first',
     }
 
-    const result = await root.getRequestHandler(changeTrainTrip)({ trainTripId, ...state })
-    const newTrainTripResult = await root.getRequestHandler(getTrainTrip)({ trainTripId })
+    const result = await root.request(changeTrainTrip, { trainTripId, ...state })
+    const newTrainTripResult = await root.request(getTrainTrip, { trainTripId })
 
     expect(result).toBeInstanceOf(Ok)
     expect(newTrainTripResult).toBeInstanceOf(Ok)
@@ -98,7 +98,7 @@ describe('propose new state', () => {
   it('errors on non existent travel class', bind(async () => {
     const state: StateProposition = { travelClass: 'business' }
 
-    const r = await root.getRequestHandler(changeTrainTrip)({ trainTripId, ...state })
+    const r = await root.request(changeTrainTrip, { trainTripId, ...state })
 
     expect(r.isErr()).toBe(true)
     const error = r._unsafeUnwrapErr()
@@ -110,7 +110,7 @@ describe('propose new state', () => {
   it('errors on multiple invalid', bind(async () => {
     const state: StateProposition = { travelClass: 'bogus', pax: { children: 0 } as any, startDate: '2000-01-01' }
 
-    const r = await root.getRequestHandler(changeTrainTrip)({ trainTripId, ...state })
+    const r = await root.request(changeTrainTrip, { trainTripId, ...state })
 
     expect(r.isErr()).toBe(true)
     const error = r._unsafeUnwrapErr()
@@ -123,11 +123,11 @@ describe('propose new state', () => {
 
 describe('able to lock the TrainTrip', () => {
   it('changes state accordingly', bind(async () => {
-    const currentTrainTripResult = await root.getRequestHandler(getTrainTrip)({ trainTripId })
+    const currentTrainTripResult = await root.request(getTrainTrip, { trainTripId })
 
-    const result = await root.getRequestHandler(lockTrainTrip)({ trainTripId })
+    const result = await root.request(lockTrainTrip, { trainTripId })
 
-    const newTrainTripResult = await root.getRequestHandler(getTrainTrip)({ trainTripId })
+    const newTrainTripResult = await root.request(getTrainTrip, { trainTripId })
     expect(result).toBeInstanceOf(Ok)
     // We don't want to leak accidentally domain objects
     expect(result._unsafeUnwrap()).toBe(void 0)
@@ -140,11 +140,11 @@ describe('able to lock the TrainTrip', () => {
 
 describe('able to delete the TrainTrip', () => {
   it('deletes accordingly', bind(async () => {
-    const currentTrainTripResult = await root.getRequestHandler(getTrainTrip)({ trainTripId })
+    const currentTrainTripResult = await root.request(getTrainTrip, { trainTripId })
 
-    const result = await root.getRequestHandler(deleteTrainTrip)({ trainTripId })
+    const result = await root.request(deleteTrainTrip, { trainTripId })
 
-    const newTrainTripResult = await root.getRequestHandler(getTrainTrip)({ trainTripId })
+    const newTrainTripResult = await root.request(getTrainTrip, { trainTripId })
     expect(result).toBeInstanceOf(Ok)
     // We don't want to leak accidentally domain objects
     expect(result._unsafeUnwrap()).toBe(void 0)
@@ -158,7 +158,7 @@ describe('able to delete the TrainTrip', () => {
 
 describe('register Cloud', () => {
   it('works', bind(async () => {
-    const result = await root.getRequestHandler(registerCloud)({ trainTripId })
+    const result = await root.request(registerCloud, { trainTripId })
 
     expect(result).toBeInstanceOf(Ok)
     expect(result._unsafeUnwrap()).toBe(void 0)

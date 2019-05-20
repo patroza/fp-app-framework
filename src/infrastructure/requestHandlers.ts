@@ -1,6 +1,6 @@
 import { benchLog, logger, setFunctionName } from 'fp-app-framework/utils'
 import assert from '../utils/assert'
-import { flatMap, flatTee, liftType, mapErr, PipeFunction } from '../utils/neverthrow-extensions'
+import { flatMap, flatTee, liftType, mapErr, PipeFunction, Result } from '../utils/neverthrow-extensions'
 import { UnitOfWork } from './context.base'
 import { DbError } from './errors'
 import { Constructor } from './misc'
@@ -138,8 +138,8 @@ const generateConfiguredHandler = <TInput, TOutput, TErr>(
 const loggingDecorator = () =>
   <TInput, TOutput, TErr>(handler: NamedRequestHandler<TInput, TOutput, TErr>) =>
     (input: TInput) => benchLog(async () => {
-      const requestType = handler.isCommand ? 'Command' : 'Query'
-      const prefix = `${handler.name} ${requestType}`
+      const t = handler.isCommand ? 'Command' : 'Query'
+      const prefix = `${handler.name} ${t}`
       logger.log(`${prefix} input`, input)
       const result = await handler(input)
       logger.log(`${prefix} result`, result)
@@ -161,7 +161,7 @@ const uowDecorator = (unitOfWork: UnitOfWork) =>
     }
 
 // tslint:disable-next-line:max-line-length
-export type getRequestHandlerType = <TDependencies, TInput, TOutput, TError>(usecaseHandler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TError>) => NamedRequestHandler<TInput, TOutput, TError>
+type getRequestHandlerType = <TDependencies, TInput, TOutput, TError>(usecaseHandler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TError>) => NamedRequestHandler<TInput, TOutput, TError>
 
 type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<TInput, TOutput, TErr | DbError> & { name: string, isCommand: boolean }
 
@@ -169,3 +169,6 @@ type Decorator<T, T2 = T> = (inp: T) => T2
 
 // tslint:disable-next-line:max-line-length
 type RequestHandlerDecorator<TInput = any, TOutput = any, TErr = any> = Decorator<NamedRequestHandler<TInput, TOutput, TErr>, PipeFunction<TInput, TOutput, TErr>>
+
+export type requestType = <TInput, TOutput, TError>(requestHandler: UsecaseWithDependencies<any, TInput, TOutput, TError>, input: TInput) => Promise<Result<TOutput, TError | DbError>>
+export type publishType = <TInput, TOutput, TError>(eventHandler: PipeFunction<TInput, TOutput, TError>, event: TInput) => Promise<Result<TOutput, TError>>

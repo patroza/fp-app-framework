@@ -14,9 +14,11 @@ const createRoot = () => {
   const {
     bindLogger,
     container,
-    getRequestHandler,
     setupRootContext,
     setupChildContext,
+
+    request,
+    publish,
   } = createDependencyNamespace(
     namespace,
     RequestContextKey,
@@ -36,18 +38,20 @@ const createRoot = () => {
   container.registerSingletonF(executePostCommitHandlersKey, () => executePostCommitHandlers({ setupChildContext }))
   container.registerSingletonF(
     publishEventsKey,
-    () => publishEvents(new Map(getRegisteredEventHandlers()), hndlr => container.getF(hndlr)),
+    () => publishEvents(new Map(getRegisteredEventHandlers()), publish),
   )
   container.registerSingletonC(
     DomainEventHandler,
     () => new DomainEventHandler(container.getF(publishEventsKey), container.getF(executePostCommitHandlersKey)),
   )
-  container.registerSingletonF(TrainTripPublisherKey, () => new TrainTripPublisherInMemory(getRequestHandler))
+  container.registerSingletonF(TrainTripPublisherKey, () => new TrainTripPublisherInMemory(request))
 
   return {
     bindLogger,
-    getRequestHandler,
     setupRootContext,
+
+    publish,
+    request,
   }
 }
 

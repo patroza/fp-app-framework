@@ -4,24 +4,29 @@ import Koa from 'koa'
 import onFinished from 'on-finished'
 import { CombinedValidationError, ErrorBase, FieldValidationError, ForbiddenError, ValidationError } from '../errors'
 import { calculateElapsed, logger } from '../utils'
-import { flatMap, PipeFunction, Result, startWithVal } from '../utils/neverthrow-extensions'
+import { flatMap, Result, startWithVal } from '../utils/neverthrow-extensions'
 import { CouldNotAquireDbLockError, OptimisticLockError } from './diskdb'
-import { ConnectionError, RecordNotFound } from './errors'
+import { ConnectionError, DbError, RecordNotFound } from './errors'
 import { RequestContextBase } from './misc'
 
 import auth from 'koa-basic-auth'
+import { requestType, UsecaseWithDependencies } from './requestHandlers'
 
 export const generateKoaHandler = <I, T, E extends ErrorBase, E2 extends ValidationError>(
-  handleRequest: PipeFunction<I, T, E>,
+  request: requestType,
+  handler: UsecaseWithDependencies<any, I, T, E>,
   validate: (i: I) => Result<I, E2>,
-  handleErrorOrPassthrough: <TErr extends ErrorBase>(ctx: Koa.Context) => (err: E | E2) => TErr | E | E2 | void = defaultErrorPassthrough,
+  handleErrorOrPassthrough: <TErr extends ErrorBase>(ctx: Koa.Context) => (err: DbError | E | E2) => TErr | E | E2 | void = defaultErrorPassthrough,
 ) => async (ctx: Koa.Context) => {
   try {
     const input = { ...ctx.request.body, ...ctx.request.query, ...ctx.params } // query, headers etc
-    const result = await startWithVal<E | E2>()(input)
+
+    // DbError, because request handler is enhanced with it (decorator)
+    // E2 because the validator enhances it.
+    const result = await startWithVal<DbError | E | E2>()(input)
       .pipe(
         flatMap(validate),
-        flatMap(handleRequest),
+        flatMap(validatedInput => request(handler, validatedInput)),
       )
     result.match(t => {
       if (ctx.method === 'POST' && t) {

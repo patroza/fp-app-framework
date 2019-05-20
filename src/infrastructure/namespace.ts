@@ -2,10 +2,11 @@ import chalk from 'chalk'
 import { createNamespace, getNamespace } from 'cls-hooked'
 import format from 'date-fns/format'
 import { EventEmitter } from 'events'
+import { PipeFunction } from 'fp-app-framework/utils/neverthrow-extensions'
 import { generateShortUuid } from '../utils/generateUuid'
 import { UnitOfWork } from './context.base'
 import { RequestContextBase } from './misc'
-import { getHandlerImpl, getRegisteredRequestAndEventHandlers } from './requestHandlers'
+import { getHandlerImpl, getRegisteredRequestAndEventHandlers, publishType, requestType, UsecaseWithDependencies } from './requestHandlers'
 import SimpleContainer, { DependencyScope } from './SimpleContainer'
 
 export function createDependencyNamespace(namespace: string, requestScopeKey: RequestContextBase, uowKey: UnitOfWork) {
@@ -58,12 +59,24 @@ export function createDependencyNamespace(namespace: string, requestScopeKey: Re
 
   getRegisteredRequestAndEventHandlers().forEach(([_, v]) => container.registerScopedF(v[1], () => create(v)))
 
+  const request: requestType = <TInput, TOutput, TError>(requestHandler: UsecaseWithDependencies<any, TInput, TOutput, TError>, input: TInput) => {
+    const handler = getRequestHandler(requestHandler)
+    return handler(input)
+  }
+
+  const publish: publishType = <TInput, TOutput, TError>(eventHandler: PipeFunction<TInput, TOutput, TError>, event: TInput) => {
+    const handler = container.getF(eventHandler)
+    return handler(event)
+  }
+
   return {
     bindLogger,
     container,
-    getRequestHandler,
     setupChildContext,
     setupRootContext,
+
+    publish,
+    request,
   }
 }
 
