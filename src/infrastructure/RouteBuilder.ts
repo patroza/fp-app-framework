@@ -11,7 +11,7 @@ import { ValidatorType } from '../utils/validation'
 export default class RouteBuilder {
   private get w() { return this as Writeable<RouteBuilder> }
 
-  private static register = (method: string, obj: RouteBuilder) => <TDependencies, TInput, TOutput, TError, TValidationError>(
+  private static register = (method: METHODS, obj: RouteBuilder) => <TDependencies, TInput, TOutput, TError, TValidationError>(
     path: string, handler: UsecaseHandlerTuple<TDependencies, TInput, TOutput, TError>,
     validator: ValidatorType<TInput, TValidationError>,
     // TODO: Error Handler is Koa specific :)
@@ -29,7 +29,7 @@ export default class RouteBuilder {
   readonly patch = RouteBuilder.register('PATCH', this)
 
   private userPass?: string
-  private setup: any[] = []
+  private setup: RegisteredRoute[] = []
 
   readonly build = (getHandler: getHandlerType) => {
     const router = new KoaRouter()
@@ -81,3 +81,13 @@ export function writeRouterSchema(routerMap: Map<string, RouteBuilder>) {
   }, {} as any)
   fs.writeFileSync('./router-schema.json', JSON.stringify(schema, undefined, 2))
 }
+
+interface RegisteredRoute {
+  method: METHODS,
+  path: string,
+  handler: UsecaseHandlerTuple<any, any, any, any>,
+  validator: ValidatorType<any, any>,
+  errorHandler?: <TErr extends ErrorBase>(ctx: Koa.Context) => (err: any) => TErr | any | void,
+}
+
+type METHODS = 'POST' | 'GET' | 'DELETE' | 'PATCH'
