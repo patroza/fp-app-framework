@@ -2,7 +2,9 @@ import { publishEventsKey } from '../infrastructure/domainEventHandler'
 import { DomainEventReturnType, IntegrationEventReturnType } from '../infrastructure/misc'
 import { isTruthyFilter, logger } from '../utils'
 import { err, ok, PipeFunction, Result } from '../utils/neverthrow-extensions'
-import { publishType } from './requestHandlers'
+
+// tslint:disable-next-line:max-line-length
+export type publishType = <TInput, TOutput, TError>(eventHandler: PipeFunction<TInput, TOutput, TError>, event: TInput) => Promise<Result<TOutput, TError>>
 
 const publishEvents = (handlers: EventHandlerMap, publish: publishType): typeof publishEventsKey =>
   async events => {

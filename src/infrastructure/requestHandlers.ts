@@ -171,4 +171,3 @@ type Decorator<T, T2 = T> = (inp: T) => T2
 type RequestHandlerDecorator<TInput = any, TOutput = any, TErr = any> = Decorator<NamedRequestHandler<TInput, TOutput, TErr>, PipeFunction<TInput, TOutput, TErr>>
 
 export type requestType = <TInput, TOutput, TError>(requestHandler: UsecaseWithDependencies<any, TInput, TOutput, TError>, input: TInput) => Promise<Result<TOutput, TError | DbError>>
-export type publishType = <TInput, TOutput, TError>(eventHandler: PipeFunction<TInput, TOutput, TError>, event: TInput) => Promise<Result<TOutput, TError>>

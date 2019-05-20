@@ -1,9 +1,6 @@
 import { UnitOfWork } from 'fp-app-framework/infrastructure/context.base'
 import createDependencyNamespace from 'fp-app-framework/infrastructure/createDependencyNamespace'
-import DomainEventHandler, { executePostCommitHandlersKey, publishEventsKey } from 'fp-app-framework/infrastructure/domainEventHandler'
-import executePostCommitHandlers from 'fp-app-framework/infrastructure/executePostCommitHandlers'
-import publishEvents from 'fp-app-framework/infrastructure/publishEvents'
-import { getRegisteredEventHandlers } from 'fp-app-framework/infrastructure/requestHandlers'
+import DomainEventHandler from 'fp-app-framework/infrastructure/domainEventHandler'
 import './TrainTrip/eventhandlers' // To be ble to auto register them :/
 import { getPricingFake, getTemplateFake, getTrip, sendCloudSyncFake } from './TrainTrip/infrastructure/api'
 import DiskDBContext from './TrainTrip/infrastructure/TrainTripContext.disk'
@@ -15,10 +12,8 @@ const createRoot = () => {
     bindLogger,
     container,
     setupRootContext,
-    setupChildContext,
 
     request,
-    publish,
   } = createDependencyNamespace(
     namespace,
     RequestContextKey,
@@ -35,27 +30,17 @@ const createRoot = () => {
       return getTripF
     },
   )
-  container.registerSingletonF(executePostCommitHandlersKey, () => executePostCommitHandlers({ setupChildContext }))
-  container.registerSingletonF(
-    publishEventsKey,
-    () => publishEvents(new Map(getRegisteredEventHandlers()), publish),
-  )
-  container.registerSingletonC(
-    DomainEventHandler,
-    () => new DomainEventHandler(container.getF(publishEventsKey), container.getF(executePostCommitHandlersKey)),
-  )
   container.registerSingletonF(TrainTripPublisherKey, () => new TrainTripPublisherInMemory(request))
 
   return {
     bindLogger,
     setupRootContext,
 
-    publish,
     request,
   }
 }
 
-const namespace = 'fw-trainTrip-service'
+const namespace = 'train-trip-service'
 
 export default createRoot
 

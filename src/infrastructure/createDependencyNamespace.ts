@@ -5,8 +5,13 @@ import { EventEmitter } from 'events'
 import { generateShortUuid } from '../utils/generateUuid'
 import { PipeFunction } from '../utils/neverthrow-extensions'
 import { UnitOfWork } from './context.base'
+import DomainEventHandler, { executePostCommitHandlersKey, publishEventsKey } from './domainEventHandler'
+import executePostCommitHandlers from './executePostCommitHandlers'
 import { RequestContextBase } from './misc'
-import { getHandlerImpl, getRegisteredRequestAndEventHandlers, publishType, requestType, UsecaseWithDependencies } from './requestHandlers'
+import publishEvents, { publishType } from './publishEvents'
+import {
+  getHandlerImpl, getRegisteredEventHandlers, getRegisteredRequestAndEventHandlers, requestType, UsecaseWithDependencies,
+} from './requestHandlers'
 import SimpleContainer, { DependencyScope } from './SimpleContainer'
 
 export default function createDependencyNamespace(namespace: string, requestScopeKey: RequestContextBase, uowKey: UnitOfWork) {
@@ -57,6 +62,13 @@ export default function createDependencyNamespace(namespace: string, requestScop
     return { id, correllationId: id }
   })
 
+  container.registerSingletonF(executePostCommitHandlersKey, () => executePostCommitHandlers({ setupChildContext }))
+  container.registerSingletonF(publishEventsKey, () => publishEvents(new Map(getRegisteredEventHandlers()), publish))
+  container.registerSingletonC(
+    DomainEventHandler,
+    () => new DomainEventHandler(container.getF(publishEventsKey), container.getF(executePostCommitHandlersKey)),
+  )
+
   getRegisteredRequestAndEventHandlers().forEach(([_, v]) => container.registerScopedF(v[1], () => create(v)))
 
   const request: requestType = <TInput, TOutput, TError>(requestHandler: UsecaseWithDependencies<any, TInput, TOutput, TError>, input: TInput) => {
@@ -72,10 +84,8 @@ export default function createDependencyNamespace(namespace: string, requestScop
   return {
     bindLogger,
     container,
-    setupChildContext,
     setupRootContext,
 
-    publish,
     request,
   }
 }
