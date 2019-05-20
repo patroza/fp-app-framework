@@ -52,7 +52,7 @@
     "test": "jest",
     "test:compile": "tsc --noEmit",
     "test:lint": "tslint --project .",
-    "test_sample": "cd sample && yarn test",
+    "test_sample": "yarn test --config=./sample/jest.config.js",
     "testsuite": "yarn test:compile && yarn test:lint && yarn test && yarn test_sample"
   }
 }
