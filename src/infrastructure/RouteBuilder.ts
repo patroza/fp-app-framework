@@ -1,14 +1,11 @@
 import { ErrorBase } from 'fp-app-framework/errors'
 import fs from 'fs'
-import { Writeable } from '../utils'
 import assert from '../utils/assert'
 import { ValidatorType } from '../utils/validation'
 import { DbError } from './errors'
 import { requestType, UsecaseWithDependencies } from './requestHandlers'
 
 export default abstract class RouteBuilder<TContext> {
-  private get w() { return this as Writeable<RouteBuilder<TContext>> }
-
   private static register = <TContext>(method: METHODS, obj: RouteBuilder<TContext>) => <TDependencies, TInput, TOutput, TError, TValidationError>(
     path: string, requestHandler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TError>,
     validator: ValidatorType<TInput, TValidationError>,
@@ -18,8 +15,6 @@ export default abstract class RouteBuilder<TContext> {
     return obj
   }
 
-  readonly basicAuthEnabled: boolean = false
-
   readonly post = RouteBuilder.register<TContext>('POST', this)
   readonly get = RouteBuilder.register<TContext>('GET', this)
   readonly delete = RouteBuilder.register<TContext>('DELETE', this)
@@ -27,19 +22,20 @@ export default abstract class RouteBuilder<TContext> {
 
   protected userPass?: string
   protected setup: Array<RegisteredRoute<TContext>> = []
+  protected basicAuthEnabled: boolean = false
 
   abstract build(request: requestType): any
 
   getJsonSchema() {
     return this.setup.map(({ method, path, validator }) =>
-      [method, path, validator.jsonSchema],
+      [method, path, validator.jsonSchema] as const,
     )
   }
 
   enableBasicAuth(userPass: string) {
     assert.isNotNull({ userPass })
 
-    this.w.basicAuthEnabled = true
+    this.basicAuthEnabled = true
     this.userPass = userPass
     return this
   }

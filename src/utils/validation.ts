@@ -17,7 +17,7 @@ const createValidator = <TIn>(schema: any): ValidatorType<TIn, ValidationError> 
   return validator
 }
 
-export type ValidatorType<TIn, TErr> = ((object: TIn) => Result<TIn, TErr>) & { jsonSchema: any }
+export type ValidatorType<TIn, TErr> = ((object: TIn) => Result<TIn, TErr>) & { jsonSchema: string }
 
 const predicate = <T, E extends ValidationError>(pred: (inp: T) => boolean, errMsg: string) => (inp: T): Result<T, E | ValidationError> => {
   if (pred(inp)) {

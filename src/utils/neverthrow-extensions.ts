@@ -6,6 +6,8 @@
 
 // TODO: we have to fix the mismatch between Promise.pipe and Result.pipe :/
 
+// tslint:disable:max-line-length
+
 import { flatten, zip } from 'lodash'
 import { err, Err, ok, Ok, Result } from 'neverthrow'
 export * from 'neverthrow'
@@ -120,9 +122,8 @@ export function tee(f: any) {
 const intTee = (r: any, input: any) => r.isOk() ? ok(input) : err(r.error)
 
 // Easily pass input -> (input -> output) -> [input, output]
-// tslint:disable-next-line:max-line-length
-export function toTup<TInput, TInput2 extends TInput, T, EMap>(f: (x: TInput2) => Promise<Result<T, EMap>>): <E>(input: TInput) => Promise<Result<[T, TInput], E>>
-export function toTup<TInput, TInput2 extends TInput, T, EMap>(f: (x: TInput2) => Result<T, EMap>): <E>(input: TInput) => Result<[T, TInput], E>
+export function toTup<TInput, TInput2 extends TInput, T, EMap>(f: (x: TInput2) => Promise<Result<T, EMap>>): <E>(input: TInput) => Promise<Result<readonly [T, TInput], E>>
+export function toTup<TInput, TInput2 extends TInput, T, EMap>(f: (x: TInput2) => Result<T, EMap>): <E>(input: TInput) => Result<readonly [T, TInput], E>
 export function toTup(f: any) {
   return (input: any) => {
     const r = f(input)
@@ -157,22 +158,22 @@ export function ifError(defaultVal: any) {
 }
 
 export const mapErr = <E, ENew>(mapErrr: (ina: E) => ENew) => <T>(result: Result<T, E>) => result.mapErr(mapErrr)
-export const toTuple = <T2>(value: T2) => <T>(v1: T) => [value, v1] as [T2, T]
+export const toTuple = <T2>(value: T2) => <T>(v1: T) => [value, v1] as const
 
 export const joinError = <T>(result: Result<T, string[]>) => result.mapErr(x => x.join('\n'))
 
-export function resultTuple<T, T2, E>(r1: Result<T, E>, r2: Result<T2, E>): Result<[T, T2], E[]>
-export function resultTuple<T, T2, T3, E>(r1: Result<T, E>, r2: Result<T2, E>, r3: Result<T3, E>): Result<[T, T2, T3], E[]>
-export function resultTuple<T, T2, T3, T4, E>(r1: Result<T, E>, r2: Result<T2, E>, r3: Result<T3, E>, r4: Result<T4, E>): Result<[T, T2, T3, T4], E[]>
+export function resultTuple<T, T2, E>(r1: Result<T, E>, r2: Result<T2, E>): Result<readonly [T, T2], E[]>
+export function resultTuple<T, T2, T3, E>(r1: Result<T, E>, r2: Result<T2, E>, r3: Result<T3, E>): Result<readonly [T, T2, T3], E[]>
+export function resultTuple<T, T2, T3, T4, E>(r1: Result<T, E>, r2: Result<T2, E>, r3: Result<T3, E>, r4: Result<T4, E>): Result<readonly [T, T2, T3, T4], E[]>
 export function resultTuple<T, T2, T3, T4, T5, E>(
   r1: Result<T, E>, r2: Result<T2, E>, r3: Result<T3, E>, r4: Result<T4, E>, r5: Result<T5, E>,
-): Result<[T, T2, T3, T4, T5], E[]>
+): Result<readonly [T, T2, T3, T4, T5], E[]>
 export function resultTuple(...results: Array<Result<any, any>>) {
   const errors = results.filter(isErr).map(x => x.error)
   if (errors.length) {
     return err(errors)
   }
-  const successes = (results as Array<Ok<any, any>>).map(x => x.value)
+  const successes = (results as Array<Ok<any, any>>).map(x => x.value) as readonly any[]
   return ok(successes)
 }
 
@@ -331,8 +332,8 @@ export type AnyResult<T = any, TErr = any> = Result<T, TErr>
 // from previous statements, the less important their output becomes..
 // Alternatively we can always create two variations :)
 // tslint:disable:max-line-length
-export function toFlatTup<TInput, TInputB, TInput2 extends [TInput, TInputB], T, EMap>(f: (x: TInput2) => Promise<Result<T, EMap>>): <E>(input: [TInput, TInputB]) => Promise<Result<[T, TInput, TInputB], E>>
-export function toFlatTup<TInput, TInputB, TInput2 extends [TInput, TInputB], T, EMap>(f: (x: TInput2) => Result<T, EMap>): <E>(input: [TInput, TInputB]) => Result<[T, TInput, TInputB], E>
+export function toFlatTup<TInput, TInputB, TInput2 extends readonly [TInput, TInputB], T, EMap>(f: (x: TInput2) => Promise<Result<T, EMap>>): <E>(input: readonly [TInput, TInputB]) => Promise<Result<readonly [T, TInput, TInputB], E>>
+export function toFlatTup<TInput, TInputB, TInput2 extends readonly [TInput, TInputB], T, EMap>(f: (x: TInput2) => Result<T, EMap>): <E>(input: readonly [TInput, TInputB]) => Result<readonly [T, TInput, TInputB], E>
 export function toFlatTup(f: any) {
   return (input: any) => {
     const r = f(input)
@@ -343,9 +344,9 @@ export function toFlatTup(f: any) {
     }
   }
 }
-const intToFlatTup = (r: any, input: any) => r.isOk() ? ok([r.value, input[0], input[1]]) : err(r.error)
+const intToFlatTup = (r: any, input: any) => r.isOk() ? ok([r.value, input[0], input[1]] as const) : err(r.error)
 
-export function toMagicTup<T1, T2, T3>(input: [[T1, T2], T3]): [T1, T2, T3]
+export function toMagicTup<T1, T2, T3>(input: readonly [[T1, T2], T3]): readonly [T1, T2, T3]
 export function toMagicTup([tup1, el]: any) {
   return tup1.concat([el])
 }
@@ -358,12 +359,12 @@ export function apply<A, B>(a: A, f: (a: A) => B): B {
 // Stabl at simplify working with resultTuple
 // tslint:disable:max-line-length
 // Doesn't work
-export function resultTuple2<TInput, T, T2, E>(r1: (input: TInput) => Result<T, E>, r2: (input: TInput) => Result<T2, E>): (input: TInput) => Result<[T, T2], E[]>
-export function resultTuple2<TInput, T, T2, T3, E>(r1: (input: TInput) => Result<T, E>, r2: (input: TInput) => Result<T2, E>, r3: (input: TInput) => Result<T3, E>): (input: TInput) => Result<[T, T2, T3], E[]>
-export function resultTuple2<TInput, T, T2, T3, T4, E>(r1: (input: TInput) => Result<T, E>, r2: (input: TInput) => Result<T2, E>, r3: (input: TInput) => Result<T3, E>, r4: (input: TInput) => Result<T4, E>): (input: TInput) => Result<[T, T2, T3, T4], E[]>
+export function resultTuple2<TInput, T, T2, E>(r1: (input: TInput) => Result<T, E>, r2: (input: TInput) => Result<T2, E>): (input: TInput) => Result<readonly [T, T2], E[]>
+export function resultTuple2<TInput, T, T2, T3, E>(r1: (input: TInput) => Result<T, E>, r2: (input: TInput) => Result<T2, E>, r3: (input: TInput) => Result<T3, E>): (input: TInput) => Result<readonly [T, T2, T3], E[]>
+export function resultTuple2<TInput, T, T2, T3, T4, E>(r1: (input: TInput) => Result<T, E>, r2: (input: TInput) => Result<T2, E>, r3: (input: TInput) => Result<T3, E>, r4: (input: TInput) => Result<T4, E>): (input: TInput) => Result<readonly [T, T2, T3, T4], E[]>
 export function resultTuple2<TInput, T, T2, T3, T4, T5, E>(
   r1: (input: TInput) => Result<T, E>, r2: (input: TInput) => Result<T2, E>, r3: (input: TInput) => Result<T3, E>, r4: (input: TInput) => Result<T4, E>, r5: (input: TInput) => Result<T5, E>,
-): (input: TInput) => Result<[T, T2, T3, T4, T5], E[]>
+): (input: TInput) => Result<readonly [T, T2, T3, T4, T5], E[]>
 export function resultTuple2(...resultFNs: Array<(input: any) => Result<any, any>>) {
   return (input: any) => {
     const results = resultFNs.map(x => x(input))
@@ -371,25 +372,25 @@ export function resultTuple2(...resultFNs: Array<(input: any) => Result<any, any
     if (errors.length) {
       return err(errors)
     }
-    const successes = (results as Array<Ok<any, any>>).map(x => x.value)
+    const successes = (results as Array<Ok<any, any>>).map(x => x.value) as readonly any[]
     return ok(successes)
   }
 }
 
 // not so cool?
-export function resultTuple3<TInput, T, T2, E>(input: TInput, r1: (input: TInput) => Result<T, E>, r2: (input: TInput) => Result<T2, E>): Result<[T, T2], E[]>
-export function resultTuple3<TInput, T, T2, T3, E>(input: TInput, r1: (input: TInput) => Result<T, E>, r2: (input: TInput) => Result<T2, E>, r3: (input: TInput) => Result<T3, E>): Result<[T, T2, T3], E[]>
-export function resultTuple3<TInput, T, T2, T3, T4, E>(input: TInput, r1: (input: TInput) => Result<T, E>, r2: (input: TInput) => Result<T2, E>, r3: (input: TInput) => Result<T3, E>, r4: (input: TInput) => Result<T4, E>): Result<[T, T2, T3, T4], E[]>
+export function resultTuple3<TInput, T, T2, E>(input: TInput, r1: (input: TInput) => Result<T, E>, r2: (input: TInput) => Result<T2, E>): Result<readonly [T, T2], E[]>
+export function resultTuple3<TInput, T, T2, T3, E>(input: TInput, r1: (input: TInput) => Result<T, E>, r2: (input: TInput) => Result<T2, E>, r3: (input: TInput) => Result<T3, E>): Result<readonly [T, T2, T3], E[]>
+export function resultTuple3<TInput, T, T2, T3, T4, E>(input: TInput, r1: (input: TInput) => Result<T, E>, r2: (input: TInput) => Result<T2, E>, r3: (input: TInput) => Result<T3, E>, r4: (input: TInput) => Result<T4, E>): Result<readonly [T, T2, T3, T4], E[]>
 export function resultTuple3<TInput, T, T2, T3, T4, T5, E>(
   input: TInput,
   r1: (input: TInput) => Result<T, E>, r2: (input: TInput) => Result<T2, E>, r3: (input: TInput) => Result<T3, E>, r4: (input: TInput) => Result<T4, E>, r5: (input: TInput) => Result<T5, E>,
-): Result<[T, T2, T3, T4, T5], E[]>
+): Result<readonly [T, T2, T3, T4, T5], E[]>
 export function resultTuple3(input: any, ...resultFNs: Array<(input: any) => Result<any, any>>) {
   const results = resultFNs.map(x => x(input))
   const errors = results.filter(isErr).map(x => x.error)
   if (errors.length) {
     return err(errors)
   }
-  const successes = (results as Array<Ok<any, any>>).map(x => x.value)
+  const successes = (results as Array<Ok<any, any>>).map(x => x.value) as readonly any[]
   return ok(successes)
 }

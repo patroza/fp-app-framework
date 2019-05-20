@@ -15,7 +15,7 @@ type HandlerWithDependencies<TDependencies, TInput, TOutput, TError> = WithDepen
 type HandlerType = 'COMMAND' | 'QUERY' | 'EVENT'
 
 // tslint:disable-next-line:max-line-length
-type HandlerTuple<TDependencies, TInput, TOutput, TError> = [
+type HandlerTuple<TDependencies, TInput, TOutput, TError> = readonly [
   HandlerWithDependencies<TDependencies, TInput, TOutput, TError>,
   PipeFunction<TInput, TOutput, TError>,
   TDependencies,
@@ -23,7 +23,7 @@ type HandlerTuple<TDependencies, TInput, TOutput, TError> = [
 ]
 
 // tslint:disable:max-line-length
-// export function setup<TDependencies, TInput, TOutput, TError>(handler: WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>): [WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>, PipeFunction<TInput, TOutput, TError>] {
+// export function setup<TDependencies, TInput, TOutput, TError>(handler: WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>): [WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>, PipeFunction<TInput, TOutput, TError>] as const {
 //   return [handler, generateKey<ReturnType<typeof handler>>()]
 // }
 
@@ -36,7 +36,7 @@ const registerUsecaseHandler = <TDependencies>(deps: TDependencies) =>
       assert(!Object.keys(deps).some(x => !(deps as any)[x]), 'Dependencies must not be null')
 
       const key = generateKey<ReturnType<typeof handler>>(name)
-      const r = [handler, key, deps, { name, type }] as [any, any, any, any]
+      const r = [handler, key, deps, { name, type }] as const
       dependencyMap.set(handler, r)
     }
 
@@ -100,7 +100,7 @@ export {
 const dependencyMap = new Map<HandlerWithDependencies<any, any, any, any>, HandlerTuple<any, any, any, any>>()
 
 // tslint:disable-next-line:ban-types
-const handlerMap = new Map<any, any[]>() // Array<[Function, Function, {}]>
+const handlerMap = new Map<any, any[]>() // Array<readonly [Function, Function, {}]>
 
 const generateConfiguredHandler = <TInput, TOutput, TErr>(
   // Have to specify name as we don't use classes to retrieve the name from
