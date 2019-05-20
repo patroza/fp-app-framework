@@ -1,4 +1,4 @@
-import { createRouterFromMap, KoaRouteBuilder } from 'fp-app-framework/infrastructure/koa'
+import { createRouterFromMap, KoaRouteBuilder } from 'fp-app-framework/infrastructure/hosting.koa'
 import { requestType } from 'fp-app-framework/infrastructure/requestHandlers'
 import { writeRouterSchema } from 'fp-app-framework/infrastructure/RouteBuilder'
 import { DEFAULT_AUTH } from './config'

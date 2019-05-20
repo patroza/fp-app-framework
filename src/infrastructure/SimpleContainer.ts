@@ -1,4 +1,4 @@
-import { setFunctionName } from 'fp-app-framework/utils'
+import { setFunctionName } from '../utils'
 import assert from '../utils/assert'
 import { Constructor } from './misc'
 

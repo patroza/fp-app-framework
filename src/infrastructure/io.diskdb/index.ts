@@ -1,10 +1,10 @@
 import fs from 'fs'
 import { lock } from 'proper-lockfile'
 import { promisify } from 'util'
-import assert from '../utils/assert'
-import { err, flatMap, liftType, map, mapErr, ok, PipeFunctionN, Result, startWithVal } from '../utils/neverthrow-extensions'
-import { RecordContext } from './context.base'
-import { ConnectionError, CouldNotAquireDbLockError, DbError, OptimisticLockError, RecordNotFound } from './errors'
+import assert from '../../utils/assert'
+import { err, flatMap, liftType, map, mapErr, ok, PipeFunctionN, Result, startWithVal } from '../../utils/neverthrow-extensions'
+import { RecordContext } from '../context.base'
+import { ConnectionError, CouldNotAquireDbLockError, DbError, OptimisticLockError, RecordNotFound } from '../errors'
 
 // tslint:disable-next-line:max-classes-per-file
 export class DiskRecordContext<T extends DBRecord> implements RecordContext<T> {

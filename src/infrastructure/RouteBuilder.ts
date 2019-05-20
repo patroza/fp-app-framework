@@ -1,10 +1,10 @@
 import fs from 'fs'
-import { ErrorHandlerType } from '../infrastructure/koa'
-import { requestType, UsecaseWithDependencies } from '../infrastructure/requestHandlers'
 import { Writeable } from '../utils'
 import assert from '../utils/assert'
 import { ValidatorType } from '../utils/validation'
 import { DbError } from './errors'
+import { ErrorHandlerType } from './hosting.koa'
+import { requestType, UsecaseWithDependencies } from './requestHandlers'
 
 export default abstract class RouteBuilder<TContext> {
   private get w() { return this as Writeable<RouteBuilder<TContext>> }

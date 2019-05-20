@@ -1,4 +1,4 @@
-import { benchLog, logger, setFunctionName } from 'fp-app-framework/utils'
+import { benchLog, logger, setFunctionName } from '../utils'
 import assert from '../utils/assert'
 import { flatMap, flatTee, liftType, mapErr, PipeFunction, Result } from '../utils/neverthrow-extensions'
 import { UnitOfWork } from './context.base'
