@@ -1,6 +1,6 @@
 import { TrainTripPublisher } from '@/TrainTrip/eventhandlers'
 import { TrainTripId } from '@/TrainTrip/TrainTrip'
-import { getHandlerType } from 'fp-app-framework/infrastructure/namespace'
+import { getHandlerType } from 'fp-app-framework/infrastructure/requestHandlers'
 import { logger } from 'fp-app-framework/utils'
 import registerCloud from '../usecases/registerCloud'
 

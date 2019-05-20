@@ -33,9 +33,12 @@ const benchLog = <T>(
   title?: string,
 ) => bench<T>(wrappedFunction, (t, elapsed) => logger.log(chalk.bgWhite.black(`${elapsed}ms`), t), title)
 
+const setFunctionName = (fnc: any, name: string) => Object.defineProperty(fnc, 'name', { value: name })
+
 export {
   asWritable,
   benchLog,
   setLogger,
   isTruthyFilter,
+  setFunctionName,
 }

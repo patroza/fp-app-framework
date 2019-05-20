@@ -1,4 +1,4 @@
-import { getHandlerType } from 'fp-app-framework/infrastructure/namespace'
+import { getHandlerType } from 'fp-app-framework/infrastructure/requestHandlers'
 import RouteBuilder, { createRouterFromMap, writeRouterSchema } from 'fp-app-framework/infrastructure/RouteBuilder'
 import { DEFAULT_AUTH } from './config'
 import createTrainTripRouter from './TrainTrip.router'

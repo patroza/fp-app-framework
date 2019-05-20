@@ -1,6 +1,6 @@
+import { setFunctionName } from 'fp-app-framework/utils'
 import assert from '../utils/assert'
 import { Constructor } from './misc'
-import { setFunctionName } from './namespace'
 
 export default class SimpleContainer {
   private factories = new Map()

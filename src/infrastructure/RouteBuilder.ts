@@ -3,8 +3,7 @@ import Koa from 'koa'
 import KoaRouter from 'koa-router'
 import { ErrorBase } from '../errors'
 import { authMiddleware as authMiddlewareCreator, generateKoaHandler } from '../infrastructure/koa'
-import { getHandlerType } from '../infrastructure/namespace'
-import { UsecaseHandlerTuple } from '../infrastructure/requestHandlers'
+import { getHandlerType, UsecaseHandlerTuple } from '../infrastructure/requestHandlers'
 import { Writeable } from '../utils'
 import assert from '../utils/assert'
 import { ValidatorType } from '../utils/validation'
@@ -24,15 +23,15 @@ export default class RouteBuilder {
 
   readonly basicAuthEnabled: boolean = false
 
-  post = RouteBuilder.register('POST', this)
-  get = RouteBuilder.register('GET', this)
-  delete = RouteBuilder.register('DELETE', this)
-  patch = RouteBuilder.register('PATCH', this)
+  readonly post = RouteBuilder.register('POST', this)
+  readonly get = RouteBuilder.register('GET', this)
+  readonly delete = RouteBuilder.register('DELETE', this)
+  readonly patch = RouteBuilder.register('PATCH', this)
 
   private userPass?: string
   private setup: any[] = []
 
-  build = (getHandler: getHandlerType) => {
+  readonly build = (getHandler: getHandlerType) => {
     const router = new KoaRouter()
     if (this.basicAuthEnabled) {
       if (!this.userPass) { throw new Error('cannot enable auth without loginPass') }
