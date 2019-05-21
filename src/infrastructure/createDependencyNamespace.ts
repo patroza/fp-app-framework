@@ -5,13 +5,14 @@ import { EventEmitter } from 'events'
 import { setFunctionName } from 'fp-app-framework/utils'
 import { generateShortUuid } from '../utils/generateUuid'
 import { UnitOfWork } from './context.base'
+import { loggingDecorator, uowDecorator } from './decorators'
 import DomainEventHandler, { executePostCommitHandlersKey } from './domainEventHandler'
 import executePostCommitHandlers from './executePostCommitHandlers'
 import {
   getHandlerImpl, getRegisteredRequestAndEventHandlers,
-  publish, request, RequestContextBase, requestKey, uowDecorator, uowDecoratorKey,
+  publish, request, RequestContextBase, requestKey, requestType,
 } from './mediator'
-import SimpleContainer, { DependencyScope } from './SimpleContainer'
+import SimpleContainer, { DependencyScope, generateKey } from './SimpleContainer'
 
 export default function createDependencyNamespace(namespace: string, requestScopeKey: RequestContextBase, uowKey: UnitOfWork) {
   const ns = createNamespace(namespace)
@@ -26,8 +27,6 @@ export default function createDependencyNamespace(namespace: string, requestScop
     setFunctionName(resolved, key.name)
     return resolved
   }
-
-  const getRequestHandler = getHandlerImpl(container, uowKey)
 
   const bindLogger = (fnc: (...args2: any[]) => void) => (...args: any[]) => {
     const context = container.tryGetF(requestScopeKey)
@@ -65,24 +64,29 @@ export default function createDependencyNamespace(namespace: string, requestScop
     DomainEventHandler,
     () => new DomainEventHandler(publish2, container.getF(executePostCommitHandlersKey)),
   )
-  container.registerScopedF(requestScopeKey, () => { const id = generateShortUuid(); return { id, correllationId: id } })
+  container.registerScopedO(requestScopeKey, () => { const id = generateShortUuid(); return { id, correllationId: id } })
   getRegisteredRequestAndEventHandlers().forEach(([_, v]) => container.registerScopedF(v[1], () => create(v)))
 
+  const uowDecoratorKey = generateKey<ReturnType<typeof uowDecorator>>()
+  const loggingDecoratorKey = generateKey<ReturnType<typeof loggingDecorator>>()
+
   container.registerScopedF(uowDecoratorKey, () => uowDecorator(container.getF(uowKey)))
-  container.registerDecorator(requestKey, uowDecoratorKey)
+  container.registerSingletonF(loggingDecoratorKey, () => loggingDecorator())
+  container.registerDecorator(requestKey, uowDecoratorKey, loggingDecoratorKey)
   // register decorators for requestKey
   // apply them when requesting the key
 
   container.registerSingletonF(executePostCommitHandlersKey, () => executePostCommitHandlers({ setupChildContext }))
 
-  container.registerSingletonF(requestKey, () => request(getRequestHandler))
+  container.registerSingletonF(requestKey, () => request(key => container.getF(getHandlerImpl(key))))
+  const request2: requestType = (key, input) => container.getF(requestKey)(key, input)
 
   return {
     bindLogger,
     container,
     setupRootContext,
 
-    request: (key: any, input: any) => container.getF(requestKey)(key, input),
+    request: request2,
   }
 }
 
