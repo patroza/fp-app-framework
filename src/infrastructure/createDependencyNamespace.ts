@@ -9,7 +9,7 @@ import DomainEventHandler, { executePostCommitHandlersKey } from './domainEventH
 import executePostCommitHandlers from './executePostCommitHandlers'
 import {
   getHandlerImpl, getRegisteredRequestAndEventHandlers,
-  publish, request, RequestContextBase,
+  publish, request, RequestContextBase, requestKey, uowDecorator, uowDecoratorKey,
 } from './mediator'
 import SimpleContainer, { DependencyScope } from './SimpleContainer'
 
@@ -68,16 +68,21 @@ export default function createDependencyNamespace(namespace: string, requestScop
   container.registerScopedF(requestScopeKey, () => { const id = generateShortUuid(); return { id, correllationId: id } })
   getRegisteredRequestAndEventHandlers().forEach(([_, v]) => container.registerScopedF(v[1], () => create(v)))
 
-  const request2 = request(getRequestHandler)
+  container.registerScopedF(uowDecoratorKey, () => uowDecorator(container.getF(uowKey)))
+  container.registerDecorator(requestKey, uowDecoratorKey)
+  // register decorators for requestKey
+  // apply them when requesting the key
 
   container.registerSingletonF(executePostCommitHandlersKey, () => executePostCommitHandlers({ setupChildContext }))
+
+  container.registerSingletonF(requestKey, () => request(getRequestHandler))
 
   return {
     bindLogger,
     container,
     setupRootContext,
 
-    request: request2,
+    request: (key: any, input: any) => container.getF(requestKey)(key, input),
   }
 }
 

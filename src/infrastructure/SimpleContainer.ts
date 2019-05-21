@@ -5,6 +5,7 @@ import { Constructor } from './mediator'
 export default class SimpleContainer {
   private factories = new Map()
   private singletonScope = new DependencyScope()
+  private decorators = new Map()
   constructor(private getDependencyScope: () => DependencyScope, private setDependencyScope: (scope: DependencyScope) => void) { }
 
   getC<T>(key: Constructor<T>): T {
@@ -49,42 +50,68 @@ export default class SimpleContainer {
 
   registerTransientC<T>(key: Constructor<T>, factory: () => T) {
     assert.isNotNull({ key, factory })
-    this.factories.set(key, factory)
+    this.factories.set(key, this.resolveDecorators(key, factory))
   }
 
   registerScopedC<T>(key: Constructor<T>, factory: () => T) {
     assert.isNotNull({ key, factory })
-    this.factories.set(key, () => tryOrNull(() => this.getDependencyScope(), s => s.getOrCreate(key, factory)))
+    this.factories.set(key, () => tryOrNull(() => this.getDependencyScope(), s => s.getOrCreate(key, this.resolveDecorators(key, factory))))
   }
 
   registerSingletonC<T>(key: Constructor<T>, factory: () => T) {
     assert.isNotNull({ key, factory })
-    this.factories.set(key, () => this.singletonScope.getOrCreate(key, factory))
+    this.factories.set(key, () => this.singletonScope.getOrCreate(key, this.resolveDecorators(key, factory)))
   }
 
   registerInstanceC<T>(key: Constructor<T>, instance: T) {
     assert.isNotNull({ key, instance })
-    this.factories.set(key, () => this.singletonScope.getOrCreate(key, () => instance))
+    this.factories.set(key, () => this.singletonScope.getOrCreate(key, this.resolveDecorators(key, () => instance)))
   }
 
   registerTransientF<T>(key: T, factory: () => T) {
     assert.isNotNull({ key, factory })
-    this.factories.set(key, factory)
+    this.factories.set(key, this.resolveDecorators(key, factory))
   }
 
   registerScopedF<T>(key: T, factory: () => T) {
     assert.isNotNull({ key, factory })
-    this.factories.set(key, () => tryOrNull(() => this.getDependencyScope(), s => s.getOrCreate(key, factory)))
+    this.factories.set(key, () => tryOrNull(() => this.getDependencyScope(), s => s.getOrCreate(key, this.resolveDecorators(key, factory))))
+  }
+
+  registerDecorator<T>(forKey: T, ...decorators: T[]) {
+    const current = this.decorators.get(forKey) || []
+    current.push(...decorators)
+    this.decorators.set(forKey, current)
   }
 
   registerSingletonF<T>(key: T, factory: () => T) {
     assert.isNotNull({ key, factory })
-    this.factories.set(key, () => this.singletonScope.getOrCreate(key, factory))
+    this.factories.set(key, () => this.singletonScope.getOrCreate(key, this.resolveDecorators(key, factory)))
   }
 
   registerInstanceF<T>(key: T, instance: T) {
     assert.isNotNull({ key, instance })
-    this.factories.set(key, () => this.singletonScope.getOrCreate(key, () => instance))
+    this.factories.set(key, () => this.singletonScope.getOrCreate(key, this.resolveDecorators(key, () => instance)))
+  }
+
+  private resolveDecorators(key, factory) {
+    return () => {
+      const decorators = this.decorators.get(key) || []
+
+      if (!decorators.length) { return factory() }
+      let handler = factory()
+      decorators.forEach(decorator => {
+        // Be sure not to use `handler` as it can be rebound :-)
+        const currentHandler = handler
+        const anyDecoratedHandler: any = (...args: any[]) => {
+          const decorate = this.getF(decorator)
+          const decoratedHandler = decorate(currentHandler)
+          return decoratedHandler(...args)
+        }
+        handler = anyDecoratedHandler
+      })
+      return handler
+    }
   }
 
   // public registerTransient<T>(key: string, factory: () => T) {

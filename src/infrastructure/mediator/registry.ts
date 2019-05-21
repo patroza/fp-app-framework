@@ -38,6 +38,11 @@ const registerUsecaseHandler = <TDependencies>(deps: TDependencies) =>
       assert(!Object.keys(deps).some(x => !(deps as any)[x]), 'Dependencies must not be null')
 
       const key = generateKey<ReturnType<typeof handler>>(name)
+      const anyKey = key as any
+      anyKey.isCommand = type === 'COMMAND'
+      const anyHandler: any = handler
+      anyHandler.isCommand = type === 'COMMAND'
+      setFunctionName(handler, name)
       const r = [handler, key, deps, { name, type }] as const
       dependencyMap.set(handler, r)
     }
@@ -56,6 +61,14 @@ const createQueryWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOu
   return handler
 }
 
+// tslint:disable-next-line:max-line-length
+const createEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(event: Constructor<TInput>, name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
+  const setupWithDeps = registerUsecaseHandler(deps)
+  setupWithDeps(`on${event.name}${name}`, 'EVENT')(handler)
+  registerEventHandler(event, dependencyMap.get(handler)![1])
+  return handler
+}
+
 const getRegisteredRequestAndEventHandlers = () => [...dependencyMap.entries()]
 
 const getHandlerImpl = (container: SimpleContainer, uowKey: UnitOfWork): getRequestHandlerType => handler => {
@@ -64,7 +77,7 @@ const getHandlerImpl = (container: SimpleContainer, uowKey: UnitOfWork): getRequ
 
   // These execute in reverse order
   const decoratorFactories = [
-    () => uowDecorator(container.getF(uowKey)),
+    // () => uowDecorator(container.getF(uowKey)),
     () => loggingDecorator(),
   ]
   return generateConfiguredHandler(
@@ -86,14 +99,6 @@ export {
 }
 
 const dependencyMap = new Map<HandlerWithDependencies<any, any, any, any>, HandlerTuple<any, any, any, any>>()
-
-// tslint:disable-next-line:max-line-length
-const createEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(event: Constructor<TInput>, name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
-  const setupWithDeps = registerUsecaseHandler(deps)
-  setupWithDeps(`on${event.name}${name}`, 'EVENT')(handler)
-  registerEventHandler(event, dependencyMap.get(handler)![1])
-  return handler
-}
 
 const generateConfiguredHandler = <TInput, TOutput, TErr>(
   // Have to specify name as we don't use classes to retrieve the name from
@@ -128,7 +133,7 @@ const generateConfiguredHandler = <TInput, TOutput, TErr>(
   return handler
 }
 
-const loggingDecorator = () =>
+export const loggingDecorator = () =>
   <TInput, TOutput, TErr>(handler: NamedRequestHandler<TInput, TOutput, TErr>) =>
     (input: TInput) => benchLog(async () => {
       const t = handler.isCommand ? 'Command' : 'Query'
@@ -139,19 +144,23 @@ const loggingDecorator = () =>
       return result
     }, handler.name)
 
-const uowDecorator = (unitOfWork: UnitOfWork) =>
-  <TInput, TOutput, TErr>(handler: NamedRequestHandler<TInput, TOutput, TErr>) =>
-    (input: TInput) => {
-      if (!handler.isCommand) {
-        return handler(input)
+export const uowDecorator = (unitOfWork: UnitOfWork) =>
+  (publisher: any) =>
+    (key: any, input: any) => {
+      console.log('uowDecorator', key, key.isCommand)
+      if (!key.isCommand) {
+        return publisher(key, input)
       }
 
-      return handler(input)
+      return publisher(key, input)
         .pipe(
-          mapErr(liftType<TErr | DbError>()),
+          // mapErr(liftType<TErr | DbError>()),
           flatMap(flatTee(unitOfWork.save)),
         )
     }
+export const uowDecoratorKey = generateKey<ReturnType<typeof uowDecorator>>()
+
+// type RequestDecorator = <TInput, TOutput, TErr>(handler: NamedRequestHandler<TInput, TOutput, TErr>) => (input: TInput) => Promise<Result<TOutput, TErr>>
 
 // tslint:disable-next-line:max-line-length
 type getRequestHandlerType = <TDependencies, TInput, TOutput, TError>(usecaseHandler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TError>) => NamedRequestHandler<TInput, TOutput, TError>
@@ -164,5 +173,7 @@ type Decorator<T, T2 = T> = (inp: T) => T2
 type RequestHandlerDecorator<TInput = any, TOutput = any, TErr = any> = Decorator<NamedRequestHandler<TInput, TOutput, TErr>, PipeFunction<TInput, TOutput, TErr>>
 
 export type requestType = <TInput, TOutput, TError>(requestHandler: UsecaseWithDependencies<any, TInput, TOutput, TError>, input: TInput) => Promise<Result<TOutput, TError | DbError>>
+
+export const requestKey = generateKey<requestType>()
 
 export type CreateHandlerType = (hndlr: any) => PipeFunction<any, any, any>
