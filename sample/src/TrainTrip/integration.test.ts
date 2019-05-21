@@ -19,9 +19,9 @@ let executePostCommitHandlersMock: jest.Mock<ReturnType<typeof executePostCommit
 let root: ReturnType<typeof createRoot>
 
 // cls helpers
-const bind = <T>(cb: (...args: any[]) => Promise<T>) => (...args: any[]) => {
+const createRootAndBind = (cb: () => Promise<void>) => {
   root = createRoot()
-  return root.setupRootContext<T>(() => cb(args))
+  return root.setupRootContext(cb)
 }
 
 // Silence logger
@@ -33,7 +33,7 @@ setLogger(({
   warn: noop,
 }))
 
-beforeEach(bind(async () => {
+beforeEach(() => createRootAndBind(async () => {
   executePostCommitHandlersMock = jest.fn()
   const aAny = (executePostCommitHandlers as any)
   aAny.mockReturnValue(executePostCommitHandlersMock)
@@ -52,7 +52,7 @@ beforeEach(bind(async () => {
 }))
 
 describe('get', () => {
-  it('works', bind(async () => {
+  it('works', () => createRootAndBind(async () => {
     const result = await root.request(getTrainTrip, { trainTripId })
 
     expect(result).toBeInstanceOf(Ok)
@@ -69,11 +69,12 @@ describe('get', () => {
 
     logger.log(result._unsafeUnwrap())
     expect(executePostCommitHandlersMock).toBeCalledTimes(0)
-  }))
+  }),
+  )
 })
 
 describe('propose new state', () => {
-  it('changes state accordingly', bind(async () => {
+  it('changes state accordingly', () => createRootAndBind(async () => {
     const state: StateProposition = {
       pax: { adults: 2, babies: 2, children: 1, infants: 1, teenagers: 0 },
       startDate: '2030-01-01T00:00:00.000Z',
@@ -95,7 +96,7 @@ describe('propose new state', () => {
     logger.log(r)
   }))
 
-  it('errors on non existent travel class', bind(async () => {
+  it('errors on non existent travel class', () => createRootAndBind(async () => {
     const state: StateProposition = { travelClass: 'business' }
 
     const r = await root.request(changeTrainTrip, { trainTripId, ...state })
@@ -107,7 +108,7 @@ describe('propose new state', () => {
     expect(executePostCommitHandlersMock).toBeCalledTimes(0)
   }))
 
-  it('errors on multiple invalid', bind(async () => {
+  it('errors on multiple invalid', () => createRootAndBind(async () => {
     const state: StateProposition = { travelClass: 'bogus', pax: { children: 0 } as any, startDate: '2000-01-01' }
 
     const r = await root.request(changeTrainTrip, { trainTripId, ...state })
@@ -122,7 +123,7 @@ describe('propose new state', () => {
 })
 
 describe('able to lock the TrainTrip', () => {
-  it('changes state accordingly', bind(async () => {
+  it('changes state accordingly', () => createRootAndBind(async () => {
     const currentTrainTripResult = await root.request(getTrainTrip, { trainTripId })
 
     const result = await root.request(lockTrainTrip, { trainTripId })
@@ -139,7 +140,7 @@ describe('able to lock the TrainTrip', () => {
 })
 
 describe('able to delete the TrainTrip', () => {
-  it('deletes accordingly', bind(async () => {
+  it('deletes accordingly', () => createRootAndBind(async () => {
     const currentTrainTripResult = await root.request(getTrainTrip, { trainTripId })
 
     const result = await root.request(deleteTrainTrip, { trainTripId })
@@ -157,7 +158,7 @@ describe('able to delete the TrainTrip', () => {
 })
 
 describe('register Cloud', () => {
-  it('works', bind(async () => {
+  it('works', () => createRootAndBind(async () => {
     const result = await root.request(registerCloud, { trainTripId })
 
     expect(result).toBeInstanceOf(Ok)
