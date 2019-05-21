@@ -7,6 +7,11 @@ module.exports = {
     "^@/(.*)$": "<rootDir>/src/$1",
     "^fp-app-framework/(.*)": "<rootDir>/../src/$1",
   },
+  globals: {
+    'ts-jest': {
+      diagnostics: false
+    }
+  },
   "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
   "testURL": "http://localhost:8110",
   "moduleFileExtensions": [
