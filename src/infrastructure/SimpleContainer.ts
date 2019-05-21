@@ -1,6 +1,6 @@
 import { setFunctionName } from '../utils'
 import assert from '../utils/assert'
-import { Constructor } from './misc'
+import { Constructor } from './mediator'
 
 export default class SimpleContainer {
   private factories = new Map()

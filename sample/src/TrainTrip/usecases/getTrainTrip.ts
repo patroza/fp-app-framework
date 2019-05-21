@@ -6,7 +6,7 @@
 
 import TrainTrip from '@/TrainTrip/TrainTrip'
 import { DbError } from 'fp-app-framework/infrastructure/errors'
-import { createQueryWithDeps } from 'fp-app-framework/infrastructure/requestHandlers'
+import { createQueryWithDeps } from 'fp-app-framework/infrastructure/mediator'
 import { flatMap, map, pipe } from 'fp-app-framework/utils/neverthrow-extensions'
 import { Pax } from '../PaxDefinition'
 import { TravelClassName } from '../TravelClassDefinition'

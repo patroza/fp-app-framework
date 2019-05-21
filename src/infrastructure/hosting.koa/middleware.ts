@@ -4,7 +4,7 @@ import Koa from 'koa'
 import auth from 'koa-basic-auth'
 import onFinished from 'on-finished'
 import { calculateElapsed, logger } from '../../utils'
-import { RequestContextBase } from '../misc'
+import { RequestContextBase } from '../mediator'
 
 export const saveStartTime: Koa.Middleware = (ctx, next) => { ctx['start-time'] = process.hrtime(); return next() }
 

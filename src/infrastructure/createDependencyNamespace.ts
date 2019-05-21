@@ -7,11 +7,10 @@ import { PipeFunction } from '../utils/neverthrow-extensions'
 import { UnitOfWork } from './context.base'
 import DomainEventHandler, { executePostCommitHandlersKey, publishEventsKey } from './domainEventHandler'
 import executePostCommitHandlers from './executePostCommitHandlers'
-import { RequestContextBase } from './misc'
-import publishEvents, { publishType } from './publishEvents'
-import {
-  getHandlerImpl, getRegisteredEventHandlers, getRegisteredRequestAndEventHandlers, requestType, UsecaseWithDependencies,
-} from './requestHandlers'
+import publishEvents, {
+  getHandlerImpl, getRegisteredRequestAndEventHandlers, publishType,
+  RequestContextBase, requestType, UsecaseWithDependencies,
+} from './mediator'
 import SimpleContainer, { DependencyScope } from './SimpleContainer'
 
 export default function createDependencyNamespace(namespace: string, requestScopeKey: RequestContextBase, uowKey: UnitOfWork) {
@@ -75,7 +74,7 @@ export default function createDependencyNamespace(namespace: string, requestScop
   getRegisteredRequestAndEventHandlers().forEach(([_, v]) => container.registerScopedF(v[1], () => create(v)))
 
   container.registerSingletonF(executePostCommitHandlersKey, () => executePostCommitHandlers({ setupChildContext }))
-  container.registerSingletonF(publishEventsKey, () => publishEvents(new Map(getRegisteredEventHandlers()), publish))
+  container.registerSingletonF(publishEventsKey, () => publishEvents(publish))
 
   return {
     bindLogger,

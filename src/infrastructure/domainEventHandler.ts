@@ -1,5 +1,5 @@
 import { err, map, PipeFunction, Result, tee } from '../utils/neverthrow-extensions'
-import { IntegrationEventReturnType } from './misc'
+import { IntegrationEventReturnType } from './mediator'
 import { generateKey } from './SimpleContainer'
 
 // tslint:disable-next-line:max-classes-per-file

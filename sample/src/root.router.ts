@@ -1,5 +1,5 @@
 import { createRouterFromMap, KoaRouteBuilder } from 'fp-app-framework/infrastructure/hosting.koa'
-import { requestType } from 'fp-app-framework/infrastructure/requestHandlers'
+import { requestType } from 'fp-app-framework/infrastructure/mediator'
 import { writeRouterSchema } from 'fp-app-framework/infrastructure/RouteBuilder'
 import { DEFAULT_AUTH } from './config'
 import createTrainTripRouter from './TrainTrip.router'

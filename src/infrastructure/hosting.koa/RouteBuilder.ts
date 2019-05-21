@@ -1,6 +1,6 @@
 import Koa from 'koa'
 import KoaRouter from 'koa-router'
-import { requestType } from '../requestHandlers'
+import { requestType } from '../mediator'
 import RouteBuilder from '../RouteBuilder'
 import generateKoaHandler from './generateKoaHandler'
 import { authMiddleware } from './middleware'

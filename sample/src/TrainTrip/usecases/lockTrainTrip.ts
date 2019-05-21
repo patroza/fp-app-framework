@@ -1,5 +1,5 @@
 import { DbError } from 'fp-app-framework/infrastructure/errors'
-import { createCommandWithDeps } from 'fp-app-framework/infrastructure/requestHandlers'
+import { createCommandWithDeps } from 'fp-app-framework/infrastructure/mediator'
 import { flatMap, map, pipe } from 'fp-app-framework/utils/neverthrow-extensions'
 import { DbContextKey, defaultDependencies } from './types'
 

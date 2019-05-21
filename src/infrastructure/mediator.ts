@@ -1,13 +1,16 @@
-import { benchLog, logger, setFunctionName } from '../utils'
+import { benchLog, isTruthyFilter, logger, setFunctionName } from '../utils'
 import assert from '../utils/assert'
-import { flatMap, flatTee, liftType, mapErr, PipeFunction, Result } from '../utils/neverthrow-extensions'
+import { err, flatMap, flatTee, liftType, mapErr, ok, PipeFunction, PipeFunctionN, Result } from '../utils/neverthrow-extensions'
 import { UnitOfWork } from './context.base'
+import { publishEventsKey } from './domainEventHandler'
 import { DbError } from './errors'
-import { Constructor } from './misc'
 import SimpleContainer, { generateKey } from './SimpleContainer'
 
+export interface RequestContextBase { id: string, correllationId: string }
+export type DomainEventReturnType = void | IntegrationEventReturnType
+export type IntegrationEventReturnType = PipeFunctionN<void, Error>
+export type Constructor<T> = new (...args: any[]) => T
 export type WithDependencies<TDependencies, T> = (deps: TDependencies) => T
-
 export type EventHandlerWithDependencies<TDependencies, TInput, TOutput, TError> = HandlerWithDependencies<TDependencies, TInput, TOutput, TError>
 export type UsecaseWithDependencies<TDependencies, TInput, TOutput, TError> = HandlerWithDependencies<TDependencies, TInput, TOutput, TError>
 
@@ -54,21 +57,7 @@ const createQueryWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOu
   return handler
 }
 
-// tslint:disable-next-line:max-line-length
-const createEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(event: Constructor<TInput>, name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
-  const setupWithDeps = registerUsecaseHandler(deps)
-  setupWithDeps(`on${event.name}${name}`, 'EVENT')(handler)
-  registerEventHandler(event, dependencyMap.get(handler)![1])
-  return handler
-}
-
 const getRegisteredRequestAndEventHandlers = () => [...dependencyMap.entries()]
-const getRegisteredEventHandlers = () => [...handlerMap.entries()]
-const registerEventHandler = (event: any, handler: any) => {
-  const current = handlerMap.get(event) || []
-  current.push(handler)
-  handlerMap.set(event, current)
-}
 
 const getHandlerImpl = (container: SimpleContainer, uowKey: UnitOfWork): getRequestHandlerType => handler => {
   const usecaseHandler = getDependencyMap(handler)!
@@ -92,15 +81,20 @@ const getDependencyMap = (handler: WithDependencies<any, PipeFunction<any, any, 
 export {
   getDependencyMap,
   getHandlerImpl,
-  getRegisteredRequestAndEventHandlers, getRegisteredEventHandlers, registerEventHandler,
+  getRegisteredRequestAndEventHandlers,
   createCommandWithDeps, createEventHandlerWithDeps,
   createQueryWithDeps,
 }
 
 const dependencyMap = new Map<HandlerWithDependencies<any, any, any, any>, HandlerTuple<any, any, any, any>>()
 
-// tslint:disable-next-line:ban-types
-const handlerMap = new Map<any, any[]>() // Array<readonly [Function, Function, {}]>
+// tslint:disable-next-line:max-line-length
+const createEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(event: Constructor<TInput>, name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
+  const setupWithDeps = registerUsecaseHandler(deps)
+  setupWithDeps(`on${event.name}${name}`, 'EVENT')(handler)
+  registerEventHandler(event, dependencyMap.get(handler)![1])
+  return handler
+}
 
 const generateConfiguredHandler = <TInput, TOutput, TErr>(
   // Have to specify name as we don't use classes to retrieve the name from
@@ -171,3 +165,60 @@ type Decorator<T, T2 = T> = (inp: T) => T2
 type RequestHandlerDecorator<TInput = any, TOutput = any, TErr = any> = Decorator<NamedRequestHandler<TInput, TOutput, TErr>, PipeFunction<TInput, TOutput, TErr>>
 
 export type requestType = <TInput, TOutput, TError>(requestHandler: UsecaseWithDependencies<any, TInput, TOutput, TError>, input: TInput) => Promise<Result<TOutput, TError | DbError>>
+
+// tslint:disable-next-line:max-line-length
+export type publishType = <TInput, TOutput, TError>(eventHandler: PipeFunction<TInput, TOutput, TError>, event: TInput) => Promise<Result<TOutput, TError>>
+
+const publishEvents = (publish: publishType): typeof publishEventsKey =>
+  async events => {
+    const values: DomainEventReturnType[] = []
+    for (const evt of events) {
+      const hndl = handlerMap.get(evt.constructor) || []
+      const r = await processEvent(evt, hndl, publish)
+      if (!r) { continue }
+      if (r.isErr()) { return err(r) }
+      values.push(...r.value)
+    }
+    const mapped = values.filter(isTruthyFilter)
+    return ok(mapped)
+  }
+
+export default publishEvents
+
+const processEvent = async (
+  evt: any,
+  hndl: Array<PipeFunction<any, any, any>>,
+  publish: publishType,
+): Promise<IntegrationEventResult> => {
+  logger.log(`Publishing Domain event: ${evt.constructor.name} (${hndl ? hndl.length : 0} handlers)`, JSON.stringify(evt))
+
+  const commitHandlers: IntegrationEventReturnType[] = []
+  if (!hndl) { return ok(commitHandlers) }
+
+  for (const evtHandler of hndl) {
+    logger.log(`Handling ${evtHandler.name}`)
+    const r = await publish(evtHandler, evt)
+    if (r.isErr()) { return err(r.error) }
+    if (r.value) { commitHandlers.push(r.value) }
+  }
+
+  logger.log(`Published Domain event: ${evt.constructor.name} (${commitHandlers.length} integration events)`)
+  return ok(commitHandlers)
+}
+
+type IntegrationEventResult = Result<IntegrationEventReturnType[], any>
+
+export type CreateHandlerType = (hndlr: any) => PipeFunction<any, any, any>
+
+const registerEventHandler = (event: any, handler: any) => {
+  const current = handlerMap.get(event) || []
+  current.push(handler)
+  handlerMap.set(event, current)
+}
+
+// tslint:disable-next-line:ban-types
+const handlerMap = new Map<any, any[]>() // Array<readonly [Function, Function, {}]>
+
+export {
+  registerEventHandler,
+}

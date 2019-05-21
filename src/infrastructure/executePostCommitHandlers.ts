@@ -1,5 +1,5 @@
 import { benchLog, logger } from '../utils'
-import { IntegrationEventReturnType } from './misc'
+import { IntegrationEventReturnType } from './mediator'
 
 const executePostCommitHandlers = (
   { setupChildContext }: { setupChildContext: <T>(cb: () => Promise<T>) => Promise<T> },

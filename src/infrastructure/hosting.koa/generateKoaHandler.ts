@@ -4,7 +4,7 @@ import { CombinedValidationError, ErrorBase, FieldValidationError, ForbiddenErro
 import { logger } from '../../utils'
 import { flatMap, Result, startWithVal } from '../../utils/neverthrow-extensions'
 import { ConnectionError, CouldNotAquireDbLockError, DbError, OptimisticLockError, RecordNotFound } from '../errors'
-import { requestType, UsecaseWithDependencies } from '../requestHandlers'
+import { requestType, UsecaseWithDependencies } from '../mediator'
 import { defaultErrorPassthrough, ErrorHandlerType } from '../RouteBuilder'
 
 export default function generateKoaHandler<I, T, E extends ErrorBase, E2 extends ValidationError>(
