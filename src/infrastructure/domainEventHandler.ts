@@ -1,5 +1,5 @@
-import { err, map, PipeFunction, Result, tee } from '../utils/neverthrow-extensions'
-import { IntegrationEventReturnType } from './mediator'
+import { err, map, ok, Result, tee } from '../utils/neverthrow-extensions'
+import { IntegrationEventReturnType, publishType } from './mediator/publish'
 import { generateKey } from './SimpleContainer'
 
 // tslint:disable-next-line:max-classes-per-file
@@ -8,14 +8,14 @@ export default class DomainEventHandler {
   private integrationEvents: IntegrationEventReturnType[] = []
 
   constructor(
-    private readonly publishEvents: typeof publishEventsKey,
+    private readonly publish: publishType,
     private readonly executeIntegrationEvents: typeof executePostCommitHandlersKey,
   ) { }
 
   async commitAndPostEvents<T, TErr>(
     getAndClearEvents: () => any[],
     commit: () => Promise<Result<T, TErr>>,
-  ): Promise<Result<T, TErr>> {
+  ): Promise<Result<T, TErr | Error>> {
     // 1. pre-commit: post domain events
     // 2. commit!
     // 3. post-commit: post integration events
@@ -44,12 +44,22 @@ export default class DomainEventHandler {
       .pipe(tee(map(this.publishIntegrationEvents)))
   }
 
+  private readonly publishEvents = async (events: any[]): Promise<Result<IntegrationEventReturnType[], Error>> => {
+    const values: IntegrationEventReturnType[] = []
+    for (const evt of events) {
+      const r = await this.publish(evt)
+      if (r.isErr()) { return err(r.error) }
+      if (r.value) { values.push(...r.value) }
+    }
+    return ok(values)
+  }
+
   private readonly publishIntegrationEvents = () => {
     this.events = []
     if (this.integrationEvents.length) { this.executeIntegrationEvents(this.integrationEvents) }
     this.integrationEvents = []
   }
+
 }
 
-export const publishEventsKey = generateKey<PipeFunction<any[], IntegrationEventReturnType[], any>>()
 export const executePostCommitHandlersKey = generateKey<(postCommitEvents: IntegrationEventReturnType[]) => void>()
