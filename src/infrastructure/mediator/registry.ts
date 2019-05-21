@@ -79,6 +79,8 @@ export type requestType = <TInput, TOutput, TError>(
   input: TInput,
 ) => Promise<Result<TOutput, TError | DbError>>
 
+export type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<TInput, TOutput, TErr | DbError> & { name: string, isCommand: boolean }
+
 export const requestKey = generateKey<requestType>()
 
 const dependencyMap = new Map<HandlerWithDependencies<any, any, any, any>, HandlerTuple<any, any, any, any>>()
@@ -101,8 +103,6 @@ const dependencyMap = new Map<HandlerWithDependencies<any, any, any, any>, Handl
 // tslint:disable-next-line:max-line-length
 // type RequestHandlerDecorator<TInput = any, TOutput = any, TErr = any> = Decorator<NamedRequestHandler<TInput, TOutput, TErr>, PipeFunction<TInput, TOutput, TErr>>
 // type RequestDecorator = <TInput, TOutput, TErr>(
-  // handler: NamedRequestHandler<TInput, TOutput, TErr>) => (input: TInput) => Promise<Result<TOutput, TErr>>
-
-// type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<TInput, TOutput, TErr | DbError> & { name: string, isCommand: boolean }
+// handler: NamedRequestHandler<TInput, TOutput, TErr>) => (input: TInput) => Promise<Result<TOutput, TErr>>
 
 // type Decorator<T, T2 = T> = (inp: T) => T2

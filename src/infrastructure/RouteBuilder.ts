@@ -1,5 +1,5 @@
 import fs from 'fs'
-import { ErrorBase } from '../../errors'
+import { ErrorBase } from '../errors'
 import assert from '../utils/assert'
 import { ValidatorType } from '../utils/validation'
 import { DbError } from './errors'

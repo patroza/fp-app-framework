@@ -82,7 +82,7 @@ export default class SimpleContainer {
     this.factories.set(key, () => tryOrNull(() => this.getDependencyScope(), s => s.getOrCreate(key, this.resolveDecoratorsF(key, factory))))
   }
 
-  registerDecorator<T extends (...args: any[]) => any>(forKey: T, ...decorators: Array<(input: T) => T>) {
+  registerDecorator<T extends (...args: any[]) => any>(forKey: T, ...decorators: any[]) {
     const current = this.decorators.get(forKey) || []
     current.push(...decorators)
     this.decorators.set(forKey, current)

@@ -1,8 +1,10 @@
 import { benchLog, logger } from '../../utils'
-import { flatMap, flatTee } from '../../utils/neverthrow-extensions'
+import { flatMap, flatTee, liftType, mapErr, Result } from '../../utils/neverthrow-extensions'
 import { UnitOfWork } from '../context.base'
+import { DbError } from '../errors'
+import { NamedRequestHandler } from '../mediator'
 
-export const loggingDecorator = () =>
+export const loggingDecorator = (): RequestDecorator =>
   (publisher: any) =>
     (key: any, input: any) => benchLog(async () => {
       const t = key.isCommand ? 'Command' : 'Query'
@@ -13,16 +15,20 @@ export const loggingDecorator = () =>
       return result
     }, key.name)
 
-export const uowDecorator = (unitOfWork: UnitOfWork) =>
-  (publisher: any) =>
-    (key: any, input: any) => {
-      if (!key.isCommand) {
-        return publisher(key, input)
-      }
-
+export const uowDecorator = (unitOfWork: UnitOfWork): RequestDecorator => publisher =>
+  (key, input) => {
+    if (!key.isCommand) {
       return publisher(key, input)
-        .pipe(
-          // mapErr(liftType<TErr | DbError>()),
-          flatMap(flatTee(unitOfWork.save)),
-        )
     }
+
+    return publisher(key, input)
+      .pipe(
+        mapErr(liftType<any | DbError>()),
+        flatMap(flatTee(unitOfWork.save)),
+      )
+  }
+
+type RequestDecorator = <TInput, TOutput, TError>(
+  publisher: (key: NamedRequestHandler<TInput, TOutput, TError>, input: TInput) =>
+    Promise<Result<TOutput, TError>>) =>
+  (key: NamedRequestHandler<TInput, TOutput, TError>, input: TInput) => Promise<Result<TOutput, TError>>
