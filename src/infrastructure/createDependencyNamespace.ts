@@ -9,10 +9,8 @@ import DomainEventHandler, { executePostCommitHandlersKey } from './domainEventH
 import executePostCommitHandlers from './executePostCommitHandlers'
 import {
   getHandlerImpl, getRegisteredRequestAndEventHandlers,
-  RequestContextBase,
+  publish, request, RequestContextBase,
 } from './mediator'
-import publish from './mediator/publish'
-import request from './mediator/request'
 import SimpleContainer, { DependencyScope } from './SimpleContainer'
 
 export default function createDependencyNamespace(namespace: string, requestScopeKey: RequestContextBase, uowKey: UnitOfWork) {
