@@ -1,8 +1,7 @@
 import { TrainTripCreated, TrainTripId, TrainTripStateChanged, UserInputReceived } from '@/TrainTrip/TrainTrip'
 import { DbContextKey, defaultDependencies, getTripKey, TrainTripPublisherKey } from '@/TrainTrip/usecases/types'
 import { DbError } from 'fp-app-framework/infrastructure/errors'
-import { IntegrationEventReturnType } from 'fp-app-framework/infrastructure/misc'
-import { createEventHandlerWithDeps } from 'fp-app-framework/infrastructure/requestHandlers'
+import { createEventHandlerWithDeps, IntegrationEventReturnType } from 'fp-app-framework/infrastructure/mediator'
 import { flatMap, map, ok, pipe, toTup } from 'fp-app-framework/utils/neverthrow-extensions'
 
 // Domain Events should primarily be used to be turned into Integration Event (Post-Commit, call other service)

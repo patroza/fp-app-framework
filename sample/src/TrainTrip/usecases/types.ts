@@ -1,7 +1,7 @@
 import TrainTrip, { Price } from '@/TrainTrip/TrainTrip'
 import { RecordContext, UnitOfWork } from 'fp-app-framework/infrastructure/context.base'
 import { ApiError, ConnectionError } from 'fp-app-framework/infrastructure/errors'
-import { RequestContextBase } from 'fp-app-framework/infrastructure/misc'
+import { RequestContextBase } from 'fp-app-framework/infrastructure/mediator'
 import { generateKey, generateKeyFromFn } from 'fp-app-framework/infrastructure/SimpleContainer'
 import { PipeFunction, Result } from 'fp-app-framework/utils/neverthrow-extensions'
 import { TrainTripPublisher } from '../eventhandlers'

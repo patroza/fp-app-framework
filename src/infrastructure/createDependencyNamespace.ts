@@ -2,17 +2,17 @@ import chalk from 'chalk'
 import { createNamespace, getNamespace } from 'cls-hooked'
 import format from 'date-fns/format'
 import { EventEmitter } from 'events'
+import { setFunctionName } from '../utils'
 import { generateShortUuid } from '../utils/generateUuid'
-import { PipeFunction } from '../utils/neverthrow-extensions'
 import { UnitOfWork } from './context.base'
-import DomainEventHandler, { executePostCommitHandlersKey, publishEventsKey } from './domainEventHandler'
+import { loggingDecorator, uowDecorator } from './decorators'
+import DomainEventHandler, { executePostCommitHandlersKey } from './domainEventHandler'
 import executePostCommitHandlers from './executePostCommitHandlers'
-import { RequestContextBase } from './misc'
-import publishEvents, { publishType } from './publishEvents'
 import {
-  getHandlerImpl, getRegisteredEventHandlers, getRegisteredRequestAndEventHandlers, requestType, UsecaseWithDependencies,
-} from './requestHandlers'
-import SimpleContainer, { DependencyScope } from './SimpleContainer'
+  getHandlerKey, getRegisteredRequestAndEventHandlers,
+  publish, request, RequestContextBase, requestKey, requestType,
+} from './mediator'
+import SimpleContainer, { DependencyScope, generateKey } from './SimpleContainer'
 
 export default function createDependencyNamespace(namespace: string, requestScopeKey: RequestContextBase, uowKey: UnitOfWork) {
   const ns = createNamespace(namespace)
@@ -22,9 +22,11 @@ export default function createDependencyNamespace(namespace: string, requestScop
 
   const container = new SimpleContainer(getDependencyScope, setDependencyScope)
   const resolveDependencies = resolveDependenciesImpl(container)
-  const create = ([impl, _, deps]: any) => impl(resolveDependencies(deps))
-
-  const getRequestHandler = getHandlerImpl(container, uowKey)
+  const create = ([impl, key, deps]: any) => {
+    const resolved = impl(resolveDependencies(deps))
+    setFunctionName(resolved, key.name)
+    return resolved
+  }
 
   const bindLogger = (fnc: (...args2: any[]) => void) => (...args: any[]) => {
     const context = container.tryGetF(requestScopeKey)
@@ -57,32 +59,31 @@ export default function createDependencyNamespace(namespace: string, requestScop
       )
     })
 
-  const request: requestType = <TInput, TOutput, TError>(requestHandler: UsecaseWithDependencies<any, TInput, TOutput, TError>, input: TInput) => {
-    const handler = getRequestHandler(requestHandler)
-    return handler(input)
-  }
-
-  const publish: publishType = <TInput, TOutput, TError>(eventHandler: PipeFunction<TInput, TOutput, TError>, event: TInput) => {
-    const handler = container.getF(eventHandler)
-    return handler(event)
-  }
-
+  const publish2 = publish(evt => (handlerMap.get(evt.constructor) || []).map(x => container.getF(x)))
   container.registerScopedC(
     DomainEventHandler,
-    () => new DomainEventHandler(container.getF(publishEventsKey), container.getF(executePostCommitHandlersKey)),
+    () => new DomainEventHandler(publish2, container.getF(executePostCommitHandlersKey)),
   )
-  container.registerScopedF(requestScopeKey, () => { const id = generateShortUuid(); return { id, correllationId: id } })
+  container.registerScopedO(requestScopeKey, () => { const id = generateShortUuid(); return { id, correllationId: id } })
   getRegisteredRequestAndEventHandlers().forEach(([_, v]) => container.registerScopedF(v[1], () => create(v)))
 
+  const uowDecoratorKey = generateKey<ReturnType<typeof uowDecorator>>()
+  const loggingDecoratorKey = generateKey<ReturnType<typeof loggingDecorator>>()
+
+  container.registerScopedF(uowDecoratorKey, () => uowDecorator(container.getF(uowKey)))
+  container.registerSingletonF(loggingDecoratorKey, () => loggingDecorator())
+  container.registerDecorator(requestKey, uowDecoratorKey, loggingDecoratorKey)
   container.registerSingletonF(executePostCommitHandlersKey, () => executePostCommitHandlers({ setupChildContext }))
-  container.registerSingletonF(publishEventsKey, () => publishEvents(new Map(getRegisteredEventHandlers()), publish))
+  container.registerSingletonF(requestKey, () => request(key => container.getF(getHandlerKey(key))))
+
+  const request2: requestType = (key, input) => container.getF(requestKey)(key, input)
 
   return {
     bindLogger,
     container,
     setupRootContext,
 
-    request,
+    request: request2,
   }
 }
 
@@ -93,3 +94,14 @@ const resolveDependenciesImpl = (container: SimpleContainer) => <TDependencies>(
   pAny[cur] = container.getF(key)
   return prev
 }, {} as TDependencies)
+
+const registerEventHandler = (event: any, handler: any) => {
+  const current = handlerMap.get(event) || []
+  current.push(handler)
+  handlerMap.set(event, current)
+}
+
+// tslint:disable-next-line:ban-types
+const handlerMap = new Map<any, any[]>() // Array<readonly [Function, Function, {}]>
+
+export { registerEventHandler }

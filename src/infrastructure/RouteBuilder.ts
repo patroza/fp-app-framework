@@ -1,9 +1,9 @@
-import { ErrorBase } from 'fp-app-framework/errors'
 import fs from 'fs'
+import { ErrorBase } from '../errors'
 import assert from '../utils/assert'
 import { ValidatorType } from '../utils/validation'
 import { DbError } from './errors'
-import { requestType, UsecaseWithDependencies } from './requestHandlers'
+import { requestType, UsecaseWithDependencies } from './mediator'
 
 export default abstract class RouteBuilder<TContext> {
   private static register = <TContext>(method: METHODS, obj: RouteBuilder<TContext>) => <TDependencies, TInput, TOutput, TError, TValidationError>(

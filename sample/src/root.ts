@@ -20,7 +20,7 @@ const createRoot = () => {
     DbContextKey as any as UnitOfWork,
   )
 
-  container.registerScopedF(DbContextKey, () => new DiskDBContext(container.getC(DomainEventHandler)))
+  container.registerScopedO(DbContextKey, () => new DiskDBContext(container.getC(DomainEventHandler)))
 
   container.registerSingletonF(sendCloudSyncKey, () => sendCloudSyncFake({ cloudUrl: '' }))
   container.registerSingletonF(
@@ -30,7 +30,7 @@ const createRoot = () => {
       return getTripF
     },
   )
-  container.registerSingletonF(TrainTripPublisherKey, () => new TrainTripPublisherInMemory(request))
+  container.registerSingletonO(TrainTripPublisherKey, () => new TrainTripPublisherInMemory(request))
 
   return {
     bindLogger,

@@ -1,6 +1,6 @@
 import { CombinedValidationError, combineValidationErrors, toFieldError, ValidationError } from 'fp-app-framework/errors'
 import { ApiError, DbError } from 'fp-app-framework/infrastructure/errors'
-import { createCommandWithDeps } from 'fp-app-framework/infrastructure/requestHandlers'
+import { createCommandWithDeps } from 'fp-app-framework/infrastructure/mediator'
 import { err, flatMap, map, mapErr, ok, pipe, PipeFunction, Result, resultTuple, tee, toTup } from 'fp-app-framework/utils/neverthrow-extensions'
 import FutureDate from '../FutureDate'
 import PaxDefinition, { Pax } from '../PaxDefinition'

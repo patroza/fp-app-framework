@@ -2,7 +2,7 @@
 
 import { ValidationError } from 'fp-app-framework/errors'
 import { RecordNotFound } from 'fp-app-framework/infrastructure/errors'
-import { createCommandWithDeps } from 'fp-app-framework/infrastructure/requestHandlers'
+import { createCommandWithDeps } from 'fp-app-framework/infrastructure/mediator'
 import { flatMap, pipe, toFlatTup, toTup } from 'fp-app-framework/utils/neverthrow-extensions'
 import FutureDate from '../FutureDate'
 import TravelClassDefinition, { TravelClassName } from '../TravelClassDefinition'
