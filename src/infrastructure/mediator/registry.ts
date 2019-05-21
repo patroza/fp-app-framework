@@ -23,25 +23,18 @@ type HandlerTuple<TDependencies, TInput, TOutput, TError> = readonly [
   { name: string, type: HandlerType }
 ]
 
-// tslint:disable:max-line-length
-// export function setup<TDependencies, TInput, TOutput, TError>(handler: WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>): [WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>, PipeFunction<TInput, TOutput, TError>] as const {
-//   return [handler, generateKey<ReturnType<typeof handler>>()]
-// }
-
 const registerUsecaseHandler = <TDependencies>(deps: TDependencies) =>
   (name: string, type: HandlerType) =>
     <TInput, TOutput, TError>(
       handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TError>,
     ): void => {
-      // TODO: store deps on key? But then key and deps are coupled
       assert(!Object.keys(deps).some(x => !(deps as any)[x]), 'Dependencies must not be null')
 
       const key = generateKey<ReturnType<typeof handler>>(name)
-      const anyKey = key as any
-      anyKey.isCommand = type === 'COMMAND'
       const anyHandler: any = handler
       anyHandler.isCommand = type === 'COMMAND'
       setFunctionName(handler, name)
+
       const r = [handler, key, deps, { name, type }] as const
       dependencyMap.set(handler, r)
     }
@@ -70,20 +63,24 @@ const createEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <TInp
 
 const getRegisteredRequestAndEventHandlers = () => [...dependencyMap.entries()]
 
-const getHandlerImpl = (handler: UsecaseWithDependencies<any, any, any, any>) => {
-  const usecaseHandler = getDependencyMap(handler)!
+const getHandlerKey = (handler: UsecaseWithDependencies<any, any, any, any>) => {
+  const usecaseHandler = dependencyMap.get(handler)!
   return usecaseHandler[1]
 }
 
-const getDependencyMap = (handler: WithDependencies<any, PipeFunction<any, any, any>>) => dependencyMap.get(handler)
-
 export {
-  getDependencyMap,
-  getHandlerImpl,
+  getHandlerKey,
   getRegisteredRequestAndEventHandlers,
   createCommandWithDeps, createEventHandlerWithDeps,
   createQueryWithDeps,
 }
+
+export type requestType = <TInput, TOutput, TError>(
+  requestHandler: UsecaseWithDependencies<any, TInput, TOutput, TError>,
+  input: TInput,
+) => Promise<Result<TOutput, TError | DbError>>
+
+export const requestKey = generateKey<requestType>()
 
 const dependencyMap = new Map<HandlerWithDependencies<any, any, any, any>, HandlerTuple<any, any, any, any>>()
 
@@ -104,14 +101,9 @@ const dependencyMap = new Map<HandlerWithDependencies<any, any, any, any>, Handl
 
 // tslint:disable-next-line:max-line-length
 // type RequestHandlerDecorator<TInput = any, TOutput = any, TErr = any> = Decorator<NamedRequestHandler<TInput, TOutput, TErr>, PipeFunction<TInput, TOutput, TErr>>
-// type RequestDecorator = <TInput, TOutput, TErr>(handler: NamedRequestHandler<TInput, TOutput, TErr>) => (input: TInput) => Promise<Result<TOutput, TErr>>
+// type RequestDecorator = <TInput, TOutput, TErr>(
+  // handler: NamedRequestHandler<TInput, TOutput, TErr>) => (input: TInput) => Promise<Result<TOutput, TErr>>
 
 // type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<TInput, TOutput, TErr | DbError> & { name: string, isCommand: boolean }
 
 // type Decorator<T, T2 = T> = (inp: T) => T2
-
-export type requestType = <TInput, TOutput, TError>(requestHandler: UsecaseWithDependencies<any, TInput, TOutput, TError>, input: TInput) => Promise<Result<TOutput, TError | DbError>>
-
-export const requestKey = generateKey<requestType>()
-
-export type CreateHandlerType = (hndlr: any) => PipeFunction<any, any, any>
