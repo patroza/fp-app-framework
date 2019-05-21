@@ -9,7 +9,7 @@ export default class Trip {
     assert(Boolean(travelClasss.length), 'A trip must have at least 1 travel class')
   }
 
-  createTrainTrip = ({ templateId, ...rest }: CreateTrainTripInfo) => new TrainTrip(
+  readonly createTrainTrip = ({ templateId, ...rest }: CreateTrainTripInfo) => new TrainTrip(
     rest,
     this,
     this.travelClasss.find(x => x.templateId === templateId)!,

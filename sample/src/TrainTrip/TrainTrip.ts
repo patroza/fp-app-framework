@@ -68,7 +68,7 @@ export default class TrainTrip extends Entity {
     this.w.opportunityId = opportunityId
   }
 
-  updateTrip = (trip: Trip) => {
+  readonly updateTrip = (trip: Trip) => {
     assert.isNotNull({ trip })
 
     this.w.trip = trip
@@ -118,14 +118,14 @@ export default class TrainTrip extends Entity {
   //// End Separate sample; not used other than testing
   ////////////
 
-  private applyDefinedChanges = ({ startDate, pax, travelClass }: StateProposition) =>
+  private readonly applyDefinedChanges = ({ startDate, pax, travelClass }: StateProposition) =>
     anyTrue<ValidationError>(
       map(() => applyIfNotUndefined(startDate, this.intChangeStartDate)),
       map(() => applyIfNotUndefined(pax, this.intChangePax)),
       flatMap(() => valueOrUndefined(travelClass, this.intChangeTravelClass)),
     )
 
-  private intChangeStartDate = (startDate: FutureDate) => {
+  private readonly intChangeStartDate = (startDate: FutureDate) => {
     if (valueEquals(startDate, this.startDate, v => v.toISOString())) { return false }
 
     this.w.startDate = startDate.value
@@ -134,7 +134,7 @@ export default class TrainTrip extends Entity {
     return true
   }
 
-  private intChangePax = (pax: PaxDefinition) => {
+  private readonly intChangePax = (pax: PaxDefinition) => {
     if (isEqual(this.pax, pax)) { return false }
 
     this.w.pax = pax
@@ -143,7 +143,7 @@ export default class TrainTrip extends Entity {
     return true
   }
 
-  private intChangeTravelClass = (travelClass: TravelClassDefinition): Result<boolean, ValidationError> => {
+  private readonly intChangeTravelClass = (travelClass: TravelClassDefinition): Result<boolean, ValidationError> => {
     const slc = this.travelClassConfiguration.find(x => x.travelClass.name === travelClass.value)
     if (!slc) { return err(new ValidationError(`${travelClass.value} not found`)) }
     if (this.currentTravelClassConfiguration === slc) { return ok(false) }
@@ -158,7 +158,7 @@ export default class TrainTrip extends Entity {
     return ok(void 0)
   }
 
-  private createChangeEvents = (changed: boolean) => {
+  private readonly createChangeEvents = (changed: boolean) => {
     this.registerDomainEvent(new UserInputReceived(this.id))
     if (changed) { this.registerDomainEvent(new TrainTripStateChanged(this.id)) }
   }

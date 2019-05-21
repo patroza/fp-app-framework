@@ -1,4 +1,4 @@
-import { ok, PipeFunction, Result } from '../utils/neverthrow-extensions'
+import { err, map, PipeFunction, Result, tee } from '../utils/neverthrow-extensions'
 import { IntegrationEventReturnType } from './misc'
 import { generateKey } from './SimpleContainer'
 
@@ -9,10 +9,18 @@ export default class DomainEventHandler {
 
   constructor(
     private readonly publishEvents: typeof publishEventsKey,
-    private readonly executePostCommitHandlers: typeof executePostCommitHandlersKey,
+    private readonly executeIntegrationEvents: typeof executePostCommitHandlersKey,
   ) { }
 
-  async postEvents(getAndClearEvents: () => any[]): Promise<Result<IntegrationEventReturnType[], any>> {
+  async commitAndPostEvents<T, TErr>(
+    getAndClearEvents: () => any[],
+    commit: () => Promise<Result<T, TErr>>,
+  ): Promise<Result<T, TErr>> {
+    // 1. pre-commit: post domain events
+    // 2. commit!
+    // 3. post-commit: post integration events
+
+    this.integrationEvents = []
     const updateEvents = () => this.events = this.events.concat(getAndClearEvents())
     updateEvents()
     let processedEvents: any[] = []
@@ -26,18 +34,20 @@ export default class DomainEventHandler {
       const r = await this.publishEvents(events)
       if (r.isErr()) {
         this.events = processedEvents
-        return r
+        return err(r.error)
       }
       integrationEvents = integrationEvents.concat(r.value)
       updateEvents()
     }
     this.integrationEvents = integrationEvents
-    return ok(integrationEvents)
+    return await commit()
+      .pipe(tee(map(this.publishIntegrationEvents)))
   }
 
-  publishPostCommitEventHandlers = () => {
+  private readonly publishIntegrationEvents = () => {
     this.events = []
-    if (this.integrationEvents.length) { this.executePostCommitHandlers(this.integrationEvents) }
+    if (this.integrationEvents.length) { this.executeIntegrationEvents(this.integrationEvents) }
+    this.integrationEvents = []
   }
 }
 

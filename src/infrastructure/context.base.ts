@@ -1,4 +1,4 @@
-import { flatMap, map, PipeFunction, PipeFunctionN, Result } from '../utils/neverthrow-extensions'
+import { PipeFunction, PipeFunctionN, Result } from '../utils/neverthrow-extensions'
 import DomainEventHandler from './domainEventHandler'
 import { DbError } from './errors'
 
@@ -7,9 +7,9 @@ export default abstract class ContextBase {
   constructor(private readonly eventHandler: DomainEventHandler) { }
 
   readonly save = (): Promise<Result<void, DbError>> =>
-    this.eventHandler.postEvents(() => this.intGetAndClearEvents()).pipe(
-      flatMap(() => this.intSave()),
-      map(this.eventHandler.publishPostCommitEventHandlers),
+    this.eventHandler.commitAndPostEvents(
+      () => this.intGetAndClearEvents(),
+      () => this.intSave(),
     )
 
   protected abstract intGetAndClearEvents(): any[]
