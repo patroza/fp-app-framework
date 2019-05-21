@@ -1,6 +1,5 @@
-import { setFunctionName } from '../utils'
+import { Constructor, setFunctionName } from '../utils'
 import assert from '../utils/assert'
-import { Constructor } from './mediator'
 
 export default class SimpleContainer {
   private factories = new Map()
@@ -92,6 +91,11 @@ export default class SimpleContainer {
   registerSingletonF<T extends (...args: any[]) => any>(key: T, factory: () => T) {
     assert.isNotNull({ key, factory })
     this.factories.set(key, () => this.singletonScope.getOrCreate(key, this.resolveDecoratorsF(key, factory)))
+  }
+
+  registerSingletonO<T>(key: T, factory: () => T) {
+    assert.isNotNull({ key, factory })
+    this.factories.set(key, () => this.singletonScope.getOrCreate(key, factory))
   }
 
   registerInstanceF<T extends (...args: any[]) => any>(key: T, instance: T) {

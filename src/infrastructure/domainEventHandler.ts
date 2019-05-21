@@ -12,6 +12,7 @@ export default class DomainEventHandler {
     private readonly executeIntegrationEvents: typeof executePostCommitHandlersKey,
   ) { }
 
+  // Note: Eventhandlers in this case have unbound errors..
   async commitAndPostEvents<T, TErr>(
     getAndClearEvents: () => any[],
     commit: () => Promise<Result<T, TErr>>,
@@ -59,7 +60,6 @@ export default class DomainEventHandler {
     if (this.integrationEvents.length) { this.executeIntegrationEvents(this.integrationEvents) }
     this.integrationEvents = []
   }
-
 }
 
 export const executePostCommitHandlersKey = generateKey<(postCommitEvents: IntegrationEventReturnType[]) => void>()

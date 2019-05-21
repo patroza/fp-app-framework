@@ -1,4 +1,4 @@
-import { setFunctionName } from '../../utils'
+import { Constructor, setFunctionName } from '../../utils'
 import assert from '../../utils/assert'
 import { PipeFunction, Result } from '../../utils/neverthrow-extensions'
 import { registerEventHandler } from '../createDependencyNamespace'
@@ -7,7 +7,6 @@ import { generateKey } from '../SimpleContainer'
 
 export interface RequestContextBase { id: string, correllationId: string }
 
-export type Constructor<T> = new (...args: any[]) => T
 export type WithDependencies<TDependencies, T> = (deps: TDependencies) => T
 export type EventHandlerWithDependencies<TDependencies, TInput, TOutput, TError> = HandlerWithDependencies<TDependencies, TInput, TOutput, TError>
 export type UsecaseWithDependencies<TDependencies, TInput, TOutput, TError> = HandlerWithDependencies<TDependencies, TInput, TOutput, TError>
