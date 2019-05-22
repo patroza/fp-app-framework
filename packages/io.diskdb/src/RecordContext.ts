@@ -15,17 +15,17 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
     private readonly deserializer: (serialized: string) => Result<T, never>,
   ) { }
 
-  add = (record: T) => {
+  readonly add = (record: T) => {
     assert.isNotNull({ record })
     this.cache.set(record.id, { version: 0, data: record })
   }
 
-  remove = (record: T) => {
+  readonly remove = (record: T) => {
     assert.isNotNull({ record })
     this.removals.push(record)
   }
 
-  load = async (id: string): Promise<Result<T, DbError>> => {
+  readonly load = async (id: string): Promise<Result<T, DbError>> => {
     assert.isNotNull({ id })
     const cachedRecord = this.cache.get(id)
     if (cachedRecord) { return ok(cachedRecord.data) }
@@ -41,7 +41,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
   }
 
   // Internal
-  intGetAndClearEvents = () => {
+  readonly intGetAndClearEvents = () => {
     let events: any[] = []
     const items = [...this.cache.values()]
     items.forEach(r => {
@@ -52,7 +52,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
     return events
   }
 
-  intSave = async (): Promise<Result<void, DbError>> => {
+  readonly intSave = async (): Promise<Result<void, DbError>> => {
     for (const e of this.removals) {
       const r = await this.deleteRecord(e)
       if (r.isErr()) {
@@ -69,7 +69,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
     return ok(void 0)
   }
 
-  private saveRecord = async (record: T): Promise<Result<void, DbError>> => {
+  private readonly saveRecord = async (record: T): Promise<Result<void, DbError>> => {
     assert.isNotNull({ record })
     const cachedRecord = this.cache.get(record.id)!
 
@@ -91,14 +91,14 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
       ))
   }
 
-  private deleteRecord = async (record: T): Promise<Result<void, DbError>> => {
+  private readonly deleteRecord = async (record: T): Promise<Result<void, DbError>> => {
     assert.isNotNull({ record })
     return await lockRecordOnDisk(this.type, record.id, () =>
       startWithVal<DbError>()(void 0).pipe(map(() => deleteFile(getFilename(this.type, record.id)))),
     )
   }
 
-  private actualSave = async (record: T, version: number) => {
+  private readonly actualSave = async (record: T, version: number) => {
     if (!await exists('./data')) { await mkdir('./data') }
     const data = this.serializer(record)
 
