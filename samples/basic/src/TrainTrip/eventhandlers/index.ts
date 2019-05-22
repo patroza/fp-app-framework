@@ -1,8 +1,8 @@
-import { TrainTripCreated, TrainTripId, TrainTripStateChanged, UserInputReceived } from '@/TrainTrip/TrainTrip'
-import { DbContextKey, defaultDependencies, getTripKey, TrainTripPublisherKey } from '@/TrainTrip/usecases/types'
-import { DbError } from '@fp-app/framework'
-import { createEventHandlerWithDeps, IntegrationEventReturnType } from '@fp-app/framework'
-import { flatMap, map, ok, pipe, toTup } from '@fp-app/neverthrow-extensions'
+import { TrainTripCreated, TrainTripId, TrainTripStateChanged, UserInputReceived } from "@/TrainTrip/TrainTrip"
+import { DbContextKey, defaultDependencies, getTripKey, TrainTripPublisherKey } from "@/TrainTrip/usecases/types"
+import { DbError } from "@fp-app/framework"
+import { createEventHandlerWithDeps, IntegrationEventReturnType } from "@fp-app/framework"
+import { flatMap, map, ok, pipe, toTup } from "@fp-app/neverthrow-extensions"
 
 // Domain Events should primarily be used to be turned into Integration Event (Post-Commit, call other service)
 // There may be other small reasons to use it, like to talk to an external system Pre-Commit.
@@ -23,14 +23,14 @@ import { flatMap, map, ok, pipe, toTup } from '@fp-app/neverthrow-extensions'
 const createEventHandler = createEventHandlerWithDeps({ trainTripPublisher: TrainTripPublisherKey, ...defaultDependencies })
 
 createEventHandler<TrainTripCreated, IntegrationEventReturnType, any>(
-  /* on */ TrainTripCreated, 'ScheduleCloudSync',
+  /* on */ TrainTripCreated, "ScheduleCloudSync",
   ({ trainTripPublisher }) => pipe(
     map(createRegisterIntegrationEvent(trainTripPublisher)),
   ),
 )
 
 createEventHandler<TrainTripStateChanged, IntegrationEventReturnType, any>(
-  /* on */ TrainTripStateChanged, 'EitherDebounceOrScheduleCloudSync',
+  /* on */ TrainTripStateChanged, "EitherDebounceOrScheduleCloudSync",
   ({ trainTripPublisher }) => pipe(
     map(createRegisterIntegrationEvent(trainTripPublisher)),
   ),
@@ -39,7 +39,7 @@ createEventHandler<TrainTripStateChanged, IntegrationEventReturnType, any>(
 const createEventHandler2 = createEventHandlerWithDeps({ db: DbContextKey, getTrip: getTripKey })
 
 createEventHandler2<TrainTripStateChanged, void, DbError>(
-  /* on */ TrainTripStateChanged, 'RefreshTripInfo',
+  /* on */ TrainTripStateChanged, "RefreshTripInfo",
   ({ db, getTrip }) => pipe(
     flatMap(({ id }) => db.trainTrips.load(id)),
     flatMap(toTup(trainTrip => getTrip(trainTrip.currentTravelClassConfiguration.travelClass.templateId))),
@@ -48,7 +48,7 @@ createEventHandler2<TrainTripStateChanged, void, DbError>(
 )
 
 createEventHandler<UserInputReceived, IntegrationEventReturnType, any>(
-  /* on */ UserInputReceived, 'DebouncePendingCloudSync',
+  /* on */ UserInputReceived, "DebouncePendingCloudSync",
   ({ trainTripPublisher }) => pipe(
     map(createRegisterIfPendingIntegrationEvent(trainTripPublisher)),
   ),

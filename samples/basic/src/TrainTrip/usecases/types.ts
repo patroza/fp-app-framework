@@ -1,12 +1,12 @@
-import TrainTrip, { Price } from '@/TrainTrip/TrainTrip'
-import { RecordContext, UnitOfWork } from '@fp-app/framework'
-import { ApiError, ConnectionError } from '@fp-app/framework'
-import { RequestContextBase } from '@fp-app/framework'
-import { generateKey, generateKeyFromFn } from '@fp-app/framework'
-import { PipeFunction, Result } from '@fp-app/neverthrow-extensions'
-import { TrainTripPublisher } from '../eventhandlers'
-import { getTrip, sendCloudSyncFake, Template, TravelPlan } from '../infrastructure/api'
-import PaxDefinition from '../PaxDefinition'
+import TrainTrip, { Price } from "@/TrainTrip/TrainTrip"
+import { RecordContext, UnitOfWork } from "@fp-app/framework"
+import { ApiError, ConnectionError } from "@fp-app/framework"
+import { RequestContextBase } from "@fp-app/framework"
+import { generateKey, generateKeyFromFn } from "@fp-app/framework"
+import { PipeFunction, Result } from "@fp-app/neverthrow-extensions"
+import { TrainTripPublisher } from "../eventhandlers"
+import { getTrip, sendCloudSyncFake, Template, TravelPlan } from "../infrastructure/api"
+import PaxDefinition from "../PaxDefinition"
 
 export const getTripKey = generateKeyFromFn(getTrip)
 export const sendCloudSyncKey = generateKeyFromFn(sendCloudSyncFake)
@@ -27,8 +27,8 @@ export interface TrainTripContext extends ReadonlyTrainTripContext, UnitOfWork {
 // tslint:disable-next-line:no-empty-interface
 export type RequestContext = RequestContextBase & { [key: string]: any }
 
-export const RequestContextKey = generateKey<RequestContext>('context')
-export const DbContextKey = generateKey<ReadonlyTrainTripContext>('db')
-export const TrainTripPublisherKey = generateKey<TrainTripPublisher>('trainTripPublisher')
+export const RequestContextKey = generateKey<RequestContext>("context")
+export const DbContextKey = generateKey<ReadonlyTrainTripContext>("db")
+export const TrainTripPublisherKey = generateKey<TrainTripPublisher>("trainTripPublisher")
 
 export const defaultDependencies = { context: RequestContextKey }

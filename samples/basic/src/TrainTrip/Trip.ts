@@ -1,12 +1,12 @@
-import { assert } from '@fp-app/framework'
-import TrainTrip, { CreateTrainTripInfo, TemplateId } from './TrainTrip'
-import { TravelClassName } from './TravelClassDefinition'
+import { assert } from "@fp-app/framework"
+import TrainTrip, { CreateTrainTripInfo, TemplateId } from "./TrainTrip"
+import { TravelClassName } from "./TravelClassDefinition"
 
 export default class Trip {
   readonly createdAt = new Date()
 
   constructor(readonly travelClasss: TravelClass[]) {
-    assert(Boolean(travelClasss.length), 'A trip must have at least 1 travel class')
+    assert(Boolean(travelClasss.length), "A trip must have at least 1 travel class")
   }
 
   readonly createTrainTrip = ({ templateId, ...rest }: CreateTrainTripInfo) => new TrainTrip(

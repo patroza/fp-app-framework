@@ -1,4 +1,4 @@
-import generateUuid from './utils/generateUuid'
+import generateUuid from "./utils/generateUuid"
 
 export default abstract class Entity {
   readonly id: string = generateUuid()

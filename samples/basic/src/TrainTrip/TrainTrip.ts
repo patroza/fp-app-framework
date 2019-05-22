@@ -1,16 +1,16 @@
 // tslint:disable:max-classes-per-file
 
-import { Entity, ForbiddenError, ValidationError } from '@fp-app/framework'
-import { assert, asWritable } from '@fp-app/framework'
-import { valueEquals } from '@fp-app/framework'
+import { Entity, ForbiddenError, ValidationError } from "@fp-app/framework"
+import { assert, asWritable } from "@fp-app/framework"
+import { valueEquals } from "@fp-app/framework"
 import {
   anyTrue, applyIfNotUndefined, err, flatMap, map, mapStatic, ok, Result, valueOrUndefined,
-} from '@fp-app/neverthrow-extensions'
-import isEqual from 'lodash/fp/isEqual'
-import FutureDate from './FutureDate'
-import PaxDefinition from './PaxDefinition'
-import TravelClassDefinition from './TravelClassDefinition'
-import Trip, { TravelClass } from './Trip'
+} from "@fp-app/neverthrow-extensions"
+import isEqual from "lodash/fp/isEqual"
+import FutureDate from "./FutureDate"
+import PaxDefinition from "./PaxDefinition"
+import TravelClassDefinition from "./TravelClassDefinition"
+import Trip, { TravelClass } from "./Trip"
 
 export default class TrainTrip extends Entity {
   // workaround so that we can make props look readonly on the outside, but allow to change on the inside.
@@ -40,7 +40,7 @@ export default class TrainTrip extends Entity {
 
     const currentTravelClassConfiguration = this.travelClassConfiguration.find(x => x.travelClass.name === currentTravelClass.name)
     // TODO: try not to throw Error, nor converting to static create()..
-    if (!currentTravelClassConfiguration) { throw new Error('passed an unknown travel class') }
+    if (!currentTravelClassConfiguration) { throw new Error("passed an unknown travel class") }
     this.currentTravelClassConfiguration = currentTravelClassConfiguration
 
     this.registerDomainEvent(new TrainTripCreated(this.id))

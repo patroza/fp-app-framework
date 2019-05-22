@@ -1,6 +1,6 @@
-import { assert, ValidationError } from '@fp-app/framework'
-import { createValidator, Joi, predicate } from '@fp-app/framework'
-import { flatMap, map, Result } from '@fp-app/neverthrow-extensions'
+import { assert, ValidationError } from "@fp-app/framework"
+import { createValidator, Joi, predicate } from "@fp-app/framework"
+import { flatMap, map, Result } from "@fp-app/neverthrow-extensions"
 
 export default class PaxDefinition {
   static create(pax: Pax): Result<PaxDefinition, ValidationError> {
@@ -8,8 +8,8 @@ export default class PaxDefinition {
 
     return validate(pax)
       .pipe(
-        flatMap(predicate(p => Object.keys(p).some(k => (p as any)[k] > 0), 'pax requires at least 1 person')),
-        flatMap(predicate(p => Object.keys(p).reduce((prev, cur) => prev += (p as any)[cur], 0) <= 6, 'pax must be 6 or less people')),
+        flatMap(predicate(p => Object.keys(p).some(k => (p as any)[k] > 0), "pax requires at least 1 person")),
+        flatMap(predicate(p => Object.keys(p).reduce((prev, cur) => prev += (p as any)[cur], 0) <= 6, "pax must be 6 or less people")),
         map(validatedPax => new PaxDefinition(validatedPax)),
       )
   }

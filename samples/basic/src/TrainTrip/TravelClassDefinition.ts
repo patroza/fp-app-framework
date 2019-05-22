@@ -1,5 +1,5 @@
-import { ValidationError } from '@fp-app/framework'
-import { err, ok, Result } from '@fp-app/neverthrow-extensions'
+import { ValidationError } from "@fp-app/framework"
+import { err, ok, Result } from "@fp-app/neverthrow-extensions"
 
 export default class TravelClassDefinition {
   static create(travelClassName: string): Result<TravelClassDefinition, ValidationError> {
@@ -12,6 +12,6 @@ export default class TravelClassDefinition {
   private constructor(readonly value: string) { }
 }
 
-const validTravelClasss = ['second', 'first', 'business']
+const validTravelClasss = ["second", "first", "business"]
 
-export type TravelClassName = 'first' | 'second' | 'business'
+export type TravelClassName = "first" | "second" | "business"

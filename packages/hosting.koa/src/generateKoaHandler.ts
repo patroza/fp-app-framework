@@ -1,11 +1,11 @@
-import Koa from 'koa'
+import Koa from "koa"
 
-import { CombinedValidationError, ErrorBase, FieldValidationError, ForbiddenError, ValidationError } from '@fp-app/framework'
-import { ConnectionError, CouldNotAquireDbLockError, DbError, OptimisticLockError, RecordNotFound } from '@fp-app/framework'
-import { requestType, UsecaseWithDependencies } from '@fp-app/framework'
-import { defaultErrorPassthrough, ErrorHandlerType } from '@fp-app/framework'
-import { logger } from '@fp-app/framework'
-import { flatMap, Result, startWithVal } from '@fp-app/framework'
+import { CombinedValidationError, ErrorBase, FieldValidationError, ForbiddenError, ValidationError } from "@fp-app/framework"
+import { ConnectionError, CouldNotAquireDbLockError, DbError, OptimisticLockError, RecordNotFound } from "@fp-app/framework"
+import { requestType, UsecaseWithDependencies } from "@fp-app/framework"
+import { defaultErrorPassthrough, ErrorHandlerType } from "@fp-app/framework"
+import { logger } from "@fp-app/framework"
+import { flatMap, Result, startWithVal } from "@fp-app/framework"
 
 export default function generateKoaHandler<I, T, E extends ErrorBase, E2 extends ValidationError>(
   request: requestType,
@@ -25,7 +25,7 @@ export default function generateKoaHandler<I, T, E extends ErrorBase, E2 extends
           flatMap(validatedInput => request(handler, validatedInput)),
         )
       result.match(t => {
-        if (ctx.method === 'POST' && t) {
+        if (ctx.method === "POST" && t) {
           ctx.status = 201
           ctx.body = { id: t, self: `${ctx.path}/${t}` }
         } else {

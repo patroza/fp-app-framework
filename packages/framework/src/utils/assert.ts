@@ -1,4 +1,4 @@
-import invariant from 'invariant'
+import invariant from "invariant"
 
 interface Assert { (testValue: boolean, format: string, ...extra: any[]): void; isNotNull: (object: any) => void }
 

@@ -1,6 +1,6 @@
-import { err, map, ok, Result, tee } from '@fp-app/neverthrow-extensions'
-import { IntegrationEventReturnType, publishType } from './mediator/publish'
-import { generateKey } from './SimpleContainer'
+import { err, map, ok, Result, tee } from "@fp-app/neverthrow-extensions"
+import { IntegrationEventReturnType, publishType } from "./mediator/publish"
+import { generateKey } from "./SimpleContainer"
 
 // tslint:disable-next-line:max-classes-per-file
 export default class DomainEventHandler {

@@ -1,16 +1,16 @@
-import chalk from 'chalk'
+import chalk from "chalk"
 
-export * from '@fp-app/neverthrow-extensions'
-export * from './validation'
-export { default as generateUuid } from './generateUuid'
-export { default as assert } from './assert'
+export * from "@fp-app/neverthrow-extensions"
+export * from "./validation"
+export { default as generateUuid } from "./generateUuid"
+export { default as assert } from "./assert"
 
 export type Constructor<T> = new (...args: any[]) => T
 
 const asWritable = <T>(obj: T) => obj as Writeable<T>
 export type Writeable<T> = { -readonly [P in keyof T]-?: T[P] }
 
-type logger = Pick<typeof console, 'log' | 'error' | 'warn' | 'debug'>
+type logger = Pick<typeof console, "log" | "error" | "warn" | "debug">
 
 export let logger: logger = console
 const setLogger = (l: logger) => logger = l
@@ -26,7 +26,7 @@ export async function bench<T>(
   try {
     return await wrappedFunction()
   } finally {
-    log(title || '', calculateElapsed(start))
+    log(title || "", calculateElapsed(start))
   }
 }
 
@@ -40,7 +40,7 @@ const benchLog = <T>(
   title?: string,
 ) => bench<T>(wrappedFunction, (t, elapsed) => logger.log(chalk.bgWhite.black(`${elapsed}ms`), t), title)
 
-const setFunctionName = (fnc: any, name: string) => Object.defineProperty(fnc, 'name', { value: name })
+const setFunctionName = (fnc: any, name: string) => Object.defineProperty(fnc, "name", { value: name })
 
 export {
   asWritable,

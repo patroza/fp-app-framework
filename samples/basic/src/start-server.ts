@@ -1,10 +1,10 @@
-import { logger, setLogger } from '@fp-app/framework'
-import { handleAuthenticationFailedMiddleware, logRequestTime, saveStartTime, setupNamespace } from '@fp-app/hosting.koa'
-import Koa from 'koa'
-import bodyParser from 'koa-bodyparser'
-import { PORT } from './config'
-import createRoot from './root'
-import createRootRouter from './root.router'
+import { logger, setLogger } from "@fp-app/framework"
+import { handleAuthenticationFailedMiddleware, logRequestTime, saveStartTime, setupNamespace } from "@fp-app/hosting.koa"
+import Koa from "koa"
+import bodyParser from "koa-bodyparser"
+import { PORT } from "./config"
+import createRoot from "./root"
+import createRootRouter from "./root.router"
 
 const startServer = () => {
   const { bindLogger, setupRootContext, request } = createRoot()
@@ -31,7 +31,7 @@ const startServer = () => {
     .use(rootRouter.allowedMethods())
     .use(rootRouter.routes())
 
-  app.listen(PORT, () => logger.log('server listening on 3535'))
+  app.listen(PORT, () => logger.log("server listening on 3535"))
 }
 
 startServer()

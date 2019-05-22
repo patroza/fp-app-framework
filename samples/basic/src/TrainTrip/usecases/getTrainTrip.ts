@@ -4,17 +4,17 @@
 // the alternative is making sure there are return types defined in Typescript, and e.g validated with Tests.
 // to make sure accidental `any` casts are catched.
 
-import TrainTrip from '@/TrainTrip/TrainTrip'
-import { DbError } from '@fp-app/framework'
-import { createQueryWithDeps } from '@fp-app/framework'
-import { flatMap, map, pipe } from '@fp-app/neverthrow-extensions'
-import { Pax } from '../PaxDefinition'
-import { TravelClassName } from '../TravelClassDefinition'
-import { DbContextKey, defaultDependencies } from './types'
+import TrainTrip from "@/TrainTrip/TrainTrip"
+import { DbError } from "@fp-app/framework"
+import { createQueryWithDeps } from "@fp-app/framework"
+import { flatMap, map, pipe } from "@fp-app/neverthrow-extensions"
+import { Pax } from "../PaxDefinition"
+import { TravelClassName } from "../TravelClassDefinition"
+import { DbContextKey, defaultDependencies } from "./types"
 
 const createQuery = createQueryWithDeps({ db: DbContextKey, ...defaultDependencies })
 
-const getTrainTrip = createQuery<Input, TrainTripView, DbError>('getTrainTrip',
+const getTrainTrip = createQuery<Input, TrainTripView, DbError>("getTrainTrip",
   ({ db }) => pipe(
     map(({ trainTripId }) => trainTripId),
     flatMap(db.trainTrips.load),

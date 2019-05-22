@@ -1,5 +1,5 @@
-import { Constructor, setFunctionName } from '../utils'
-import assert from '../utils/assert'
+import { Constructor, setFunctionName } from "../utils"
+import assert from "../utils/assert"
 
 export default class SimpleContainer {
   private factories = new Map()

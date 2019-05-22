@@ -33,6 +33,6 @@ export class FieldValidationError extends ValidationError {
 
 export class CombinedValidationError extends ValidationError {
   constructor(readonly errors: ValidationError[]) {
-    super(errors.join('\n'))
+    super(errors.join("\n"))
   }
 }

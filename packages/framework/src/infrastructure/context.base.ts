@@ -1,6 +1,6 @@
-import { PipeFunction, PipeFunctionN, Result } from '@fp-app/neverthrow-extensions'
-import DomainEventHandler from './domainEventHandler'
-import { DbError } from './errors'
+import { PipeFunction, PipeFunctionN, Result } from "@fp-app/neverthrow-extensions"
+import DomainEventHandler from "./domainEventHandler"
+import { DbError } from "./errors"
 
 // tslint:disable-next-line:max-classes-per-file
 export default abstract class ContextBase {

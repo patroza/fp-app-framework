@@ -1,13 +1,13 @@
-import { flatMap, flatTee, liftType, mapErr, Result } from '@fp-app/neverthrow-extensions'
-import { benchLog, logger } from '../../utils'
-import { UnitOfWork } from '../context.base'
-import { DbError } from '../errors'
-import { NamedRequestHandler } from '../mediator'
+import { flatMap, flatTee, liftType, mapErr, Result } from "@fp-app/neverthrow-extensions"
+import { benchLog, logger } from "../../utils"
+import { UnitOfWork } from "../context.base"
+import { DbError } from "../errors"
+import { NamedRequestHandler } from "../mediator"
 
 export const loggingDecorator = (): RequestDecorator =>
   request =>
     (key, input) => {
-      const prefix = `${key.name} ${key.isCommand ? 'Command' : 'Query'}`
+      const prefix = `${key.name} ${key.isCommand ? "Command" : "Query"}`
       return benchLog(async () => {
         logger.log(`${prefix} input`, input)
         const result = await request(key, input)

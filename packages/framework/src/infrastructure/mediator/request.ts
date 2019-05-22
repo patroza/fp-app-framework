@@ -1,4 +1,4 @@
-import { NamedRequestHandler, requestType, UsecaseWithDependencies } from '.'
+import { NamedRequestHandler, requestType, UsecaseWithDependencies } from "."
 
 const request = (get: getKeyType): requestType =>
   (requestHandler, input) => {

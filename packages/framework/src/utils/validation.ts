@@ -1,15 +1,14 @@
-import { err, ok, Result } from '@fp-app/neverthrow-extensions'
-import Joi from '@hapi/joi'
-import { CombinedValidationError, FieldValidationError, ValidationError } from '../errors'
+import { err, ok, Result } from "@fp-app/neverthrow-extensions"
+import Joi from "@hapi/joi"
+import { CombinedValidationError, FieldValidationError, ValidationError } from "../errors"
 export { Joi }
-
-import convert from 'joi-to-json-schema'
+import convert from "joi-to-json-schema"
 
 const createValidator = <TIn>(schema: any): ValidatorType<TIn, ValidationError> => {
   const validator = (object: TIn): Result<TIn, ValidationError> => {
     const r = Joi.validate(object, schema, { abortEarly: false })
     if (r.error) {
-      return err(new CombinedValidationError(r.error.details.map(x => new FieldValidationError(x.path.join('.'), x))))
+      return err(new CombinedValidationError(r.error.details.map(x => new FieldValidationError(x.path.join("."), x))))
     }
     return ok(r.value)
   }

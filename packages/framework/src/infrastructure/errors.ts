@@ -1,20 +1,20 @@
 // tslint:disable:max-classes-per-file
 
-import { ErrorBase } from '../errors'
-import assert from '../utils/assert'
+import { ErrorBase } from "../errors"
+import assert from "../utils/assert"
 
 export type DbError = RecordNotFound | ConnectionError | OptimisticLockError | CouldNotAquireDbLockError
 export type ApiError = RecordNotFound | ConnectionError
 
 export class ConnectionError extends ErrorBase {
-  readonly name = 'ConnectionError'
+  readonly name = "ConnectionError"
   constructor(readonly error: Error) {
-    super('A connection error ocurred')
+    super("A connection error ocurred")
   }
 }
 
 export class RecordNotFound extends ErrorBase {
-  readonly name = 'RecordNotFound'
+  readonly name = "RecordNotFound"
   constructor(readonly type: string, readonly id: string) {
     super(`The ${type} with ${id} was not found`)
     assert.isNotNull({ id, type })

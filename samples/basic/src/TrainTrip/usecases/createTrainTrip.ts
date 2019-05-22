@@ -1,15 +1,15 @@
-import { CombinedValidationError, combineValidationErrors, toFieldError, ValidationError } from '@fp-app/framework'
-import { ApiError, DbError } from '@fp-app/framework'
-import { createCommandWithDeps } from '@fp-app/framework'
-import { err, flatMap, map, mapErr, ok, pipe, PipeFunction, Result, resultTuple, tee, toTup } from '@fp-app/neverthrow-extensions'
-import FutureDate from '../FutureDate'
-import PaxDefinition, { Pax } from '../PaxDefinition'
-import { CreateTrainTripInfo } from '../TrainTrip'
-import { DbContextKey, defaultDependencies, getTripKey } from './types'
+import { CombinedValidationError, combineValidationErrors, toFieldError, ValidationError } from "@fp-app/framework"
+import { ApiError, DbError } from "@fp-app/framework"
+import { createCommandWithDeps } from "@fp-app/framework"
+import { err, flatMap, map, mapErr, ok, pipe, PipeFunction, Result, resultTuple, tee, toTup } from "@fp-app/neverthrow-extensions"
+import FutureDate from "../FutureDate"
+import PaxDefinition, { Pax } from "../PaxDefinition"
+import { CreateTrainTripInfo } from "../TrainTrip"
+import { DbContextKey, defaultDependencies, getTripKey } from "./types"
 
 const createCommand = createCommandWithDeps({ db: DbContextKey, getTrip: getTripKey, ...defaultDependencies })
 
-const createTrainTrip = createCommand<Input, string, CreateError>('createTrainTrip',
+const createTrainTrip = createCommand<Input, string, CreateError>("createTrainTrip",
   ({ db, getTrip }) => pipe(
     flatMap(validateCreateTrainTripInfo),
     flatMap(toTup(({ templateId }) => getTrip(templateId))),
@@ -26,9 +26,9 @@ const validateCreateTrainTripInfo: PipeFunction<Input, CreateTrainTripInfo, Vali
   pipe(
     flatMap(({ pax, startDate, templateId }) =>
       resultTuple(
-        PaxDefinition.create(pax).pipe(mapErr(toFieldError('pax'))),
-        FutureDate.create(startDate).pipe(mapErr(toFieldError('startDate'))),
-        validateString(templateId).pipe(mapErr(toFieldError('templateId'))),
+        PaxDefinition.create(pax).pipe(mapErr(toFieldError("pax"))),
+        FutureDate.create(startDate).pipe(mapErr(toFieldError("startDate"))),
+        validateString(templateId).pipe(mapErr(toFieldError("templateId"))),
       ).pipe(mapErr(combineValidationErrors)),
     ),
 
@@ -58,6 +58,6 @@ const validateCreateTrainTripInfo: PipeFunction<Input, CreateTrainTripInfo, Vali
 
 // TODO
 const validateString = <T extends string>(str: string): Result<T, ValidationError> =>
-  str ? ok(str as T) : err(new ValidationError('not a valid str'))
+  str ? ok(str as T) : err(new ValidationError("not a valid str"))
 
 type CreateError = CombinedValidationError | ValidationError | ApiError | DbError

@@ -1,11 +1,11 @@
-import TrainTrip, { Price } from '@/TrainTrip/TrainTrip'
-import { createTravelPlanType, getTemplateType, getTravelPlanType } from '@/TrainTrip/usecases/types'
-import { ApiError, assert, ConnectionError, RecordNotFound } from '@fp-app/framework'
-import { err, flatMap, map, ok, PipeFunction, sequenceAsync, startWithVal } from '@fp-app/neverthrow-extensions'
-import { v4 } from 'uuid'
-import PaxDefinition, { Pax } from '../PaxDefinition'
-import { TravelClassName } from '../TravelClassDefinition'
-import Trip, { TravelClass } from '../Trip'
+import TrainTrip, { Price } from "@/TrainTrip/TrainTrip"
+import { createTravelPlanType, getTemplateType, getTravelPlanType } from "@/TrainTrip/usecases/types"
+import { ApiError, assert, ConnectionError, RecordNotFound } from "@fp-app/framework"
+import { err, flatMap, map, ok, PipeFunction, sequenceAsync, startWithVal } from "@fp-app/neverthrow-extensions"
+import { v4 } from "uuid"
+import PaxDefinition, { Pax } from "../PaxDefinition"
+import { TravelClassName } from "../TravelClassDefinition"
+import Trip, { TravelClass } from "../Trip"
 
 const getTrip = (
   { getTemplate }: { getTemplate: getTemplateType },
@@ -40,13 +40,13 @@ const getTemplateFake = (
   assert.isNotNull({ templateId })
 
   const tpl = mockedTemplates()[templateId] as Template | undefined
-  if (!tpl) { return err(new RecordNotFound('Template', templateId)) }
+  if (!tpl) { return err(new RecordNotFound("Template", templateId)) }
   return ok(tpl)
 }
 
 const mockedTemplates: () => { [key: string]: Template } = () => ({
-  'template-id1': { id: 'template-id1', travelClasss: { second: { id: 'template-id1' }, first: { id: 'template-id2' } } } as Template,
-  'template-id2': { id: 'template-id2', travelClasss: { second: { id: 'template-id1' }, first: { id: 'template-id2' } } } as Template,
+  "template-id1": { id: "template-id1", travelClasss: { second: { id: "template-id1" }, first: { id: "template-id2" } } } as Template,
+  "template-id2": { id: "template-id2", travelClasss: { second: { id: "template-id1" }, first: { id: "template-id2" } } } as Template,
 })
 
 const getPricingFake = (
@@ -58,7 +58,7 @@ const getPricingFake = (
     .pipe(map(getFakePriceFromTemplate))
 }
 
-const getFakePriceFromTemplate = (_: any) => ({ price: { amount: 100, currency: 'EUR' } })
+const getFakePriceFromTemplate = (_: any) => ({ price: { amount: 100, currency: "EUR" } })
 
 const createTravelPlanFake = (
   { }: { travelPlanApiUrl: string },

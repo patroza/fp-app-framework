@@ -1,5 +1,5 @@
-import { assert, ValidationError } from '@fp-app/framework'
-import { err, ok, Result } from '@fp-app/neverthrow-extensions'
+import { assert, ValidationError } from "@fp-app/framework"
+import { err, ok, Result } from "@fp-app/neverthrow-extensions"
 
 // Can use for input, but for storage we should just store as date.
 // because it is temporal; what is today valid may be invalid tomorrow etc.

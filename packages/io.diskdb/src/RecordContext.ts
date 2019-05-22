@@ -1,8 +1,8 @@
-import { RecordContext } from '@fp-app/framework'
-import { assert, ConnectionError, CouldNotAquireDbLockError, DbError, OptimisticLockError, RecordNotFound } from '@fp-app/framework'
-import { err, flatMap, liftType, map, mapErr, ok, PipeFunctionN, Result, startWithVal } from '@fp-app/framework'
-import { lock } from 'proper-lockfile'
-import { deleteFile, exists, mkdir, readFile, writeFile } from './utils'
+import { RecordContext } from "@fp-app/framework"
+import { assert, ConnectionError, CouldNotAquireDbLockError, DbError, OptimisticLockError, RecordNotFound } from "@fp-app/framework"
+import { err, flatMap, liftType, map, mapErr, ok, PipeFunctionN, Result, startWithVal } from "@fp-app/framework"
+import { lock } from "proper-lockfile"
+import { deleteFile, exists, mkdir, readFile, writeFile } from "./utils"
 
 // tslint:disable-next-line:max-classes-per-file
 export default class DiskRecordContext<T extends DBRecord> implements RecordContext<T> {
@@ -99,11 +99,11 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
   }
 
   private readonly actualSave = async (record: T, version: number) => {
-    if (!await exists('./data')) { await mkdir('./data') }
+    if (!await exists("./data")) { await mkdir("./data") }
     const data = this.serializer(record)
 
     const serialized = JSON.stringify({ version: version + 1, data })
-    await writeFile(getFilename(this.type, record.id), serialized, { encoding: 'utf-8' })
+    await writeFile(getFilename(this.type, record.id), serialized, { encoding: "utf-8" })
     this.cache.set(record.id, { version, data: record })
   }
 }
@@ -137,7 +137,7 @@ const tryReadFromDb = async (type: string, id: string): Promise<Result<string, D
   try {
     const filePath = getFilename(type, id)
     if (!await exists(filePath)) { return err(new RecordNotFound(type, id)) }
-    return ok(await readFile(filePath, { encoding: 'utf-8' }))
+    return ok(await readFile(filePath, { encoding: "utf-8" }))
   } catch (err) {
     return err(new ConnectionError(err))
   }

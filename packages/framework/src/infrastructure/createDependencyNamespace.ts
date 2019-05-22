@@ -1,22 +1,22 @@
-import chalk from 'chalk'
-import { createNamespace, getNamespace } from 'cls-hooked'
-import format from 'date-fns/format'
-import { EventEmitter } from 'events'
-import { setFunctionName } from '../utils'
-import { generateShortUuid } from '../utils/generateUuid'
-import { UnitOfWork } from './context.base'
-import { loggingDecorator, uowDecorator } from './decorators'
-import DomainEventHandler, { executePostCommitHandlersKey } from './domainEventHandler'
-import executePostCommitHandlers from './executePostCommitHandlers'
+import chalk from "chalk"
+import { createNamespace, getNamespace } from "cls-hooked"
+import format from "date-fns/format"
+import { EventEmitter } from "events"
+import { setFunctionName } from "../utils"
+import { generateShortUuid } from "../utils/generateUuid"
+import { UnitOfWork } from "./context.base"
+import { loggingDecorator, uowDecorator } from "./decorators"
+import DomainEventHandler, { executePostCommitHandlersKey } from "./domainEventHandler"
+import executePostCommitHandlers from "./executePostCommitHandlers"
 import {
   getHandlerKey, getRegisteredRequestAndEventHandlers,
   publish, request, RequestContextBase, requestKey, requestType,
-} from './mediator'
-import SimpleContainer, { DependencyScope, generateKey } from './SimpleContainer'
+} from "./mediator"
+import SimpleContainer, { DependencyScope, generateKey } from "./SimpleContainer"
 
 export default function createDependencyNamespace(namespace: string, requestScopeKey: RequestContextBase, uowKey: UnitOfWork) {
   const ns = createNamespace(namespace)
-  const dependencyScopeKey = 'dependencyScope'
+  const dependencyScopeKey = "dependencyScope"
   const getDependencyScope = (): DependencyScope => getNamespace(namespace).get(dependencyScopeKey)
   const setDependencyScope = (scope: DependencyScope) => getNamespace(namespace).set(dependencyScopeKey, scope)
 
@@ -31,11 +31,11 @@ export default function createDependencyNamespace(namespace: string, requestScop
   const bindLogger = (fnc: (...args2: any[]) => void) => (...args: any[]) => {
     const context = container.tryGetF(requestScopeKey)
     const datetime = new Date()
-    const timestamp = format(datetime, 'YYYY-MM-DD HH:mm:ss')
+    const timestamp = format(datetime, "YYYY-MM-DD HH:mm:ss")
     const id = context ? (context.correllationId === context.id
       ? context.id
       : `${context.id} (${context.correllationId})`)
-      : 'root context'
+      : "root context"
     return fnc(`${chalk.green(timestamp)} ${chalk.blue(`[${id}]`)}`, ...args)
   }
 
@@ -50,7 +50,7 @@ export default function createDependencyNamespace(namespace: string, requestScop
       return cb()
     })
 
-  const setupRootContext = <T>(cb: (context: RequestContextBase, bindEmitter: (typeof ns)['bindEmitter']) => Promise<T>) =>
+  const setupRootContext = <T>(cb: (context: RequestContextBase, bindEmitter: (typeof ns)["bindEmitter"]) => Promise<T>) =>
     ns.runPromise(() => {
       container.createScope()
       return cb(

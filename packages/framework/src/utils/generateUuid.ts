@@ -1,5 +1,5 @@
-import short from 'short-uuid'
-import { v4 } from 'uuid'
+import short from "short-uuid"
+import { v4 } from "uuid"
 
 const generateUuid = () => v4()
 export default generateUuid

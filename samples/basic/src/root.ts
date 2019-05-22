@@ -1,10 +1,10 @@
-import { UnitOfWork } from '@fp-app/framework'
-import { createDependencyNamespace, DomainEventHandler } from '@fp-app/framework'
-import './TrainTrip/eventhandlers' // To be ble to auto register them :/
-import { getPricingFake, getTemplateFake, getTrip, sendCloudSyncFake } from './TrainTrip/infrastructure/api'
-import DiskDBContext from './TrainTrip/infrastructure/TrainTripContext.disk'
-import TrainTripPublisherInMemory from './TrainTrip/infrastructure/trainTripPublisher.inMemory'
-import { DbContextKey, getTripKey, RequestContextKey, sendCloudSyncKey, TrainTripPublisherKey } from './TrainTrip/usecases/types'
+import { UnitOfWork } from "@fp-app/framework"
+import { createDependencyNamespace, DomainEventHandler } from "@fp-app/framework"
+import "./TrainTrip/eventhandlers" // To be ble to auto register them :/
+import { getPricingFake, getTemplateFake, getTrip, sendCloudSyncFake } from "./TrainTrip/infrastructure/api"
+import DiskDBContext from "./TrainTrip/infrastructure/TrainTripContext.disk"
+import TrainTripPublisherInMemory from "./TrainTrip/infrastructure/trainTripPublisher.inMemory"
+import { DbContextKey, getTripKey, RequestContextKey, sendCloudSyncKey, TrainTripPublisherKey } from "./TrainTrip/usecases/types"
 
 const createRoot = () => {
   const {
@@ -21,11 +21,11 @@ const createRoot = () => {
 
   container.registerScopedO(DbContextKey, () => new DiskDBContext(container.getC(DomainEventHandler)))
 
-  container.registerSingletonF(sendCloudSyncKey, () => sendCloudSyncFake({ cloudUrl: '' }))
+  container.registerSingletonF(sendCloudSyncKey, () => sendCloudSyncFake({ cloudUrl: "" }))
   container.registerSingletonF(
     getTripKey,
     () => {
-      const { getTrip: getTripF } = createInventoryClient({ templateApiUrl: 'http://localhost:8110' })
+      const { getTrip: getTripF } = createInventoryClient({ templateApiUrl: "http://localhost:8110" })
       return getTripF
     },
   )
@@ -39,7 +39,7 @@ const createRoot = () => {
   }
 }
 
-const namespace = 'train-trip-service'
+const namespace = "train-trip-service"
 
 export default createRoot
 

@@ -8,9 +8,9 @@
 
 // tslint:disable:max-line-length
 
-import { flatten, zip } from 'lodash'
-import { err, Err, ok, Ok, Result } from 'neverthrow'
-export * from 'neverthrow'
+import { flatten, zip } from "lodash"
+import { err, Err, ok, Ok, Result } from "neverthrow"
+export * from "neverthrow"
 
 // useful tools for .pipe( continuations
 export const mapStatic = <TCurrent, TNew, TErr>(value: TNew) => map<TCurrent, TNew, TErr>(toValue(value))
@@ -158,7 +158,7 @@ export function ifError(defaultVal: any) {
 export const mapErr = <E, ENew>(mapErrr: (ina: E) => ENew) => <T>(result: Result<T, E>) => result.mapErr(mapErrr)
 export const toTuple = <T2>(value: T2) => <T>(v1: T) => [value, v1] as const
 
-export const joinError = <T>(result: Result<T, string[]>) => result.mapErr(x => x.join('\n'))
+export const joinError = <T>(result: Result<T, string[]>) => result.mapErr(x => x.join("\n"))
 
 export function resultTuple<T, T2, E>(r1: Result<T, E>, r2: Result<T2, E>): Result<readonly [T, T2], E[]>
 export function resultTuple<T, T2, T3, E>(r1: Result<T, E>, r2: Result<T2, E>, r3: Result<T3, E>): Result<readonly [T, T2, T3], E[]>
