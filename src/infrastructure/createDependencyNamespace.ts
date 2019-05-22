@@ -65,7 +65,7 @@ export default function createDependencyNamespace(namespace: string, requestScop
     () => new DomainEventHandler(publish2, container.getF(executePostCommitHandlersKey)),
   )
   container.registerScopedO(requestScopeKey, () => { const id = generateShortUuid(); return { id, correllationId: id } })
-  getRegisteredRequestAndEventHandlers().forEach(([_, v]) => container.registerScopedF(v[1], () => create(v)))
+  getRegisteredRequestAndEventHandlers().forEach(([, v]) => container.registerScopedF(v[1], () => create(v)))
 
   const uowDecoratorKey = generateKey<ReturnType<typeof uowDecorator>>()
   const loggingDecoratorKey = generateKey<ReturnType<typeof loggingDecorator>>()
@@ -76,6 +76,10 @@ export default function createDependencyNamespace(namespace: string, requestScop
   container.registerSingletonF(executePostCommitHandlersKey, () => executePostCommitHandlers({ setupChildContext }))
   container.registerSingletonF(requestKey, () => request(key => container.getF(getHandlerKey(key))))
 
+  // In a perfect world, the decorators also enhance the type here
+  // however they also apply different behavior depending on the request.
+  // ie the uowDecorator, if a command, will call save on the uow and thus should
+  // extend the error with | DbError...
   const request2: requestType = (key, input) => container.getF(requestKey)(key, input)
 
   return {

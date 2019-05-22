@@ -5,30 +5,32 @@ import { DbError } from '../errors'
 import { NamedRequestHandler } from '../mediator'
 
 export const loggingDecorator = (): RequestDecorator =>
-  (publisher: any) =>
-    (key: any, input: any) => benchLog(async () => {
-      const t = key.isCommand ? 'Command' : 'Query'
-      const prefix = `${key.name} ${t}`
-      logger.log(`${prefix} input`, input)
-      const result = await publisher(key, input)
-      logger.log(`${prefix} result`, result)
-      return result
-    }, key.name)
-
-export const uowDecorator = (unitOfWork: UnitOfWork): RequestDecorator => publisher =>
-  (key, input) => {
-    if (!key.isCommand) {
-      return publisher(key, input)
+  request =>
+    (key, input) => {
+      const prefix = `${key.name} ${key.isCommand ? 'Command' : 'Query'}`
+      return benchLog(async () => {
+        logger.log(`${prefix} input`, input)
+        const result = await request(key, input)
+        logger.log(`${prefix} result`, result)
+        return result
+      }, prefix)
     }
 
-    return publisher(key, input)
-      .pipe(
-        mapErr(liftType<any | DbError>()),
-        flatMap(flatTee(unitOfWork.save)),
-      )
-  }
+export const uowDecorator = (unitOfWork: UnitOfWork): RequestDecorator =>
+  request =>
+    (key, input) => {
+      if (!key.isCommand) {
+        return request(key, input)
+      }
+
+      return request(key, input)
+        .pipe(
+          mapErr(liftType<any | DbError>()),
+          flatMap(flatTee(unitOfWork.save)),
+        )
+    }
 
 type RequestDecorator = <TInput, TOutput, TError>(
-  publisher: (key: NamedRequestHandler<TInput, TOutput, TError>, input: TInput) =>
+  request: (key: NamedRequestHandler<TInput, TOutput, TError>, input: TInput) =>
     Promise<Result<TOutput, TError>>) =>
   (key: NamedRequestHandler<TInput, TOutput, TError>, input: TInput) => Promise<Result<TOutput, TError>>
