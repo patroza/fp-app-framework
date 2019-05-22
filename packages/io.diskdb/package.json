@@ -16,7 +16,6 @@
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
     "lodash": "^4.17.11",
-    "neverthrow": "https://github.com/patroza/neverthrow.git#17b3e8fc5755aa191c1d6653524f555646fbf8bc",
     "on-finished": "^2.3.0",
     "proper-lockfile": "^4.1.1",
     "short-uuid": "^3.1.1",
