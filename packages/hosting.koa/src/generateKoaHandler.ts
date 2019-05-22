@@ -1,11 +1,11 @@
 import Koa from 'koa'
 
-import { CombinedValidationError, ErrorBase, FieldValidationError, ForbiddenError, ValidationError } from '../../errors'
-import { logger } from '../../utils'
-import { flatMap, Result, startWithVal } from '../../utils/neverthrow-extensions'
-import { ConnectionError, CouldNotAquireDbLockError, DbError, OptimisticLockError, RecordNotFound } from '../errors'
-import { requestType, UsecaseWithDependencies } from '../mediator'
-import { defaultErrorPassthrough, ErrorHandlerType } from '../RouteBuilder'
+import { CombinedValidationError, ErrorBase, FieldValidationError, ForbiddenError, ValidationError } from '@fp-app/framework/errors'
+import { ConnectionError, CouldNotAquireDbLockError, DbError, OptimisticLockError, RecordNotFound } from '@fp-app/framework/infrastructure/errors'
+import { requestType, UsecaseWithDependencies } from '@fp-app/framework/infrastructure/mediator'
+import { defaultErrorPassthrough, ErrorHandlerType } from '@fp-app/framework/infrastructure/RouteBuilder'
+import { logger } from '@fp-app/framework/utils'
+import { flatMap, Result, startWithVal } from '@fp-app/framework/utils/neverthrow-extensions'
 
 export default function generateKoaHandler<I, T, E extends ErrorBase, E2 extends ValidationError>(
   request: requestType,

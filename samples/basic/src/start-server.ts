@@ -1,5 +1,5 @@
-import { handleAuthenticationFailedMiddleware, logRequestTime, saveStartTime, setupNamespace } from '@fp-app/framework/infrastructure/hosting.koa'
 import { logger, setLogger } from '@fp-app/framework/utils'
+import { handleAuthenticationFailedMiddleware, logRequestTime, saveStartTime, setupNamespace } from '@fp-app/hosting.koa'
 import Koa from 'koa'
 import bodyParser from 'koa-bodyparser'
 import { PORT } from './config'

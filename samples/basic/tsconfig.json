@@ -12,6 +12,18 @@
       "@fp-app/framework/*": [
         "../../packages/framework/src/*"
       ],
+      "@fp-app/hosting.koa": [
+        "../../packages/hosting.koa/src/index"
+      ],
+      "@fp-app/hosting.koa/*": [
+        "../../packages/hosting.koa/src/*"
+      ],
+      "@fp-app/io.diskdb": [
+        "../../packages/io.diskdb/src/index"
+      ],
+      "@fp-app/io.diskdb/*": [
+        "../../packages/io.diskdb/src/*"
+      ],
     }
   }
 }
