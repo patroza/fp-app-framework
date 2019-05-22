@@ -16,9 +16,8 @@ export default class DiskDBContext extends ContextBase implements TrainTripConte
 
   private readonly trainTripsi = new DiskRecordContext<TrainTrip>("trainTrip", serializeTrainTrip, deserializeDbTrainTrip)
 
-  // Internal
-  protected intGetAndClearEvents(): any[] { return this.trainTripsi.intGetAndClearEvents() }
-  protected intSave(): Promise<Result<void, DbError>> { return this.trainTripsi.intSave() }
+  protected getAndClearEvents(): any[] { return this.trainTripsi.intGetAndClearEvents() }
+  protected saveImpl(): Promise<Result<void, DbError>> { return this.trainTripsi.intSave() }
 }
 
 const serializeTrainTrip = ({ _EVENTS, ...rest }: any) => stringify(rest)

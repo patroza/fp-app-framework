@@ -8,13 +8,13 @@ export default abstract class ContextBase {
 
   readonly save = (): Promise<Result<void, DbError | Error>> =>
     this.eventHandler.commitAndPostEvents(
-      () => this.intGetAndClearEvents(),
-      () => this.intSave(),
+      () => this.getAndClearEvents(),
+      () => this.saveImpl(),
     )
 
-  protected abstract intGetAndClearEvents(): any[]
+  protected abstract getAndClearEvents(): any[]
 
-  protected abstract async intSave(): Promise<Result<void, DbError>>
+  protected abstract async saveImpl(): Promise<Result<void, DbError>>
 }
 
 export interface UnitOfWork {
