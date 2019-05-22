@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "*": [
+        "./types/*"
+      ],
+      "@/*": [
+        "./src/*"
+      ],
+      "@fp-app/framework/*": [
+        "../../packages/framework/src/*"
+      ],
+    }
+  }
+}

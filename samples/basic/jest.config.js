@@ -4,8 +4,8 @@ module.exports = {
     "^.+\\.tsx?$": "ts-jest"
   },
   "moduleNameMapper": {
-    "^@/(.*)$": "<rootDir>/sample/src/$1",
-    "^@fp-app/framework/(.*)": "<rootDir>/src/$1",
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "^@fp-app/framework/(.*)": "<rootDir>/../../packages/framework/src/$1",
   },
   globals: {
     'ts-jest': {
@@ -21,6 +21,5 @@ module.exports = {
     "jsx",
     "json",
     "node"
-  ],
-  "testPathIgnorePatterns": ["/node_modules/", "/sample/"]
+  ]
 }
