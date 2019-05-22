@@ -41,7 +41,7 @@ const getTemplateFake = (
   assert.isNotNull({ templateId })
 
   const tpl = mockedTemplates()[templateId] as Template | undefined
-  if (!tpl) { return err(new RecordNotFound(templateId, 'Template')) }
+  if (!tpl) { return err(new RecordNotFound('Template', templateId)) }
   return ok(tpl)
 }
 

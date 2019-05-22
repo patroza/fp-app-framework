@@ -15,7 +15,7 @@ export class ConnectionError extends ErrorBase {
 
 export class RecordNotFound extends ErrorBase {
   readonly name = 'RecordNotFound'
-  constructor(readonly id: string, readonly type: string) {
+  constructor(readonly type: string, readonly id: string) {
     super(`The ${type} with ${id} was not found`)
     assert.isNotNull({ id, type })
   }
@@ -24,11 +24,13 @@ export class RecordNotFound extends ErrorBase {
 export class CouldNotAquireDbLockError extends Error {
   constructor(readonly type: string, readonly id: string, readonly error: Error) {
     super(`Couldn't lock db record ${type}: ${id}`)
+    assert.isNotNull({ id, type })
   }
 }
 
 export class OptimisticLockError extends Error {
   constructor(readonly type: string, readonly id: string) {
     super(`Existing ${type} ${id} record changed`)
+    assert.isNotNull({ id, type })
   }
 }

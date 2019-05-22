@@ -137,7 +137,7 @@ const tryLock = async (type: string, id: string): Promise<Result<() => Promise<v
 const tryReadFromDb = async (type: string, id: string): Promise<Result<string, DbError>> => {
   try {
     const filePath = getFilename(type, id)
-    if (!await exists(filePath)) { return err(new RecordNotFound(id, type)) }
+    if (!await exists(filePath)) { return err(new RecordNotFound(type, id)) }
     return ok(await readFile(filePath, { encoding: 'utf-8' }))
   } catch (err) {
     return err(new ConnectionError(err))
