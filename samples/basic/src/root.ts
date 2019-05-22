@@ -1,6 +1,5 @@
-import { UnitOfWork } from '@fp-app/framework/infrastructure/context.base'
-import createDependencyNamespace from '@fp-app/framework/infrastructure/createDependencyNamespace'
-import DomainEventHandler from '@fp-app/framework/infrastructure/domainEventHandler'
+import { UnitOfWork } from '@fp-app/framework'
+import { createDependencyNamespace, DomainEventHandler } from '@fp-app/framework'
 import './TrainTrip/eventhandlers' // To be ble to auto register them :/
 import { getPricingFake, getTemplateFake, getTrip, sendCloudSyncFake } from './TrainTrip/infrastructure/api'
 import DiskDBContext from './TrainTrip/infrastructure/TrainTripContext.disk'

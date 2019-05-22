@@ -1,4 +1,4 @@
-import { logger, setLogger } from '@fp-app/framework/utils'
+import { logger, setLogger } from '@fp-app/framework'
 import { handleAuthenticationFailedMiddleware, logRequestTime, saveStartTime, setupNamespace } from '@fp-app/hosting.koa'
 import Koa from 'koa'
 import bodyParser from 'koa-bodyparser'

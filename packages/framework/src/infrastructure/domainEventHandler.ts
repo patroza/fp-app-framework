@@ -1,4 +1,4 @@
-import { err, map, ok, Result, tee } from '../utils/neverthrow-extensions'
+import { err, map, ok, Result, tee } from '@fp-app/neverthrow-extensions'
 import { IntegrationEventReturnType, publishType } from './mediator/publish'
 import { generateKey } from './SimpleContainer'
 

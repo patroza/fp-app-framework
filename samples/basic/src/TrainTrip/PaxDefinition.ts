@@ -1,7 +1,6 @@
-import { ValidationError } from '@fp-app/framework/errors'
-import assert from '@fp-app/framework/utils/assert'
-import { flatMap, map, Result } from '@fp-app/framework/utils/neverthrow-extensions'
-import { createValidator, Joi, predicate } from '@fp-app/framework/utils/validation'
+import { assert, ValidationError } from '@fp-app/framework'
+import { createValidator, Joi, predicate } from '@fp-app/framework'
+import { flatMap, map, Result } from '@fp-app/neverthrow-extensions'
 
 export default class PaxDefinition {
   static create(pax: Pax): Result<PaxDefinition, ValidationError> {

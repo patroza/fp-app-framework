@@ -1,4 +1,4 @@
-import { createValidator, Joi } from '@fp-app/framework/utils/validation'
+import { createValidator, Joi } from '@fp-app/framework'
 import { KoaRouteBuilder } from '@fp-app/hosting.koa'
 import { paxSchema } from './TrainTrip/PaxDefinition'
 import changeTrainTrip from './TrainTrip/usecases/changeTrainTrip'

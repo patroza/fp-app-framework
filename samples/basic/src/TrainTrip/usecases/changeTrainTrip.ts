@@ -1,10 +1,10 @@
 import { StateProposition as ValidatedStateProposition } from '@/TrainTrip/TrainTrip'
-import { combineValidationErrors, toFieldError, ValidationError } from '@fp-app/framework/errors'
-import { DbError } from '@fp-app/framework/infrastructure/errors'
-import { createCommandWithDeps } from '@fp-app/framework/infrastructure/mediator'
+import { combineValidationErrors, toFieldError, ValidationError } from '@fp-app/framework'
+import { DbError } from '@fp-app/framework'
+import { createCommandWithDeps } from '@fp-app/framework'
 import {
   flatMap, map, mapErr, ok, pipe, PipeFunction, resultTuple, toFlatTup, toTup, valueOrUndefined,
-} from '@fp-app/framework/utils/neverthrow-extensions'
+} from '@fp-app/neverthrow-extensions'
 import FutureDate from '../FutureDate'
 import PaxDefinition, { Pax } from '../PaxDefinition'
 import TravelClassDefinition from '../TravelClassDefinition'

@@ -5,10 +5,7 @@
     "paths": {
       "*": [
         "types/*"
-      ],
-      "@fp-app/framework/*": [
-        "../../packages/framework/src/*"
-      ],
+      ]
     }
   }
 }

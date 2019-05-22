@@ -1,6 +1,6 @@
+import { err, ok, Result } from '@fp-app/neverthrow-extensions'
 import Joi from '@hapi/joi'
 import { CombinedValidationError, FieldValidationError, ValidationError } from '../errors'
-import { err, ok, Result } from './neverthrow-extensions'
 export { Joi }
 
 import convert from 'joi-to-json-schema'

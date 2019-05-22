@@ -11,8 +11,6 @@
 import { flatten, zip } from 'lodash'
 import { err, Err, ok, Ok, Result } from 'neverthrow'
 export * from 'neverthrow'
-import { ErrorBase } from '../errors'
-import './promise-pipe'
 
 // useful tools for .pipe( continuations
 export const mapStatic = <TCurrent, TNew, TErr>(value: TNew) => map<TCurrent, TNew, TErr>(toValue(value))
@@ -286,8 +284,8 @@ export const anyTrue = <TErr = any>(...mappers: any[]): Result<boolean, TErr> =>
 
 // it would have to generate (event) => kickAsync(event).pipe(
 // but also it would mean to add: map(event => event.id) to get just the id.
-const startWithValInt = <TErr = ErrorBase>() => <T>(value: T) => ok<T, TErr>(value) as Result<T, TErr>
-export const startWithVal = <TErr = ErrorBase>() => <T>(value: T) => Promise.resolve(startWithValInt<TErr>()(value))
+const startWithValInt = <TErr>() => <T>(value: T) => ok<T, TErr>(value) as Result<T, TErr>
+export const startWithVal = <TErr>() => <T>(value: T) => Promise.resolve(startWithValInt<TErr>()(value))
 // export const startWithVal2 = startWithVal()
 export const startWithVal2 = startWithVal()
 
@@ -313,8 +311,8 @@ export function pipe(...pipes: any[]) {
 }
 
 // the problem with this is that it cannot match the second (or nth) return type :/
-export function pipe2<TErr = ErrorBase>(): <T, T2, E>(op1: (r: Result<T, TErr>) => Result<T2, E>) => (input: T) => Promise<Result<T2, E>>
-export function pipe2<TErr = ErrorBase>(): <T, T2, T3, E>(op1: (r: Result<T, TErr>) => Result<T2, E>, op2: (r: Result<T2, E>) => Result<T3, E>) => (input: T) => Promise<Result<T3, E>>
+export function pipe2<TErr>(): <T, T2, E>(op1: (r: Result<T, TErr>) => Result<T2, E>) => (input: T) => Promise<Result<T2, E>>
+export function pipe2<TErr>(): <T, T2, T3, E>(op1: (r: Result<T, TErr>) => Result<T2, E>, op2: (r: Result<T2, E>) => Result<T3, E>) => (input: T) => Promise<Result<T3, E>>
 export function pipe2(...pipes: any[]) {
   // additional scope because thats what the interface says
   return () => {

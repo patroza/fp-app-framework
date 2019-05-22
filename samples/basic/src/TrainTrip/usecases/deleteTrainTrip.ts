@@ -1,6 +1,6 @@
-import { DbError } from '@fp-app/framework/infrastructure/errors'
-import { createCommandWithDeps } from '@fp-app/framework/infrastructure/mediator'
-import { flatMap, map, pipe } from '@fp-app/framework/utils/neverthrow-extensions'
+import { DbError } from '@fp-app/framework'
+import { createCommandWithDeps } from '@fp-app/framework'
+import { flatMap, map, pipe } from '@fp-app/neverthrow-extensions'
 import { DbContextKey, defaultDependencies } from './types'
 
 const createCommand = createCommandWithDeps({ db: DbContextKey, ...defaultDependencies })

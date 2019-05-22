@@ -1,6 +1,6 @@
+import { PipeFunction, Result } from '@fp-app/neverthrow-extensions'
 import { Constructor, setFunctionName } from '../../utils'
 import assert from '../../utils/assert'
-import { PipeFunction, Result } from '../../utils/neverthrow-extensions'
 import { registerEventHandler } from '../createDependencyNamespace'
 import { generateKey } from '../SimpleContainer'
 

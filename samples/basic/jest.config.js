@@ -4,8 +4,7 @@ module.exports = {
     "^.+\\.tsx?$": "ts-jest"
   },
   "moduleNameMapper": {
-    "^@/(.*)$": "<rootDir>/src/$1",
-    "^@fp-app/framework/(.*)": "<rootDir>/../../packages/framework/src/$1"
+    "^@/(.*)$": "<rootDir>/src/$1"
   },
   globals: {
     'ts-jest': {

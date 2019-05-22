@@ -1,4 +1,4 @@
-import { err, ok, PipeFunction, PipeFunctionN, Result } from '../../utils/neverthrow-extensions'
+import { err, ok, PipeFunction, PipeFunctionN, Result } from '@fp-app/neverthrow-extensions'
 
 import { Constructor, logger } from '../../utils'
 

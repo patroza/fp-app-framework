@@ -1,5 +1,4 @@
-import { requestType } from '@fp-app/framework/infrastructure/mediator'
-import RouteBuilder from '@fp-app/framework/infrastructure/RouteBuilder'
+import { requestType, RouteBuilder } from '@fp-app/framework'
 import Koa from 'koa'
 import KoaRouter from 'koa-router'
 import generateKoaHandler from './generateKoaHandler'

@@ -8,9 +8,6 @@
       ],
       "@/*": [
         "./src/*"
-      ],
-      "@fp-app/framework/*": [
-        "../../packages/framework/src/*"
       ]
     }
   }

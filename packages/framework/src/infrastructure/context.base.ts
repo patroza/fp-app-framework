@@ -1,4 +1,4 @@
-import { PipeFunction, PipeFunctionN, Result } from '../utils/neverthrow-extensions'
+import { PipeFunction, PipeFunctionN, Result } from '@fp-app/neverthrow-extensions'
 import DomainEventHandler from './domainEventHandler'
 import { DbError } from './errors'
 

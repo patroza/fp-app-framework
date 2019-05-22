@@ -1,9 +1,9 @@
 //// Separate endpoint sample; unused.
 
-import { ValidationError } from '@fp-app/framework/errors'
-import { RecordNotFound } from '@fp-app/framework/infrastructure/errors'
-import { createCommandWithDeps } from '@fp-app/framework/infrastructure/mediator'
-import { flatMap, pipe, toFlatTup, toTup } from '@fp-app/framework/utils/neverthrow-extensions'
+import { ValidationError } from '@fp-app/framework'
+import { RecordNotFound } from '@fp-app/framework'
+import { createCommandWithDeps } from '@fp-app/framework'
+import { flatMap, pipe, toFlatTup, toTup } from '@fp-app/neverthrow-extensions'
 import FutureDate from '../FutureDate'
 import TravelClassDefinition, { TravelClassName } from '../TravelClassDefinition'
 import { DbContextKey, defaultDependencies } from './types'
