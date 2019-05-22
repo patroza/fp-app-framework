@@ -1,13 +1,15 @@
 {
-  "name": "@fp-app/io.diskdb",
+  "name": "@types/fp-app-global",
   "version": "0.1.0",
   "main": "index.js",
   "author": "Patrick Roza <contact@patrickroza.com>",
   "license": "MIT",
+  "types": "index",
   "dependencies": {
     "@hapi/joi": "^15.0.3",
     "chalk": "^2.4.2",
     "cls-hooked": "^4.2.2",
+    "date-fns": "^1.30.1",
     "flatted": "^2.0.0",
     "invariant": "^2.2.4",
     "joi-to-json-schema": "^5.0.0",
