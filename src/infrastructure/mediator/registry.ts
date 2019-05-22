@@ -2,7 +2,6 @@ import { Constructor, setFunctionName } from '../../utils'
 import assert from '../../utils/assert'
 import { PipeFunction, Result } from '../../utils/neverthrow-extensions'
 import { registerEventHandler } from '../createDependencyNamespace'
-import { DbError } from '../errors'
 import { generateKey } from '../SimpleContainer'
 
 export interface RequestContextBase { id: string, correllationId: string }
@@ -17,7 +16,7 @@ type HandlerType = 'COMMAND' | 'QUERY' | 'EVENT'
 // tslint:disable-next-line:max-line-length
 type HandlerTuple<TDependencies, TInput, TOutput, TError> = readonly [
   HandlerWithDependencies<TDependencies, TInput, TOutput, TError>,
-  PipeFunction<TInput, TOutput, TError>,
+  NamedRequestHandler<TInput, TOutput, TError>,
   TDependencies,
   { name: string, type: HandlerType }
 ]
@@ -29,7 +28,7 @@ const registerUsecaseHandler = <TDependencies>(deps: TDependencies) =>
     ): void => {
       assert(!Object.keys(deps).some(x => !(deps as any)[x]), 'Dependencies must not be null')
 
-      const key = generateKey<ReturnType<typeof handler>>(name)
+      const key = generateKey<NamedRequestHandler<TInput, TOutput, TError>>(name)
       const anyHandler: any = handler
       anyHandler.isCommand = type === 'COMMAND'
       setFunctionName(handler, name)
@@ -77,9 +76,9 @@ export {
 export type requestType = <TInput, TOutput, TError>(
   requestHandler: UsecaseWithDependencies<any, TInput, TOutput, TError>,
   input: TInput,
-) => Promise<Result<TOutput, TError | DbError>>
+) => Promise<Result<TOutput, TError>>
 
-export type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<TInput, TOutput, TErr | DbError> & { name: string, isCommand: boolean }
+export type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<TInput, TOutput, TErr> & { name: string, isCommand: boolean }
 
 export const requestKey = generateKey<requestType>()
 
