@@ -7,7 +7,8 @@ const createCommand = createCommandWithDeps({ db: DbContextKey, ...defaultDepend
 
 const deleteTrainTrip = createCommand<Input, void, DeleteTrainTripError>('deleteTrainTrip',
   ({ db }) => pipe(
-    flatMap(({ trainTripId }) => db.trainTrips.load(trainTripId)),
+    map(({ trainTripId }) => trainTripId),
+    flatMap(db.trainTrips.load),
     map(db.trainTrips.remove),
   ))
 

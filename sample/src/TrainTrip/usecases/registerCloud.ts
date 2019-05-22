@@ -7,7 +7,8 @@ const createCommand = createCommandWithDeps({ db: DbContextKey, sendCloudSync: s
 
 const registerCloud = createCommand<Input, void, DbError>('registerCloud',
   ({ db, sendCloudSync }) => pipe(
-    flatMap(({ trainTripId }) => db.trainTrips.load(trainTripId)),
+    map(({ trainTripId }) => trainTripId),
+    flatMap(db.trainTrips.load),
     flatMap(toTup(sendCloudSync)),
     map(([opportunityId, trainTrip]) => trainTrip.assignOpportunity(opportunityId)),
   ),

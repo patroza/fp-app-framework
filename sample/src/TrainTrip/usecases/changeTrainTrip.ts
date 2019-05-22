@@ -14,8 +14,8 @@ const createCommand = createCommandWithDeps({ db: DbContextKey, ...defaultDepend
 
 const changeTrainTrip = createCommand<Input, void, ChangeTrainTripError>('changeTrainTrip',
   ({ db }) => pipe(
-    flatMap(toTup(validateInput)),
-    flatMap(toFlatTup(([_, i]) => db.trainTrips.load(i.trainTripId))),
+    flatMap(toTup(validateStateProposition)),
+    flatMap(toFlatTup(([, i]) => db.trainTrips.load(i.trainTripId))),
     flatMap(([trainTrip, proposal]) => trainTrip.proposeChanges(proposal)),
   ),
 )
@@ -32,7 +32,7 @@ export interface StateProposition {
   travelClass?: string
 }
 
-const validateInput: PipeFunction<StateProposition, ValidatedStateProposition, ValidationError> =
+const validateStateProposition: PipeFunction<StateProposition, ValidatedStateProposition, ValidationError> =
   pipe(
     flatMap(({ travelClass, pax, startDate, ...rest }) =>
       resultTuple(

@@ -11,7 +11,7 @@ const createCommand = createCommandWithDeps({ db: DbContextKey, getTrip: getTrip
 
 const createTrainTrip = createCommand<Input, string, CreateError>('createTrainTrip',
   ({ db, getTrip }) => pipe(
-    flatMap(validateInput),
+    flatMap(validateCreateTrainTripInfo),
     flatMap(toTup(({ templateId }) => getTrip(templateId))),
     map(([trip, proposal]) => trip.createTrainTrip(proposal)),
     map(tee(db.trainTrips.add)),
@@ -22,7 +22,7 @@ const createTrainTrip = createCommand<Input, string, CreateError>('createTrainTr
 export default createTrainTrip
 export interface Input { templateId: string, pax: Pax, startDate: string }
 
-const validateInput: PipeFunction<Input, CreateTrainTripInfo, ValidationError> =
+const validateCreateTrainTripInfo: PipeFunction<Input, CreateTrainTripInfo, ValidationError> =
   pipe(
     flatMap(({ pax, startDate, templateId }) =>
       resultTuple(

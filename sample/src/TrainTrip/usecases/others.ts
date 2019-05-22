@@ -13,7 +13,7 @@ const createCommand = createCommandWithDeps({ db: DbContextKey, ...defaultDepend
 export const changeStartDate = createCommand<ChangeStartDateInput, void, ChangeStartDateError>('changeStartDate',
   ({ db }) => pipe(
     flatMap(toTup(({ startDate }) => FutureDate.create(startDate))),
-    flatMap(toFlatTup(([_, { trainTripId }]) => db.trainTrips.load(trainTripId))),
+    flatMap(toFlatTup(([, i]) => db.trainTrips.load(i.trainTripId))),
     flatMap(([trainTrip, sd]) => trainTrip.changeStartDate(sd)),
   ),
 )
@@ -24,7 +24,7 @@ type ChangeStartDateError = ValidationError | RecordNotFound
 export const changeTravelClass = createCommand<ChangeTravelClassInput, void, ChangeTravelClassError>('changeTravelClass',
   ({ db }) => pipe(
     flatMap(toTup(({ travelClass }) => TravelClassDefinition.create(travelClass))),
-    flatMap(toFlatTup(([_, { trainTripId }]) => db.trainTrips.load(trainTripId))),
+    flatMap(toFlatTup(([, i]) => db.trainTrips.load(i.trainTripId))),
     flatMap(([trainTrip, sl]) => trainTrip.changeTravelClass(sl)),
   ),
 )

@@ -7,7 +7,8 @@ const createCommand = createCommandWithDeps({ db: DbContextKey, ...defaultDepend
 
 const lockTrainTrip = createCommand<Input, void, LockTrainTripError>('lockTrainTrip',
   ({ db }) => pipe(
-    flatMap(({ trainTripId }) => db.trainTrips.load(trainTripId)),
+    map(({ trainTripId }) => trainTripId),
+    flatMap(db.trainTrips.load),
     map(trainTrip => trainTrip.lock()),
   ))
 
