@@ -1,6 +1,6 @@
 import { createEventHandlerWithDeps, DbError, flatMap, map, pipe } from "@fp-app/framework"
 import trainTripReadContext from "../infrastructure/TrainTripReadContext.disk"
-import TrainTrip, { TrainTripCreated, TrainTripStateChanged } from "../TrainTrip"
+import TrainTrip, { TrainTripCreated, TrainTripDeleted, TrainTripStateChanged } from "../TrainTrip"
 import { TrainTripView } from "../usecases/getTrainTrip"
 import { DbContextKey, defaultDependencies } from "../usecases/types"
 
@@ -9,7 +9,8 @@ const createEventHandler = createEventHandlerWithDeps({ db: DbContextKey, ...def
 createEventHandler<TrainTripCreated, void, DbError>(
   /* on */ TrainTripCreated, "UpdateView",
   ({ db }) => pipe(
-    flatMap(({ id }) => db.trainTrips.load(id)),
+    map(({ id }) => id),
+    flatMap(db.trainTrips.load),
     map(TrainTripToView),
     map(view => trainTripReadContext.create(view.id, view)),
   ),
@@ -18,9 +19,18 @@ createEventHandler<TrainTripCreated, void, DbError>(
 createEventHandler<TrainTripStateChanged, void, DbError>(
   /* on */ TrainTripStateChanged, "UpdateView",
   ({ db }) => pipe(
-    flatMap(({ id }) => db.trainTrips.load(id)),
+    map(({ id }) => id),
+    flatMap(db.trainTrips.load),
     map(TrainTripToView),
     map(view => trainTripReadContext.create(view.id, view)),
+  ),
+)
+
+createEventHandler<TrainTripDeleted, void, DbError>(
+  /* on */ TrainTripDeleted, "DeleteView",
+  () => pipe(
+    map(({ id }) => id),
+    map(id => trainTripReadContext.delete(id)),
   ),
 )
 

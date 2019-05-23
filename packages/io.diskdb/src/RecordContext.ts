@@ -43,16 +43,21 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
   // Internal
   readonly intGetAndClearEvents = () => {
     let events: any[] = []
-    const items = [...this.cache.values()]
+    const items = [...this.cache.values()].map(x => x.data).concat(this.removals)
     items.forEach(r => {
-      const rDataAny = (r.data as any)
+      const rDataAny = r as any
       events = events.concat(rDataAny._EVENTS)
       rDataAny._EVENTS = []
     })
     return events
   }
 
-  readonly intSave = async (): Promise<Result<void, DbError>> => {
+  readonly intSave = (): Promise<Result<void, DbError>> =>
+    this.handleDeletions().pipe(
+      flatMap(this.handleInsertionsAndUpdates),
+    )
+
+  private readonly handleDeletions = async (): Promise<Result<void, DbError>> => {
     for (const e of this.removals) {
       const r = await this.deleteRecord(e)
       if (r.isErr()) {
@@ -60,6 +65,10 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
       }
       this.cache.delete(e.id)
     }
+    return ok(void 0)
+  }
+
+  private readonly handleInsertionsAndUpdates = async (): Promise<Result<void, DbError>> => {
     for (const e of this.cache.entries()) {
       const r = await this.saveRecord(e[1].data)
       if (r.isErr()) {
@@ -67,6 +76,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
       }
     }
     return ok(void 0)
+
   }
 
   private readonly saveRecord = async (record: T): Promise<Result<void, DbError>> => {

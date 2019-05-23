@@ -81,6 +81,11 @@ export default class TrainTrip extends Entity {
     this.w.currentTravelClassConfiguration = currentTravelClassConfiguration || this.travelClassConfiguration[0]!
   }
 
+  // TODO: This seems like cheating, we're missing another Aggregate Root..
+  readonly delete = () => {
+    this.registerDomainEvent(new TrainTripDeleted(this.id))
+  }
+
   ////////////
   //// Separate sample; not used other than testing
   async changeStartDate(startDate: FutureDate) {
@@ -190,6 +195,10 @@ export class UserInputReceived {
 }
 
 export class TrainTripStateChanged {
+  constructor(readonly id: TrainTripId) { }
+}
+
+export class TrainTripDeleted {
   constructor(readonly id: TrainTripId) { }
 }
 
