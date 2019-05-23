@@ -55,9 +55,9 @@ export default class DomainEventHandler {
     return ok(values)
   }
 
-  private readonly publishIntegrationEvents = async () => {
+  private readonly publishIntegrationEvents = () => {
     this.events = []
-    if (this.integrationEvents.length) { await this.executeIntegrationEvents(this.integrationEvents) }
+    if (this.integrationEvents.length) { this.executeIntegrationEvents(this.integrationEvents) }
     this.integrationEvents = []
   }
 }
