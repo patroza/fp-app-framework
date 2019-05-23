@@ -1,5 +1,5 @@
 import { UnitOfWork } from "@fp-app/framework"
-import { createDependencyNamespace, DomainEventHandler } from "@fp-app/framework"
+import { createDependencyNamespace } from "@fp-app/framework"
 import { exists, mkdir } from "../../../packages/io.diskdb/src/utils"
 import "./TrainTrip/eventhandlers" // To be ble to auto register them :/
 import { getPricingFake, getTemplateFake, getTrip, sendCloudSyncFake } from "./TrainTrip/infrastructure/api"
@@ -21,9 +21,7 @@ const createRoot = () => {
     DbContextKey as any as UnitOfWork,
   )
 
-  container.registerScopedO(DbContextKey, () => new DiskDBContext(
-    container.getO(trainTripReadContextKey), container.getC(DomainEventHandler),
-  ))
+  container.registerScopedO(DbContextKey, () => container.createNewInstance(DiskDBContext))
 
   container.registerSingletonF(sendCloudSyncKey, () => sendCloudSyncFake({ cloudUrl: "" }))
   container.registerSingletonF(
@@ -35,6 +33,7 @@ const createRoot = () => {
   )
   container.registerSingletonO(TrainTripPublisherKey, () => new TrainTripPublisherInMemory(request))
   container.registerSingletonO(trainTripReadContextKey, () => new TrainTripReadContext())
+  container.registerSingletonO(TrainTripReadContext, () => container.getF(trainTripReadContextKey))
 
   return {
     bindLogger,
