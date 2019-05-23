@@ -6,8 +6,10 @@ import { PORT } from "./config"
 import createRoot from "./root"
 import createRootRouter from "./root.router"
 
-const startServer = () => {
-  const { bindLogger, setupRootContext, request } = createRoot()
+const startServer = async () => {
+  const { bindLogger, initialize, setupRootContext, request } = createRoot()
+
+  await initialize()
 
   const rootRouter = createRootRouter(request)
 
@@ -35,3 +37,4 @@ const startServer = () => {
 }
 
 startServer()
+  .then(logger.error)

@@ -33,6 +33,7 @@ setLogger(({
 }))
 
 beforeEach(() => createRootAndBind(async () => {
+  await root.initialize()
   executePostCommitHandlersMock = jest.fn()
   const aAny = (executePostCommitHandlers as any)
   aAny.mockReturnValue(executePostCommitHandlersMock)

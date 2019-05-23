@@ -1,5 +1,6 @@
 import { UnitOfWork } from "@fp-app/framework"
 import { createDependencyNamespace, DomainEventHandler } from "@fp-app/framework"
+import { exists, mkdir } from "../../../packages/io.diskdb/src/utils"
 import "./TrainTrip/eventhandlers" // To be ble to auto register them :/
 import { getPricingFake, getTemplateFake, getTrip, sendCloudSyncFake } from "./TrainTrip/infrastructure/api"
 import DiskDBContext from "./TrainTrip/infrastructure/TrainTripContext.disk"
@@ -35,10 +36,15 @@ const createRoot = () => {
 
   return {
     bindLogger,
+    initialize,
     setupRootContext,
 
     request,
   }
+}
+
+const initialize = async () => {
+  if (!await exists("./data")) { await mkdir("./data") }
 }
 
 const namespace = "train-trip-service"

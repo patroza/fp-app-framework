@@ -2,7 +2,7 @@ import { RecordContext } from "@fp-app/framework"
 import { assert, ConnectionError, CouldNotAquireDbLockError, DbError, OptimisticLockError, RecordNotFound } from "@fp-app/framework"
 import { err, flatMap, liftType, map, mapErr, ok, PipeFunctionN, Result, startWithVal } from "@fp-app/framework"
 import { lock } from "proper-lockfile"
-import { deleteFile, exists, mkdir, readFile, writeFile } from "./utils"
+import { deleteFile, exists, readFile, writeFile } from "./utils"
 
 // tslint:disable-next-line:max-classes-per-file
 export default class DiskRecordContext<T extends DBRecord> implements RecordContext<T> {
@@ -109,7 +109,6 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
   }
 
   private readonly actualSave = async (record: T, version: number) => {
-    if (!await exists("./data")) { await mkdir("./data") }
     const data = this.serializer(record)
 
     const serialized = JSON.stringify({ version: version + 1, data })
