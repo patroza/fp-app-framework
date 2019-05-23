@@ -1,28 +1,32 @@
+import { RecordNotFound } from "@fp-app/framework"
+import { err, ok, Result } from "@fp-app/neverthrow-extensions"
 import { getFilename } from "./RecordContext"
-import { deleteFile, readFile, writeFile } from "./utils"
+import { deleteFile, exists, readFile, writeFile } from "./utils"
 
-const deleteReadContextEntry = (type: string, id: string) => {
-  return deleteFile(getFilename(`read-${type}`, id))
+const getReadFileName = (type: string, id: string) => getFilename(`read-${type}`, id)
+
+const deleteReadContextEntry = async (type: string, id: string) => {
+  // Somehow this return an empty object, so we void it here.
+  await deleteFile(getReadFileName(type, id))
 }
 
-const createOrUpdateReadContextEntry = <T>(type: string, id: string, value: T) => {
-  return writeFile(getFilename(`read-${type}`, id), JSON.stringify(value))
-}
+const createOrUpdateReadContextEntry = <T>(type: string, id: string, value: T) =>
+  writeFile(getReadFileName(type, id), JSON.stringify(value))
 
 const readReadContextEntry = async <T>(type: string, id: string) => {
-  const json = await readFile(getFilename(`read-${type}`, id), { encoding: "utf-8" })
+  const json = await readFile(getReadFileName(type, id), { encoding: "utf-8" })
   return JSON.parse(json) as T
 }
 
 export default class ReadContext<T> {
   constructor(readonly type: string) { }
+
   readonly create = (id: string, value: T) => createOrUpdateReadContextEntry(this.type, id, value)
   readonly delete = (id: string) => deleteReadContextEntry(this.type, id)
-  readonly read = (id: string) => readReadContextEntry<T>(this.type, id)
-}
-
-export {
-  createOrUpdateReadContextEntry,
-  deleteReadContextEntry,
-  readReadContextEntry,
+  readonly read = async (id: string): Promise<Result<T, RecordNotFound>> => {
+    const filePath = getFilename(`read-${this.type}`, id)
+    if (!await exists(filePath)) { return err(new RecordNotFound(this.type, id)) }
+    const r = await readReadContextEntry<T>(this.type, id)
+    return ok(r)
+  }
 }

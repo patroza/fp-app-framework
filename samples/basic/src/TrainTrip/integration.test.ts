@@ -58,10 +58,10 @@ describe("get", () => {
     // We don't want to leak accidentally domain objects
     expect(result._unsafeUnwrap()).toEqual({
       allowUserModification: true,
-      createdAt: expect.any(Date),
+      createdAt: expect.any(String),
       id: expect.any(String),
       pax: { adults: 2, babies: 0, children: 0, infants: 0, teenagers: 0 },
-      startDate: expect.any(Date),
+      startDate: expect.any(String),
       travelClass: "second",
       travelClasss: [{ templateId: "template-id1", name: "second" }, { templateId: "template-id2", name: "first" }],
     })
@@ -89,7 +89,7 @@ describe("propose new state", () => {
     expect(result._unsafeUnwrap()).toBe(void 0)
     const r = newTrainTripResult._unsafeUnwrap()
     expect(r.travelClass).toBe(state.travelClass)
-    expect(r.startDate).toEqual(new Date(state.startDate!))
+    expect(r.startDate).toEqual(state.startDate!)
     expect(r.pax).toEqual(state.pax)
     expect(executePostCommitHandlersMock).toBeCalledTimes(1)
     logger.log(r)

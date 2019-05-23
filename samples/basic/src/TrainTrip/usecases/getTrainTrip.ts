@@ -17,7 +17,7 @@ const createQuery = createQueryWithDeps({ ...defaultDependencies })
 const getTrainTrip = createQuery<Input, TrainTripView, DbError>("getTrainTrip",
   () => pipe(
     map(({ trainTripId }) => trainTripId),
-    flatMap(trainTripReadContext.load),
+    flatMap(trainTripReadContext.read),
   ),
 )
 
