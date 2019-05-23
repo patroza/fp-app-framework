@@ -6,4 +6,4 @@ export default class TrainTripReadContext extends ReadContext<TrainTripView> {
   constructor() { super("trainTrip") }
 }
 
-export const trainTripReadContextKey = generateKey<TrainTripReadContext>()
+export const trainTripReadContextKey = generateKey<ReadContext<TrainTripView>>()

@@ -89,6 +89,11 @@ export const requestKey = generateKey<requestType>()
 
 const dependencyMap = new Map<HandlerWithDependencies<any, any, any, any>, HandlerTuple<any, any, any, any>>()
 
+// Allow requesting a class directly, instead of requiring a key
+// However one should depend on abstract base classes (don't satisfy the contraint)
+// or interfaces / function signatures (requires key)
+// export const asDep = <T extends (new (...args: any[]) => any)>(t: T) => t as any as InstanceType<typeof t>
+
 // const generateConfiguredHandler = <TInput, TOutput, TErr>(
 //   // Have to specify name as we don't use classes to retrieve the name from
 //   name: string,
