@@ -134,7 +134,7 @@ describe("able to lock the TrainTrip", () => {
     expect(currentTrainTripResult).toBeInstanceOf(Ok)
     expect(currentTrainTripResult._unsafeUnwrap().allowUserModification).toBe(true)
     expect(newTrainTripResult._unsafeUnwrap().allowUserModification).toBe(false)
-    expect(executePostCommitHandlersMock).toBeCalledTimes(0)
+    expect(executePostCommitHandlersMock).toBeCalledTimes(1)
   }))
 })
 

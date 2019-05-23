@@ -303,6 +303,7 @@ export function pipe<T, T2, T3, E>(op1: ResultFunction<T, T2, E>, op2: ResultFun
 export function pipe<T, T2, T3, T4, E>(op1: ResultFunction<T, T2, E>, op2: ResultFunction<T2, T3, E>, op3: ResultFunction<T3, T4, E>): (input: T) => Promise<Result<T4, E>>
 export function pipe<T, T2, T3, T4, T5, E>(op1: ResultFunction<T, T2, E>, op2: ResultFunction<T2, T3, E>, op3: ResultFunction<T3, T4, E>, op4: ResultFunction<T4, T5, E>): (input: T) => Promise<Result<T5, E>>
 export function pipe<T, T2, T3, T4, T5, T6, E>(op1: ResultFunction<T, T2, E>, op2: ResultFunction<T2, T3, E>, op3: ResultFunction<T3, T4, E>, op4: ResultFunction<T4, T5, E>, op5: ResultFunction<T5, T6, E>): (input: T) => Promise<Result<T6, E>>
+export function pipe<T, T2, T3, T4, T5, T6, T7, E>(op1: ResultFunction<T, T2, E>, op2: ResultFunction<T2, T3, E>, op3: ResultFunction<T3, T4, E>, op4: ResultFunction<T4, T5, E>, op5: ResultFunction<T5, T6, E>, op6: ResultFunction<T6, T7, E>): (input: T) => Promise<Result<T7, E>>
 export function pipe(...pipes: any[]) {
   return (input: any) => {
     const a: any = startWithVal2(input)

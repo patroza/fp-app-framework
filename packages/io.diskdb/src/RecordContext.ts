@@ -143,4 +143,4 @@ const tryReadFromDb = async (type: string, id: string): Promise<Result<string, D
   }
 }
 
-const getFilename = (type: string, id: string) => `./data/${type}-${id}.json`
+export const getFilename = (type: string, id: string) => `./data/${type}-${id}.json`

@@ -4,21 +4,20 @@
 // the alternative is making sure there are return types defined in Typescript, and e.g validated with Tests.
 // to make sure accidental `any` casts are catched.
 
-import TrainTrip from "@/TrainTrip/TrainTrip"
 import { DbError } from "@fp-app/framework"
 import { createQueryWithDeps } from "@fp-app/framework"
 import { flatMap, map, pipe } from "@fp-app/neverthrow-extensions"
+import trainTripReadContext from "../infrastructure/TrainTripReadContext.disk"
 import { Pax } from "../PaxDefinition"
 import { TravelClassName } from "../TravelClassDefinition"
-import { DbContextKey, defaultDependencies } from "./types"
+import { defaultDependencies } from "./types"
 
-const createQuery = createQueryWithDeps({ db: DbContextKey, ...defaultDependencies })
+const createQuery = createQueryWithDeps({ ...defaultDependencies })
 
 const getTrainTrip = createQuery<Input, TrainTripView, DbError>("getTrainTrip",
-  ({ db }) => pipe(
+  () => pipe(
     map(({ trainTripId }) => trainTripId),
-    flatMap(db.trainTrips.load),
-    map(TrainTripToView),
+    flatMap(trainTripReadContext.load),
   ),
 )
 
@@ -35,20 +34,4 @@ export interface TrainTripView {
   travelClass: TravelClassName
   travelClasss: Array<{ templateId: string, name: TravelClassName }>
   startDate: Date
-}
-
-const TrainTripToView = ({
-  isLocked, createdAt, id, pax, currentTravelClassConfiguration, startDate, trip,
-}: TrainTrip): TrainTripView => {
-  return {
-    id,
-
-    allowUserModification: !isLocked,
-    createdAt,
-
-    pax: pax.value,
-    startDate,
-    travelClass: currentTravelClassConfiguration.travelClass.name,
-    travelClasss: trip.travelClasss.map(({ templateId, name }) => ({ templateId, name })),
-  }
 }

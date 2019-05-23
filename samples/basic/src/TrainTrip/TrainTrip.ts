@@ -60,6 +60,8 @@ export default class TrainTrip extends Entity {
   lock() {
     this.w.isLocked = true
     this.w.lockedAt = new Date()
+
+    this.registerDomainEvent(new TrainTripStateChanged(this.id))
   }
 
   assignOpportunity(opportunityId: string) {
