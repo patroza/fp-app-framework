@@ -285,9 +285,12 @@ export const anyTrue = <TErr = any>(...mappers: any[]): Result<boolean, TErr> =>
 // it would have to generate (event) => kickAsync(event).pipe(
 // but also it would mean to add: map(event => event.id) to get just the id.
 const startWithValInt = <TErr>() => <T>(value: T) => ok<T, TErr>(value) as Result<T, TErr>
-export const startWithVal = <TErr>() => <T>(value: T) => Promise.resolve(startWithValInt<TErr>()(value))
+
+// export const startWithVal = <TErr>() => <T>(value: T) => Promise.resolve(startWithValInt<TErr>()(value))
+// reversed curry:
+export const startWithVal = <T>(value: T) => <TErr>() => Promise.resolve(startWithValInt<TErr>()(value))
 // export const startWithVal2 = startWithVal()
-export const startWithVal2 = startWithVal()
+export const startWithVal2 = <T>(value: T) => startWithVal(value)()
 
 type ResultOrPromiseResult<T, E> = (Result<T, E> | Promise<Result<T, E>>)
 type ResultFunction<T, T2, E> = (r: Result<T, E>) => ResultOrPromiseResult<T2, E>

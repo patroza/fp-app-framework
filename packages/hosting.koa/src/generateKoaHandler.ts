@@ -19,7 +19,7 @@ export default function generateKoaHandler<I, T, E extends ErrorBase, E2 extends
 
       // DbError, because request handler is enhanced with it (decorator)
       // E2 because the validator enhances it.
-      const result = await startWithVal<DbError | E | E2>()(input)
+      const result = await startWithVal(input)<DbError | E | E2>()
         .pipe(
           flatMap(validate),
           flatMap(validatedInput => request(handler, validatedInput)),

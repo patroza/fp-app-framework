@@ -94,7 +94,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
   private readonly deleteRecord = async (record: T): Promise<Result<void, DbError>> => {
     assert.isNotNull({ record })
     return await lockRecordOnDisk(this.type, record.id, () =>
-      startWithVal<DbError>()(void 0).pipe(map(() => deleteFile(getFilename(this.type, record.id)))),
+      startWithVal(void 0)<DbError>().pipe(map(() => deleteFile(getFilename(this.type, record.id)))),
     )
   }
 

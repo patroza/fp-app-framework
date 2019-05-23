@@ -19,7 +19,7 @@ const getTrip = (
 const toTrip = (getTemplate: getTemplateType) => (tpl: Template) => {
   const currentTravelClass = tplToTravelClass(tpl)
   return sequenceAsync(
-    [startWithVal<ApiError>()(currentTravelClass)].concat(
+    [startWithVal(currentTravelClass)<ApiError>()].concat(
       Object.keys(tpl.travelClasss)
         .filter(x => x !== currentTravelClass.name)
         .map(slKey => (tpl.travelClasss as any)[slKey])
