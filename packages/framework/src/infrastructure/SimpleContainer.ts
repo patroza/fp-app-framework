@@ -1,6 +1,8 @@
 import { Constructor, setFunctionName } from "../utils"
 import assert from "../utils/assert"
 
+import "reflect-metadata"
+
 export default class SimpleContainer {
   private factories = new Map()
   private singletonScope = new DependencyScope()
@@ -18,28 +20,20 @@ export default class SimpleContainer {
   tryGetC<T>(key: Constructor<T>): T {
     assert.isNotNull({ key })
 
-    const factory = this.factories.get(key)
-    const instance = factory() as T
-    return instance
+    return this.tryCreateInstance(key)
   }
 
   // tslint:disable-next-line:ban-types
   tryGetF<T extends Function>(key: T) {
     assert.isNotNull({ key })
 
-    const factory = this.factories.get(key)
-    if (!factory) { throw new Error(`Key ${key.name} factory not found ${key}`) }
-    const instance = factory() as T
-    return instance
+    return this.tryCreateInstance(key)
   }
 
   tryGetO<T extends { name: string }>(key: T) {
     assert.isNotNull({ key })
 
-    const factory = this.factories.get(key)
-    if (!factory) { throw new Error(`Key ${key.name} factory not found ${key}`) }
-    const instance = factory() as T
-    return instance
+    return this.tryCreateInstance(key)
   }
 
   // tslint:disable-next-line:ban-types
@@ -92,9 +86,10 @@ export default class SimpleContainer {
     this.factories.set(key, this.resolveDecoratorsF(key, factory))
   }
 
-  registerScopedO<T>(key: T & { name: string }, factory: () => T) {
-    assert.isNotNull({ key, factory })
-    this.factories.set(key, () => tryOrNull(() => this.getDependencyScope(), s => s.getOrCreate(key, factory)))
+  registerScopedO<T>(key: T & { name: string }, factory?: () => T) {
+    assert.isNotNull({ key })
+    const fact = factory || (() => this.createNewInstance(key as any))
+    this.factories.set(key, () => tryOrNull(() => this.getDependencyScope(), s => s.getOrCreate(key, fact)))
   }
 
   registerScopedF<T extends (...args: any[]) => any>(key: T, factory: () => T) {
@@ -123,6 +118,26 @@ export default class SimpleContainer {
   registerInstanceF<T extends (...args: any[]) => any>(key: T, instance: T) {
     assert.isNotNull({ key, instance })
     this.factories.set(key, () => this.singletonScope.getOrCreate(key, this.resolveDecoratorsF(key, () => instance)))
+  }
+
+  createNewInstance<T>(constructor: Constructor<T>) {
+    const keys = getDependencyKeys(constructor)
+    console.log("$$$ keys", keys)
+    let instance
+    if (keys) {
+      instance = new constructor(...keys.map(x => this.getO(x)))
+    } else {
+      instance = new constructor()
+    }
+
+    return instance
+  }
+
+  private tryCreateInstance = <T>(key: any) => {
+    const factory = this.factories.get(key)
+    const instance = factory() as T
+    if (!(instance as any).name) { setFunctionName(instance, key.name) }
+    return instance
   }
 
   // TODO
@@ -215,6 +230,50 @@ export function generateKey<T>(name?: string): T & { name: string } {
   if (name) { setFunctionName(f, name) }
   return f as any
 }
+
+/**
+ * Registers the specified dependencyConstructors as the dependencies for the targeted class.
+ *
+ * Configuration will be inherited. Consecutive calls override the previous.
+ * @param {Array<Function>} dependencyConstructors
+ */
+export const inject = (...dependencyConstructors: any[]): ClassDecorator => {
+  dependencyConstructors.forEach(x => assert.isNotNull({ x }))
+  // NOTE: Must have a {..} scope here or the Decorators exhibit weird behaviors..
+  return (target: any) => {
+    target.$$inject = dependencyConstructors
+  }
+}
+
+export const paramInject = (dependencyConstructor: any): ParameterDecorator => {
+  return (target: any, _: string | symbol, parameterIndex: number) => {
+    if (!target.$$inject) {
+      target.$$inject = []
+    }
+    target.$$inject[parameterIndex] = dependencyConstructor
+  }
+}
+
+export const autoinject = (target: any) => {
+  const metadata = Reflect.getMetadata("design:paramtypes", target)
+  // merge existing (ie placed by paraminject)
+  if (target.hasOwnProperty("$$inject")) {
+    const existing = target.$$inject
+    const newInject = [...metadata]
+    let i = 0
+    for (const dep of existing) {
+      if (dep) {
+        newInject[i] = dep
+      }
+      i++
+    }
+    target.$$inject = newInject
+  } else {
+    target.$$inject = metadata
+  }
+}
+
+const getDependencyKeys = (constructor: any) => constructor.$$inject as any[] || []
 
 const generateKeyFromFn = <T>(fun: (...args: any[]) => T): T => generateKey(fun.name)
 
