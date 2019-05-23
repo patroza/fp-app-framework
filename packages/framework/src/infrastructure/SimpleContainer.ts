@@ -33,11 +33,28 @@ export default class SimpleContainer {
     return instance
   }
 
+  tryGetO<T extends { name: string }>(key: T) {
+    assert.isNotNull({ key })
+
+    const factory = this.factories.get(key)
+    if (!factory) { throw new Error(`Key ${key.name} factory not found ${key}`) }
+    const instance = factory() as T
+    return instance
+  }
+
   // tslint:disable-next-line:ban-types
   getF<T extends Function>(key: T) {
     assert.isNotNull({ key })
 
     const f = this.tryGetF<T>(key)
+    if (!f) { throw new Error(`could not resolve ${key}`) }
+    return f
+  }
+
+  getO<T extends { name: string }>(key: T) {
+    assert.isNotNull({ key })
+
+    const f = this.tryGetO<T>(key)
     if (!f) { throw new Error(`could not resolve ${key}`) }
     return f
   }
@@ -75,7 +92,7 @@ export default class SimpleContainer {
     this.factories.set(key, this.resolveDecoratorsF(key, factory))
   }
 
-  registerScopedO<T>(key: T, factory: () => T) {
+  registerScopedO<T>(key: T & { name: string }, factory: () => T) {
     assert.isNotNull({ key, factory })
     this.factories.set(key, () => tryOrNull(() => this.getDependencyScope(), s => s.getOrCreate(key, factory)))
   }
@@ -98,7 +115,7 @@ export default class SimpleContainer {
     this.factories.set(key, () => this.singletonScope.getOrCreate(key, this.resolveDecoratorsF(key, factory)))
   }
 
-  registerSingletonO<T>(key: T, factory: () => T) {
+  registerSingletonO<T>(key: T & { name: string }, factory: () => T) {
     assert.isNotNull({ key, factory })
     this.factories.set(key, () => this.singletonScope.getOrCreate(key, factory))
   }
@@ -193,7 +210,7 @@ export class DependencyScope {
   }
 }
 
-export function generateKey<T>(name?: string): T {
+export function generateKey<T>(name?: string): T & { name: string } {
   const f = () => { throw new Error(`${name} not implemented function`) }
   if (name) { setFunctionName(f, name) }
   return f as any

@@ -1,23 +1,48 @@
 import TrainTrip, { TravelClassConfiguration } from "@/TrainTrip/TrainTrip"
 import { TrainTripContext } from "@/TrainTrip/usecases/types"
-import { ContextBase, RecordContext } from "@fp-app/framework"
+import { ContextBase, DomainEventHandler, RecordContext } from "@fp-app/framework"
 import { DbError } from "@fp-app/framework"
 import { DiskRecordContext } from "@fp-app/io.diskdb"
-import { map, mapErr, Result } from "@fp-app/neverthrow-extensions"
+import { map, mapErr, ok, Result } from "@fp-app/neverthrow-extensions"
 import { parse, stringify } from "flatted"
 import PaxDefinition, { Pax } from "../PaxDefinition"
 import { TravelClassName } from "../TravelClassDefinition"
 import Trip, { TravelClass } from "../Trip"
+import { TrainTripView } from "../usecases/getTrainTrip"
+import TrainTripReadContext from "./TrainTripReadContext.disk"
 
 // TODO: hide fact that this is a class? :-)
 // tslint:disable-next-line:max-classes-per-file
 export default class DiskDBContext extends ContextBase implements TrainTripContext {
+
   get trainTrips() { return this.trainTripsi as RecordContext<TrainTrip> }
 
   private readonly trainTripsi = new DiskRecordContext<TrainTrip>("trainTrip", serializeTrainTrip, deserializeDbTrainTrip)
+  constructor(private readonly readContext: TrainTripReadContext, eventHandler: DomainEventHandler) { super(eventHandler) }
 
   protected getAndClearEvents(): any[] { return this.trainTripsi.intGetAndClearEvents() }
-  protected saveImpl(): Promise<Result<void, DbError>> { return this.trainTripsi.intSave() }
+  protected saveImpl(): Promise<Result<void, DbError>> {
+    return this.trainTripsi.intSave(
+      async i => ok(await this.readContext.create(i.id, TrainTripToView(i))),
+      async i => ok(await this.readContext.delete(i.id)),
+    )
+  }
+}
+
+const TrainTripToView = ({
+  isLocked, createdAt, id, pax, currentTravelClassConfiguration, startDate, trip,
+}: TrainTrip): TrainTripView => {
+  return {
+    id,
+
+    allowUserModification: !isLocked,
+    createdAt,
+
+    pax: pax.value,
+    startDate,
+    travelClass: currentTravelClassConfiguration.travelClass.name,
+    travelClasss: trip.travelClasss.map(({ templateId, name }) => ({ templateId, name })),
+  }
 }
 
 const serializeTrainTrip = ({ _EVENTS, ...rest }: any) => stringify(rest)

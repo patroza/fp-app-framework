@@ -20,8 +20,6 @@ import { flatMap, map, ok, pipe, toTup } from "@fp-app/neverthrow-extensions"
 // Below implementations violate this principal, at the time of writing ;-)
 // (trainTripPublisher is passed in as part of the domain event handler, and used by the integration event handler)
 
-import "./onTrainTripMutationsUpdateView"
-
 const createEventHandler = createEventHandlerWithDeps({ trainTripPublisher: TrainTripPublisherKey, ...defaultDependencies })
 
 createEventHandler<TrainTripCreated, IntegrationEventReturnType, any>(

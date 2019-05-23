@@ -21,7 +21,9 @@ const createRoot = () => {
     DbContextKey as any as UnitOfWork,
   )
 
-  container.registerScopedO(DbContextKey, () => new DiskDBContext(container.getC(DomainEventHandler)))
+  container.registerScopedO(DbContextKey, () => new DiskDBContext(
+    container.getO(trainTripReadContextKey), container.getC(DomainEventHandler),
+  ))
 
   container.registerSingletonF(sendCloudSyncKey, () => sendCloudSyncFake({ cloudUrl: "" }))
   container.registerSingletonF(
