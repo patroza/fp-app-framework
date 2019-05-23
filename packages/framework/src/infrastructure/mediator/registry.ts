@@ -39,6 +39,7 @@ const registerUsecaseHandler = <TDependencies>(deps: TDependencies) =>
 
 // tslint:disable-next-line:max-line-length
 const createCommandWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
+  handler = copyHandler(handler)
   const setupWithDeps = registerUsecaseHandler(deps)
   setupWithDeps(name, "COMMAND")(handler)
   return handler
@@ -46,6 +47,7 @@ const createCommandWithDeps = <TDependencies>(deps: TDependencies) => <TInput, T
 
 // tslint:disable-next-line:max-line-length
 const createQueryWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
+  handler = copyHandler(handler)
   const setupWithDeps = registerUsecaseHandler(deps)
   setupWithDeps(name, "QUERY")(handler)
   return handler
@@ -53,11 +55,14 @@ const createQueryWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOu
 
 // tslint:disable-next-line:max-line-length
 const createEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(event: Constructor<TInput>, name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
+  handler = copyHandler(handler)
   const setupWithDeps = registerUsecaseHandler(deps)
   setupWithDeps(`on${event.name}${name}`, "EVENT")(handler)
   registerEventHandler(event, dependencyMap.get(handler)![1])
   return handler
 }
+
+const copyHandler = (handler: any) => (...args: any[]) => handler(...args)
 
 const getRegisteredRequestAndEventHandlers = () => [...dependencyMap.entries()]
 

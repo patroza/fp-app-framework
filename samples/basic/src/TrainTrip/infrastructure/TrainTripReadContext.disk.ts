@@ -1,6 +1,9 @@
+import { generateKey } from "@fp-app/framework"
 import { ReadContext } from "@fp-app/io.diskdb"
 import { TrainTripView } from "../usecases/getTrainTrip"
 
-const trainTripReadContext = new ReadContext<TrainTripView>("trainTrip")
+export default class TrainTripReadContext extends ReadContext<TrainTripView> {
+  constructor() { super("trainTrip") }
+}
 
-export default trainTripReadContext
+export const trainTripReadContextKey = generateKey<TrainTripReadContext>()

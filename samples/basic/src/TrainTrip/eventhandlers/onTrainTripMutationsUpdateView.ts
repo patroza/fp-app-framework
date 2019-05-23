@@ -1,36 +1,34 @@
-import { createEventHandlerWithDeps, DbError, flatMap, map, pipe } from "@fp-app/framework"
-import trainTripReadContext from "../infrastructure/TrainTripReadContext.disk"
+import { createEventHandlerWithDeps, DbError, flatMap, map, pipe, PipeFunction } from "@fp-app/framework"
+import { trainTripReadContextKey } from "../infrastructure/TrainTripReadContext.disk"
 import TrainTrip, { TrainTripCreated, TrainTripDeleted, TrainTripStateChanged } from "../TrainTrip"
 import { TrainTripView } from "../usecases/getTrainTrip"
 import { DbContextKey, defaultDependencies } from "../usecases/types"
 
-const createEventHandler = createEventHandlerWithDeps({ db: DbContextKey, ...defaultDependencies })
-
-createEventHandler<TrainTripCreated, void, DbError>(
-  /* on */ TrainTripCreated, "UpdateView",
-  ({ db }) => pipe(
+const updateTrainTripView = ({ db, readCtx }: { db: typeof DbContextKey, readCtx: typeof trainTripReadContextKey })
+  : PipeFunction<TrainTripCreated | TrainTripStateChanged, void, DbError> =>
+  pipe(
     map(({ id }) => id),
     flatMap(db.trainTrips.load),
     map(TrainTripToView),
-    map(view => trainTripReadContext.create(view.id, view)),
-  ),
+    map(view => readCtx.create(view.id, view)),
+  )
+
+const createEventHandler = createEventHandlerWithDeps({ db: DbContextKey, readCtx: trainTripReadContextKey, ...defaultDependencies })
+createEventHandler<TrainTripCreated, void, DbError>(
+  /* on */ TrainTripCreated, "UpdateView",
+  updateTrainTripView,
 )
 
 createEventHandler<TrainTripStateChanged, void, DbError>(
   /* on */ TrainTripStateChanged, "UpdateView",
-  ({ db }) => pipe(
-    map(({ id }) => id),
-    flatMap(db.trainTrips.load),
-    map(TrainTripToView),
-    map(view => trainTripReadContext.create(view.id, view)),
-  ),
+  updateTrainTripView,
 )
 
 createEventHandler<TrainTripDeleted, void, DbError>(
   /* on */ TrainTripDeleted, "DeleteView",
-  () => pipe(
+  ({ readCtx }) => pipe(
     map(({ id }) => id),
-    map(id => trainTripReadContext.delete(id)),
+    map(readCtx.delete),
   ),
 )
 

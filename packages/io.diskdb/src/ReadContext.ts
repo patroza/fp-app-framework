@@ -1,4 +1,4 @@
-import { RecordNotFound } from "@fp-app/framework"
+import { assert, RecordNotFound } from "@fp-app/framework"
 import { err, ok, Result } from "@fp-app/neverthrow-extensions"
 import { getFilename } from "./RecordContext"
 import { deleteFile, exists, readFile, writeFile } from "./utils"
@@ -24,6 +24,7 @@ export default class ReadContext<T> {
   readonly create = (id: string, value: T) => createOrUpdateReadContextEntry(this.type, id, value)
   readonly delete = (id: string) => deleteReadContextEntry(this.type, id)
   readonly read = async (id: string): Promise<Result<T, RecordNotFound>> => {
+    assert.isNotNull({ id })
     const filePath = getFilename(`read-${this.type}`, id)
     if (!await exists(filePath)) { return err(new RecordNotFound(this.type, id)) }
     const r = await readReadContextEntry<T>(this.type, id)

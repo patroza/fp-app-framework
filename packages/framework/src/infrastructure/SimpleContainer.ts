@@ -23,15 +23,18 @@ export default class SimpleContainer {
     return instance
   }
 
-  tryGetF<T>(key: T) {
+  // tslint:disable-next-line:ban-types
+  tryGetF<T extends Function>(key: T) {
     assert.isNotNull({ key })
 
     const factory = this.factories.get(key)
+    if (!factory) { throw new Error(`Key ${key.name} factory not found ${key}`) }
     const instance = factory() as T
     return instance
   }
 
-  getF<T>(key: T) {
+  // tslint:disable-next-line:ban-types
+  getF<T extends Function>(key: T) {
     assert.isNotNull({ key })
 
     const f = this.tryGetF<T>(key)
@@ -83,6 +86,8 @@ export default class SimpleContainer {
   }
 
   registerDecorator<T extends (...args: any[]) => any>(forKey: T, ...decorators: any[]) {
+    assert.isNotNull({ forKey, decorators })
+    decorators.forEach(x => assert(x !== null, "decorator must not be null"))
     const current = this.decorators.get(forKey) || []
     current.push(...decorators)
     this.decorators.set(forKey, current)

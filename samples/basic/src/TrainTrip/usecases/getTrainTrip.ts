@@ -7,17 +7,17 @@
 import { DbError } from "@fp-app/framework"
 import { createQueryWithDeps } from "@fp-app/framework"
 import { flatMap, map, pipe } from "@fp-app/neverthrow-extensions"
-import trainTripReadContext from "../infrastructure/TrainTripReadContext.disk"
+import { trainTripReadContextKey } from "../infrastructure/TrainTripReadContext.disk"
 import { Pax } from "../PaxDefinition"
 import { TravelClassName } from "../TravelClassDefinition"
 import { defaultDependencies } from "./types"
 
-const createQuery = createQueryWithDeps({ ...defaultDependencies })
+const createQuery = createQueryWithDeps({ readCtx: trainTripReadContextKey, ...defaultDependencies })
 
 const getTrainTrip = createQuery<Input, TrainTripView, DbError>("getTrainTrip",
-  () => pipe(
+  ({ readCtx }) => pipe(
     map(({ trainTripId }) => trainTripId),
-    flatMap(trainTripReadContext.read),
+    flatMap(readCtx.read),
   ),
 )
 

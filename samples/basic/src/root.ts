@@ -4,6 +4,7 @@ import "./TrainTrip/eventhandlers" // To be ble to auto register them :/
 import { getPricingFake, getTemplateFake, getTrip, sendCloudSyncFake } from "./TrainTrip/infrastructure/api"
 import DiskDBContext from "./TrainTrip/infrastructure/TrainTripContext.disk"
 import TrainTripPublisherInMemory from "./TrainTrip/infrastructure/trainTripPublisher.inMemory"
+import TrainTripReadContext, { trainTripReadContextKey } from "./TrainTrip/infrastructure/TrainTripReadContext.disk"
 import { DbContextKey, getTripKey, RequestContextKey, sendCloudSyncKey, TrainTripPublisherKey } from "./TrainTrip/usecases/types"
 
 const createRoot = () => {
@@ -30,6 +31,7 @@ const createRoot = () => {
     },
   )
   container.registerSingletonO(TrainTripPublisherKey, () => new TrainTripPublisherInMemory(request))
+  container.registerSingletonO(trainTripReadContextKey, () => new TrainTripReadContext())
 
   return {
     bindLogger,
