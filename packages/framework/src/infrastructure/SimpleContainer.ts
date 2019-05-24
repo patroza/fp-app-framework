@@ -2,7 +2,6 @@ import { Constructor, setFunctionName } from "../utils"
 import assert from "../utils/assert"
 
 import "reflect-metadata"
-import { WithDependenciesConfig } from "."
 
 export default class SimpleContainer {
   private factories = new Map()
@@ -366,6 +365,9 @@ const getDependencyKeys = (constructor: any) => constructor.$$inject as any[] ||
 const getDependencyObjectKeys = <TDependencies>(constructor: any): TDependencies => constructor.$$inject || {}
 
 const generateKeyFromFn = <T>(fun: (...args: any[]) => T): T => generateKey(fun.name)
+
+export type WithDependencies<TDependencies, T> = (deps: TDependencies) => T
+export type WithDependenciesConfig<TDependencies, T> = (((deps: TDependencies) => T) & { $$inject: TDependencies })
 
 export {
   generateKeyFromFn,

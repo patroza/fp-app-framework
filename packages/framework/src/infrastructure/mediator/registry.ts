@@ -3,12 +3,10 @@ import { Constructor, logger, setFunctionName, typedKeysOf } from "../../utils"
 import assert from "../../utils/assert"
 import { UnitOfWork } from "../context.base"
 import { registerDomainEventHandler, registerIntegrationEventHandler } from "../createDependencyNamespace"
-import { generateKey } from "../SimpleContainer"
+import { generateKey, WithDependencies, WithDependenciesConfig } from "../SimpleContainer"
 
 export interface RequestContextBase { id: string, correllationId: string }
 
-export type WithDependencies<TDependencies, T> = (deps: TDependencies) => T
-export type WithDependenciesConfig<TDependencies, T> = (((deps: TDependencies) => T) & { $$inject: TDependencies })
 export type EventHandlerWithDependencies<TDependencies, TInput, TOutput, TError> = HandlerWithDependencies<TDependencies, TInput, TOutput, TError>
 export type UsecaseWithDependencies<TDependencies, TInput, TOutput, TError> = HandlerWithDependencies<TDependencies, TInput, TOutput, TError>
 

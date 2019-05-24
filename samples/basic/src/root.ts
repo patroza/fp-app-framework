@@ -1,6 +1,5 @@
-import { Key, UnitOfWork, UOWKey } from "@fp-app/framework"
-import { createDependencyNamespace } from "@fp-app/framework"
-import { exists, mkdir } from "../../../packages/io.diskdb/src/utils"
+import { createDependencyNamespace, Key, UnitOfWork, UOWKey } from "@fp-app/framework"
+import { exists, mkdir } from "@fp-app/io.diskdb"
 import "./TrainTrip/eventhandlers" // To be ble to auto register them :/
 import { getPricingFake, getTemplateFake, getTrip, sendCloudSyncFake } from "./TrainTrip/infrastructure/api"
 import DiskDBContext from "./TrainTrip/infrastructure/TrainTripContext.disk"
