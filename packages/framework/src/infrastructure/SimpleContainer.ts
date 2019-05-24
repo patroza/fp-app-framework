@@ -54,6 +54,26 @@ export default class SimpleContainer {
     }
   }
 
+  register<T>(registration: IClassRegistration<T> | IFunctionRegistration<T>) {
+    switch (registration.scope) {
+      case "scoped": {
+        if (registration.type === "function") {
+          if (registration.factory) {
+            this.registerScopedF(registration.key, registration.factory)
+          } else {
+            this.registerScopedF2(registration.key, registration.factory)
+          }
+        }
+      }
+      case "singleton": {
+
+      }
+      case "transient": {
+
+      }
+    }
+  }
+
   registerTransientC<T>(key: Constructor<T>, factory: () => T) {
     assert.isNotNull({ key, factory })
     this.registerFactoryC(key, factory)
@@ -354,6 +374,39 @@ export default class SimpleContainer {
   //   const instance = factory() as T
   //   return instance
   // }
+}
+
+interface Registration<T> {
+  scope: IScope
+  factory?: () => T
+}
+
+type IScope = "transient" | "singleton" | "scoped"
+
+interface IFunctionRegistration<T> extends Registration<T> {
+  key: () => T
+  readonly type: "function"
+}
+
+interface IClassRegistration<T> extends Registration<T> {
+  key: Constructor<T>
+  readonly type: "class"
+}
+
+// tslint:disable-next-line:max-classes-per-file
+export class FunctionRegistration<T> implements IFunctionRegistration<T> {
+  readonly type = "function"
+}
+
+// tslint:disable-next-line:max-classes-per-file
+export class ClassRegistration<T> implements IClassRegistration<T> {
+  readonly type = "class"
+}
+
+const tryOrNull = <T, T2>(f: () => T | undefined, f2: (i: T) => T2) => {
+  const result = f()
+  if (!result) { return null }
+  return f2(result)
 }
 
 // tslint:disable-next-line:max-classes-per-file
