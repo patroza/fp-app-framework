@@ -9,8 +9,8 @@ import { loggingDecorator, uowDecorator } from "./decorators"
 import DomainEventHandler, { executePostCommitHandlersKey } from "./domainEventHandler"
 import executePostCommitHandlers from "./executePostCommitHandlers"
 import {
-  getHandlerKey, getRegisteredRequestAndEventHandlers,
-  publish, request, RequestContextBase, requestKey, requestType,
+  getRegisteredRequestAndEventHandlers,
+  NamedHandlerWithDependencies, publish, request, RequestContextBase, requestInNewScopeKey, requestInNewScopeType, requestKey, requestType,
 } from "./mediator"
 import SimpleContainer, { DependencyScope, generateKey, Key } from "./SimpleContainer"
 
@@ -22,9 +22,9 @@ export default function createDependencyNamespace(namespace: string, requestScop
 
   const container = new SimpleContainer(getDependencyScope, setDependencyScope)
   const resolveDependencies = resolveDependenciesImpl(container)
-  const create = ([impl, key, deps]: any) => {
-    const resolved = impl(resolveDependencies(deps))
-    setFunctionName(resolved, key.name)
+  const create = (h: NamedHandlerWithDependencies<any, any, any, any>) => {
+    const resolved = h(resolveDependencies(h.deps))
+    setFunctionName(resolved, h.name)
     return resolved
   }
 
@@ -70,7 +70,7 @@ export default function createDependencyNamespace(namespace: string, requestScop
     ),
   )
   container.registerScopedO(requestScopeKey, () => { const id = generateShortUuid(); return { id, correllationId: id } })
-  getRegisteredRequestAndEventHandlers().forEach(([, v]) => container.registerScopedF(v[1], () => create(v)))
+  getRegisteredRequestAndEventHandlers().forEach(h => container.registerScopedConcrete(h, () => create(h)))
 
   const uowDecoratorKey = generateKey<ReturnType<typeof uowDecorator>>()
   const loggingDecoratorKey = generateKey<ReturnType<typeof loggingDecorator>>()
@@ -78,11 +78,16 @@ export default function createDependencyNamespace(namespace: string, requestScop
   container.registerScopedF(uowDecoratorKey, () => uowDecorator(container.getO(uowKey)))
   container.registerSingletonF(loggingDecoratorKey, () => loggingDecorator())
   container.registerDecorator(requestKey, uowDecoratorKey, loggingDecoratorKey)
+
   container.registerSingletonF(
     executePostCommitHandlersKey,
-    () => executePostCommitHandlers({ get: (evt: any) => container.getF(evt), setupChildContext }),
+    () => executePostCommitHandlers({ executeIntegrationEvent: container.getF(requestInNewScopeKey) }),
   )
-  container.registerSingletonF(requestKey, () => request(key => container.getF(getHandlerKey(key))))
+
+  const requestInNewContext: requestInNewScopeType = (key: any, evt: any) =>
+    setupChildContext(() => container.getF(requestKey)(key, evt))
+  container.registerSingletonF(requestKey, () => request(key => container.getConcrete(key)))
+  container.registerSingletonF(requestInNewScopeKey, () => requestInNewContext)
 
   // In a perfect world, the decorators also enhance the type here
   // however they also apply different behavior depending on the request.
