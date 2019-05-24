@@ -1,14 +1,16 @@
-import { err, map, ok, Result, tee } from "@fp-app/neverthrow-extensions"
-import { IntegrationEventReturnType, publishType } from "./mediator/publish"
+import { err, map, Result, success, tee } from "@fp-app/neverthrow-extensions"
+import { EventHandlerWithDependencies } from "./mediator"
+import { publishType } from "./mediator/publish"
 import { generateKey } from "./SimpleContainer"
 
 // tslint:disable-next-line:max-classes-per-file
 export default class DomainEventHandler {
   private events: any[] = []
-  private integrationEvents: IntegrationEventReturnType[] = []
+  private processedEvents: any[] = []
 
   constructor(
     private readonly publish: publishType,
+    private readonly getIntegrationHandlers: (evt: any) => Array<EventHandlerWithDependencies<any, any, any, any>> | undefined,
     private readonly executeIntegrationEvents: typeof executePostCommitHandlersKey,
   ) { }
 
@@ -21,11 +23,10 @@ export default class DomainEventHandler {
     // 2. commit!
     // 3. post-commit: post integration events
 
-    this.integrationEvents = []
+    this.processedEvents = []
     const updateEvents = () => this.events = this.events.concat(getAndClearEvents())
     updateEvents()
     let processedEvents: any[] = []
-    let integrationEvents: IntegrationEventReturnType[] = []
     // loop until we have all events captured, event events of events.
     // lets hope we don't get stuck in stackoverflow ;-)
     while (this.events.length) {
@@ -37,29 +38,32 @@ export default class DomainEventHandler {
         this.events = processedEvents
         return err(r.error)
       }
-      integrationEvents = integrationEvents.concat(r.value)
       updateEvents()
     }
-    this.integrationEvents = integrationEvents
+    this.processedEvents = processedEvents
     return await commit()
       .pipe(tee(map(this.publishIntegrationEvents)))
   }
 
-  private readonly publishEvents = async (events: any[]): Promise<Result<IntegrationEventReturnType[], Error>> => {
-    const values: IntegrationEventReturnType[] = []
+  private readonly publishEvents = async (events: any[]): Promise<Result<void, Error>> => {
     for (const evt of events) {
       const r = await this.publish(evt)
       if (r.isErr()) { return err(r.error) }
-      if (r.value) { values.push(...r.value) }
     }
-    return ok(values)
+    return success()
   }
 
   private readonly publishIntegrationEvents = () => {
     this.events = []
-    if (this.integrationEvents.length) { this.executeIntegrationEvents(this.integrationEvents) }
-    this.integrationEvents = []
+    const integrationEventsMap = new Map<any, Array<EventHandlerWithDependencies<any, any, any, any>>>()
+    for (const evt of this.processedEvents) {
+      const integrationEventHandlers = this.getIntegrationHandlers(evt)
+      if (!integrationEventHandlers || !integrationEventHandlers.length) { continue }
+      integrationEventsMap.set(evt, integrationEventHandlers)
+    }
+    if (integrationEventsMap.size) { this.executeIntegrationEvents(integrationEventsMap) }
+    this.processedEvents = []
   }
 }
 
-export const executePostCommitHandlersKey = generateKey<(postCommitEvents: IntegrationEventReturnType[]) => void>()
+export const executePostCommitHandlersKey = generateKey<(eventMap: Map<any, Array<EventHandlerWithDependencies<any, any, any, any>>>) => void>()

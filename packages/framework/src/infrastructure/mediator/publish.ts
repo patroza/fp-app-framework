@@ -1,4 +1,4 @@
-import { err, ok, PipeFunction, PipeFunctionN, Result } from "@fp-app/neverthrow-extensions"
+import { err, PipeFunction, PipeFunctionN, Result, success } from "@fp-app/neverthrow-extensions"
 
 import { Constructor, logger } from "../../utils"
 
@@ -7,24 +7,25 @@ const publish = (getMany: <TInput extends Constructor<any>>(evt: TInput) => Arra
     const hndl = getMany(evt)
     logger.log(`Publishing Domain event: ${evt.constructor.name} (${hndl ? hndl.length : 0} handlers)`, JSON.stringify(evt))
 
-    const commitHandlers: IntegrationEventReturnType[] = []
-    if (!hndl) { return ok(commitHandlers) }
+    if (!hndl) { return success() }
 
     for (const evtHandler of hndl) {
       logger.log(`Handling ${evtHandler.name}`)
       const r = await evtHandler(evt)
       if (r.isErr()) { return err(r.error) }
-      if (r.value) { commitHandlers.push(r.value) }
     }
 
-    logger.log(`Published Domain event: ${evt.constructor.name} (${commitHandlers.length} integration events)`)
-    return ok(commitHandlers)
+    logger.log(`Published event: ${evt.constructor.name}`)
+    return success()
   }
 
 export default publish
 
 // tslint:disable-next-line:max-line-length
-export type publishType = <TInput extends Constructor<any>>(evt: TInput) => Promise<Result<IntegrationEventReturnType[], Error>>
+export type publishType = <TInput extends Constructor<any>>(evt: TInput) => Promise<Result<void, Error>>
 
 export type DomainEventReturnType = void | IntegrationEventReturnType
-export type IntegrationEventReturnType = PipeFunctionN<void, Error>
+export interface IntegrationEventReturnType {
+  consistency?: "eventual" | "strict",
+  handler: PipeFunctionN<void, Error>
+}

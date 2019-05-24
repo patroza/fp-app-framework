@@ -1,7 +1,7 @@
 import { PipeFunction, Result } from "@fp-app/neverthrow-extensions"
-import { Constructor, setFunctionName } from "../../utils"
+import { Constructor, logger, setFunctionName } from "../../utils"
 import assert from "../../utils/assert"
-import { registerEventHandler } from "../createDependencyNamespace"
+import { registerDomainEventHandler, registerIntegrationEventHandler } from "../createDependencyNamespace"
 import { generateKey } from "../SimpleContainer"
 
 export interface RequestContextBase { id: string, correllationId: string }
@@ -42,6 +42,7 @@ const createCommandWithDeps = <TDependencies>(deps: TDependencies) => <TInput, T
   handler = copyHandler(handler)
   const setupWithDeps = registerUsecaseHandler(deps)
   setupWithDeps(name, "COMMAND")(handler)
+  logger.debug(`Created Command handler ${name}`)
   return handler
 }
 
@@ -50,15 +51,25 @@ const createQueryWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOu
   handler = copyHandler(handler)
   const setupWithDeps = registerUsecaseHandler(deps)
   setupWithDeps(name, "QUERY")(handler)
+  logger.debug(`Created Query handler ${name}`)
   return handler
 }
 
 // tslint:disable-next-line:max-line-length
-const createEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(event: Constructor<TInput>, name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
+const createDomainEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(event: Constructor<TInput>, name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
   handler = copyHandler(handler)
   const setupWithDeps = registerUsecaseHandler(deps)
   setupWithDeps(`on${event.name}${name}`, "EVENT")(handler)
-  registerEventHandler(event, dependencyMap.get(handler)![1])
+  registerDomainEventHandler(event, dependencyMap.get(handler)![1])
+  return handler
+}
+
+// tslint:disable-next-line:max-line-length
+const createIntegrationEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(event: Constructor<TInput>, name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
+  handler = copyHandler(handler)
+  const setupWithDeps = registerUsecaseHandler(deps)
+  setupWithDeps(`on${event.name}${name}`, "EVENT")(handler)
+  registerIntegrationEventHandler(event, dependencyMap.get(handler)![1])
   return handler
 }
 
@@ -74,7 +85,8 @@ const getHandlerKey = (handler: UsecaseWithDependencies<any, any, any, any>) => 
 export {
   getHandlerKey,
   getRegisteredRequestAndEventHandlers,
-  createCommandWithDeps, createEventHandlerWithDeps,
+  createCommandWithDeps, createDomainEventHandlerWithDeps,
+  createIntegrationEventHandlerWithDeps,
   createQueryWithDeps,
 }
 

@@ -2,7 +2,7 @@ import chalk from "chalk"
 import { createNamespace, getNamespace } from "cls-hooked"
 import format from "date-fns/format"
 import { EventEmitter } from "events"
-import { setFunctionName } from "../utils"
+import { Constructor, logger, setFunctionName } from "../utils"
 import { generateShortUuid } from "../utils/generateUuid"
 import { UnitOfWork } from "./context.base"
 import { loggingDecorator, uowDecorator } from "./decorators"
@@ -59,10 +59,15 @@ export default function createDependencyNamespace(namespace: string, requestScop
       )
     })
 
-  const publish2 = publish(evt => (handlerMap.get(evt.constructor) || []).map(x => container.getF(x)))
+  const publishDomainEventHandler = publish(evt => (domainHandlerMap.get(evt.constructor) || []).map(x => container.getF(x)))
+  // const publishIntegrationEventHandler = publish(evt => (integrationHandlerMap.get(evt.constructor) || []).map(x => container.getF(x)))
   container.registerScopedC(
     DomainEventHandler,
-    () => new DomainEventHandler(publish2, container.getF(executePostCommitHandlersKey)),
+    () => new DomainEventHandler(
+      publishDomainEventHandler,
+      evt => integrationHandlerMap.get(evt.constructor),
+      container.getF(executePostCommitHandlersKey),
+    ),
   )
   container.registerScopedO(requestScopeKey, () => { const id = generateShortUuid(); return { id, correllationId: id } })
   getRegisteredRequestAndEventHandlers().forEach(([, v]) => container.registerScopedF(v[1], () => create(v)))
@@ -73,7 +78,10 @@ export default function createDependencyNamespace(namespace: string, requestScop
   container.registerScopedF(uowDecoratorKey, () => uowDecorator(container.getO(uowKey)))
   container.registerSingletonF(loggingDecoratorKey, () => loggingDecorator())
   container.registerDecorator(requestKey, uowDecoratorKey, loggingDecoratorKey)
-  container.registerSingletonF(executePostCommitHandlersKey, () => executePostCommitHandlers({ setupChildContext }))
+  container.registerSingletonF(
+    executePostCommitHandlersKey,
+    () => executePostCommitHandlers({ get: (evt: any) => container.getF(evt), setupChildContext }),
+  )
   container.registerSingletonF(requestKey, () => request(key => container.getF(getHandlerKey(key))))
 
   // In a perfect world, the decorators also enhance the type here
@@ -99,13 +107,22 @@ const resolveDependenciesImpl = (container: SimpleContainer) => <TDependencies>(
   return prev
 }, {} as TDependencies)
 
-const registerEventHandler = (event: any, handler: any) => {
-  const current = handlerMap.get(event) || []
+const registerDomainEventHandler = (event: Constructor<any>, handler: any) => {
+  logger.debug(`Registered Domain event handler for ${event.name}`)
+  const current = domainHandlerMap.get(event) || []
   current.push(handler)
-  handlerMap.set(event, current)
+  domainHandlerMap.set(event, current)
+}
+
+const registerIntegrationEventHandler = (event: Constructor<any>, handler: any) => {
+  logger.debug(`Registered Integration event handler for ${event.name}`)
+  const current = integrationHandlerMap.get(event) || []
+  current.push(handler)
+  integrationHandlerMap.set(event, current)
 }
 
 // tslint:disable-next-line:ban-types
-const handlerMap = new Map<any, any[]>() // Array<readonly [Function, Function, {}]>
+const domainHandlerMap = new Map<any, any[]>() // Array<readonly [Function, Function, {}]>
+const integrationHandlerMap = new Map<any, any[]>() // Array<readonly [Function, Function, {}]>
 
-export { registerEventHandler }
+export { registerDomainEventHandler, registerIntegrationEventHandler }
