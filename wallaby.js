@@ -1,7 +1,8 @@
-module.exports = function (wallaby) {
+module.exports = function (w) {
   return {
     files: [
       '**/*.ts',
+      { pattern: '**/*.d.ts', ignore: true },
       { pattern: '**/*.test.ts', ignore: true },
       { pattern: 'node_modules', ignore: true }
     ],
@@ -17,6 +18,9 @@ module.exports = function (wallaby) {
       runner: 'node'
     },
 
-    testFramework: 'jest'
+    testFramework: 'jest',
+    compilers: {
+      '**/*.ts?(x)': w.compilers.typeScript({ isolatedModules: true })
+    }
   };
 };

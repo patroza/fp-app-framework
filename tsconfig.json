@@ -5,12 +5,12 @@
     "experimentalDecorators": true,
     "downlevelIteration": true,
     "declaration": true,
+    "incremental": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "emitDecoratorMetadata": true,
     "lib": [
-      "es2015",
-      "esnext"
+      "es2018"
     ],
     "module": "commonjs",
     "outDir": "dist/ts",
@@ -23,7 +23,7 @@
     "removeComments": true,
     "sourceMap": true,
     "strict": true,
-    "target": "es5"
+    "target": "es2018"
   },
   "exclude": [
     "dist",
