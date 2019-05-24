@@ -113,19 +113,19 @@ export default class SimpleContainer {
     this.factories.set(key, () => tryOrNull(() => this.getDependencyScope(), s => s.getOrCreate(key, this.resolveDecoratorsF(key, factory))))
   }
 
-  registerScopedF2<TDependencies, T>(key: Key<T>, impl: WithDependenciesConfig<TDependencies, T>) {
+  registerScopedF2<TDependencies, T extends (...args: any[]) => any>(key: Key<T>, impl: WithDependenciesConfig<TDependencies, T>) {
     assert.isNotNull({ key, impl })
     const factory = () => this.createFunctionInstance(impl)
     this.registerScopedF(key, factory)
   }
 
-  registerSingletonF2<TDependencies, T>(key: Key<T>, impl: WithDependenciesConfig<TDependencies, T>) {
+  registerSingletonF2<TDependencies, T extends (...args: any[]) => any>(key: Key<T>, impl: WithDependenciesConfig<TDependencies, T>) {
     assert.isNotNull({ key, impl })
     const factory = () => this.createFunctionInstance(impl)
     this.registerSingletonF(key, factory)
   }
 
-  registerSingletonConcrete<TDependencies, T>(key: WithDependenciesConfig<TDependencies, T>, factory?: () => T) {
+  registerSingletonConcrete<TDependencies, T>(key: WithDependenciesConfig<TDependencies, T> | (() => T), factory?: () => T) {
     assert.isNotNull({ key })
 
     if (!factory) {
@@ -136,7 +136,7 @@ export default class SimpleContainer {
     this.registerSingletonF(key, factory as any)
   }
 
-  registerScopedConcrete<TDependencies, T>(key: WithDependenciesConfig<TDependencies, T>, factory?: () => T) {
+  registerScopedConcrete<TDependencies, T>(key: WithDependenciesConfig<TDependencies, T> | (() => T), factory?: () => T) {
     assert.isNotNull({ key })
 
     if (!factory) {
@@ -205,8 +205,9 @@ export default class SimpleContainer {
     return instance
   }
 
-  private readonly createFunctionInstance = (h: WithDependenciesConfig<any, any>) => {
-    const resolved = h(this.resolveDependencies(h.$$inject))
+  private readonly createFunctionInstance = <TDependencies, T>(h: WithDependenciesConfig<TDependencies, T> | (() => T)) => {
+    const deps = getDependencyObjectKeys<TDependencies>(h)
+    const resolved = h(this.resolveDependencies(deps))
     setFunctionName(resolved, h.name)
     return resolved
   }
@@ -362,6 +363,7 @@ export const autoinject = (target: any) => {
 }
 
 const getDependencyKeys = (constructor: any) => constructor.$$inject as any[] || []
+const getDependencyObjectKeys = <TDependencies>(constructor: any): TDependencies => constructor.$$inject || {}
 
 const generateKeyFromFn = <T>(fun: (...args: any[]) => T): T => generateKey(fun.name)
 

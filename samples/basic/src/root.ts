@@ -1,4 +1,4 @@
-import { Key, UnitOfWork } from "@fp-app/framework"
+import { Key, UnitOfWork, UOWKey } from "@fp-app/framework"
 import { createDependencyNamespace } from "@fp-app/framework"
 import { exists, mkdir } from "../../../packages/io.diskdb/src/utils"
 import "./TrainTrip/eventhandlers" // To be ble to auto register them :/
@@ -18,10 +18,10 @@ const createRoot = () => {
   } = createDependencyNamespace(
     namespace,
     RequestContextKey,
-    DbContextKey as any as Key<UnitOfWork>,
   )
 
   container.registerScopedO2(DbContextKey, DiskDBContext)
+  container.registerScopedO(UOWKey, () => container.getO(DbContextKey as any as Key<UnitOfWork>))
 
   container.registerSingletonO2(TrainTripPublisherKey, TrainTripPublisherInMemory)
   container.registerSingletonO2(trainTripReadContextKey, TrainTripReadContext)
