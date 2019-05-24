@@ -1,5 +1,5 @@
-import { UnitOfWork } from "@fp-app/framework"
-import { createDependencyNamespace, DomainEventHandler } from "@fp-app/framework"
+import { Key, UnitOfWork, UOWKey } from "@fp-app/framework"
+import { createDependencyNamespace } from "@fp-app/framework"
 import { exists, mkdir } from "../../../packages/io.diskdb/src/utils"
 import "./TrainTrip/eventhandlers" // To be ble to auto register them :/
 import { getPricingFake, getTemplateFake, getTrip, sendCloudSyncFake } from "./TrainTrip/infrastructure/api"
@@ -18,13 +18,13 @@ const createRoot = () => {
   } = createDependencyNamespace(
     namespace,
     RequestContextKey,
-    DbContextKey as any as UnitOfWork,
   )
 
-  container.registerScopedO(DbContextKey, () => new DiskDBContext(
-    container.getO(trainTripReadContextKey), container.getC(DomainEventHandler),
-  ))
+  container.registerScopedO2(DbContextKey, DiskDBContext)
+  container.registerScopedO(UOWKey, () => container.getO(DbContextKey as any as Key<UnitOfWork>))
 
+  container.registerSingletonO2(TrainTripPublisherKey, TrainTripPublisherInMemory)
+  container.registerSingletonO2(trainTripReadContextKey, TrainTripReadContext)
   container.registerSingletonF(sendCloudSyncKey, () => sendCloudSyncFake({ cloudUrl: "" }))
   container.registerSingletonF(
     getTripKey,
@@ -33,8 +33,6 @@ const createRoot = () => {
       return getTripF
     },
   )
-  container.registerSingletonO(TrainTripPublisherKey, () => new TrainTripPublisherInMemory(request))
-  container.registerSingletonO(trainTripReadContextKey, () => new TrainTripReadContext())
 
   return {
     bindLogger,

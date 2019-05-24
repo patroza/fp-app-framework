@@ -1,6 +1,6 @@
 import TrainTrip, { Price } from "@/TrainTrip/TrainTrip"
 import { createTravelPlanType, getTemplateType, getTravelPlanType } from "@/TrainTrip/usecases/types"
-import { ApiError, assert, ConnectionError, RecordNotFound } from "@fp-app/framework"
+import { ApiError, assert, ConnectionError, RecordNotFound, typedKeysOf } from "@fp-app/framework"
 import { err, flatMap, map, ok, PipeFunction, sequenceAsync, startWithVal } from "@fp-app/neverthrow-extensions"
 import { v4 } from "uuid"
 import PaxDefinition, { Pax } from "../PaxDefinition"
@@ -20,9 +20,9 @@ const toTrip = (getTemplate: getTemplateType) => (tpl: Template) => {
   const currentTravelClass = tplToTravelClass(tpl)
   return sequenceAsync(
     [startWithVal(currentTravelClass)<ApiError>()].concat(
-      Object.keys(tpl.travelClasss)
+      typedKeysOf(tpl.travelClasss)
         .filter(x => x !== currentTravelClass.name)
-        .map(slKey => (tpl.travelClasss as any)[slKey])
+        .map(slKey => tpl.travelClasss[slKey]!)
         .map(sl => getTemplate(sl.id).pipe(map(tplToTravelClass))),
     ),
   ).pipe(map(travelClasss => new Trip(travelClasss)))
@@ -30,7 +30,7 @@ const toTrip = (getTemplate: getTemplateType) => (tpl: Template) => {
 
 const tplToTravelClass = (tpl: Template) => new TravelClass(tpl.id, getTplLevelName(tpl))
 
-const getTplLevelName = (tpl: any) => Object.keys(tpl.travelClasss).find(x => (tpl.travelClasss as any)[x].id === tpl.id) as TravelClassName
+const getTplLevelName = (tpl: Template) => typedKeysOf(tpl.travelClasss).find(x => tpl.travelClasss[x]!.id === tpl.id) as TravelClassName
 
 // Typescript support for partial application is not really great, so we try currying instead for now
 // https://stackoverflow.com/questions/50400120/using-typescript-for-partial-application

@@ -1,6 +1,6 @@
 import TrainTrip, { TravelClassConfiguration } from "@/TrainTrip/TrainTrip"
 import { TrainTripContext } from "@/TrainTrip/usecases/types"
-import { ContextBase, DomainEventHandler, RecordContext } from "@fp-app/framework"
+import { autoinject, ContextBase, DomainEventHandler, RecordContext } from "@fp-app/framework"
 import { DbError } from "@fp-app/framework"
 import { DiskRecordContext } from "@fp-app/io.diskdb"
 import { map, mapErr, ok, Result } from "@fp-app/neverthrow-extensions"
@@ -13,12 +13,18 @@ import TrainTripReadContext from "./TrainTripReadContext.disk"
 
 // TODO: hide fact that this is a class? :-)
 // tslint:disable-next-line:max-classes-per-file
+@autoinject
 export default class DiskDBContext extends ContextBase implements TrainTripContext {
 
   get trainTrips() { return this.trainTripsi as RecordContext<TrainTrip> }
 
   private readonly trainTripsi = new DiskRecordContext<TrainTrip>("trainTrip", serializeTrainTrip, deserializeDbTrainTrip)
-  constructor(private readonly readContext: TrainTripReadContext, eventHandler: DomainEventHandler) { super(eventHandler) }
+  constructor(
+    private readonly readContext: TrainTripReadContext,
+    eventHandler: DomainEventHandler,
+    // test sample
+    // @paramInject(sendCloudSyncKey) sendCloudSync: typeof sendCloudSyncKey,
+  ) { super(eventHandler) }
 
   protected getAndClearEvents(): any[] { return this.trainTripsi.intGetAndClearEvents() }
   protected saveImpl(): Promise<Result<void, DbError>> {
