@@ -20,20 +20,20 @@ export default class SimpleContainer {
   tryGetC<T>(key: Constructor<T>): T {
     assert.isNotNull({ key })
 
-    return this.tryCreateInstance(key)
+    return this.tryCreateInstance<T>(key)
   }
 
   // tslint:disable-next-line:ban-types
   tryGetF<T extends Function>(key: T) {
     assert.isNotNull({ key })
 
-    return this.tryCreateInstance(key)
+    return this.tryCreateInstance<T>(key)
   }
 
-  tryGetO<T extends { name: string }>(key: T) {
+  tryGetO<T>(key: Key<T>) {
     assert.isNotNull({ key })
 
-    return this.tryCreateInstance(key)
+    return this.tryCreateInstance<T>(key)
   }
 
   // tslint:disable-next-line:ban-types
@@ -45,7 +45,7 @@ export default class SimpleContainer {
     return f
   }
 
-  getO<T extends { name: string }>(key: T) {
+  getO<T>(key: Key<T>) {
     assert.isNotNull({ key })
 
     const f = this.tryGetO<T>(key)
@@ -122,7 +122,6 @@ export default class SimpleContainer {
 
   createNewInstance<T>(constructor: Constructor<T>) {
     const keys = getDependencyKeys(constructor)
-    console.log("$$$ keys", keys)
     let instance
     if (keys) {
       instance = new constructor(...keys.map(x => this.getO(x)))
@@ -225,11 +224,13 @@ export class DependencyScope {
   }
 }
 
-export function generateKey<T>(name?: string): T & { name: string } {
+export function generateKey<T>(name?: string): Key<T> {
   const f = () => { throw new Error(`${name} not implemented function`) }
   if (name) { setFunctionName(f, name) }
   return f as any
 }
+
+export type Key<T> = T & { name: string; }
 
 /**
  * Registers the specified dependencyConstructors as the dependencies for the targeted class.
