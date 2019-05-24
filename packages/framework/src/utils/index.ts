@@ -42,8 +42,6 @@ const benchLog = <T>(
 
 const setFunctionName = (fnc: any, name: string) => Object.defineProperty(fnc, "name", { value: name })
 
-export const typedKeysOf = <T>(obj: T) => Object.keys(obj) as Array<keyof T>
-
 export {
   asWritable,
   benchLog,

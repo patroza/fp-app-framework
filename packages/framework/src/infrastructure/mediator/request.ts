@@ -1,6 +1,6 @@
-import { NamedHandlerWithDependencies, NamedRequestHandler, requestType } from "."
+import { NamedRequestHandler, requestType, UsecaseWithDependencies } from "."
 
-const request = (get: getRequestType): requestType =>
+const request = (get: getKeyType): requestType =>
   (requestHandler, input) => {
     const handler = get(requestHandler)
     return handler(input)
@@ -8,5 +8,5 @@ const request = (get: getRequestType): requestType =>
 
 export default request
 
-type getRequestType = <TInput, TOutput, TError>(key: NamedHandlerWithDependencies<any, TInput, TOutput, TError>) =>
+type getKeyType = <TInput, TOutput, TError>(key: UsecaseWithDependencies<any, TInput, TOutput, TError>) =>
   NamedRequestHandler<TInput, TOutput, TError>

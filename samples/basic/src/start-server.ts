@@ -33,8 +33,8 @@ const startServer = async () => {
     .use(rootRouter.allowedMethods())
     .use(rootRouter.routes())
 
-  return app.listen(PORT, () => logger.log("server listening on 3535"))
+  app.listen(PORT, () => logger.log("server listening on 3535"))
 }
 
 startServer()
-  .catch(logger.error)
+  .then(logger.error)

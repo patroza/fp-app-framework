@@ -1,4 +1,4 @@
-import { RecordContext, success } from "@fp-app/framework"
+import { RecordContext } from "@fp-app/framework"
 import { assert, ConnectionError, CouldNotAquireDbLockError, DbError, OptimisticLockError, RecordNotFound } from "@fp-app/framework"
 import { err, flatMap, liftType, map, mapErr, ok, PipeFunctionN, Result, startWithVal } from "@fp-app/framework"
 import { lock } from "proper-lockfile"
@@ -74,7 +74,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
       }
       this.cache.delete(e.id)
     }
-    return success()
+    return ok(void 0)
   }
 
   private readonly handleInsertionsAndUpdates = async (forEachSave?: (item: T) => Promise<Result<void, DbError>>): Promise<Result<void, DbError>> => {
@@ -90,7 +90,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
         }
       }
     }
-    return success()
+    return ok(void 0)
 
   }
 
@@ -100,7 +100,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
 
     if (!cachedRecord.version) {
       await this.actualSave(record, cachedRecord.version)
-      return success()
+      return ok(void 0)
     }
 
     return await lockRecordOnDisk(this.type, record.id, () =>
@@ -111,7 +111,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
             return err(new OptimisticLockError(this.type, record.id))
           }
           await this.actualSave(record, version)
-          return success()
+          return ok(void 0)
         }),
       ))
   }

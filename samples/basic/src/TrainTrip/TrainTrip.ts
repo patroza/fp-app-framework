@@ -4,7 +4,7 @@ import { Entity, ForbiddenError, ValidationError } from "@fp-app/framework"
 import { assert, asWritable } from "@fp-app/framework"
 import { valueEquals } from "@fp-app/framework"
 import {
-  anyTrue, applyIfNotUndefined, err, flatMap, map, mapStatic, ok, Result, success, valueOrUndefined,
+  anyTrue, applyIfNotUndefined, err, flatMap, map, mapStatic, ok, Result, valueOrUndefined,
 } from "@fp-app/neverthrow-extensions"
 import isEqual from "lodash/fp/isEqual"
 import FutureDate from "./FutureDate"
@@ -160,7 +160,7 @@ export default class TrainTrip extends Entity {
     if (this.isLocked) {
       return err(new ForbiddenError(`No longer allowed to change TrainTrip ${this.id}`))
     }
-    return success()
+    return ok(void 0)
   }
 
   private readonly createChangeEvents = (changed: boolean) => {
@@ -185,11 +185,6 @@ export class TravelClassConfiguration {
     this.w.travelClass = travelClass
   }
 }
-
-/*
-These event names look rather technical (like CRUD) and not very domain driven
-
-*/
 
 export class TrainTripCreated {
   constructor(readonly id: TrainTripId) { }

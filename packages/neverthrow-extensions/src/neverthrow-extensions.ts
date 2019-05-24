@@ -396,5 +396,3 @@ export function resultTuple3(input: any, ...resultFNs: Array<(input: any) => Res
   const successes = (results as Array<Ok<any, any>>).map(x => x.value) as readonly any[]
   return ok(successes)
 }
-
-export const success = <TErr>() => ok<void, TErr>(void 0)

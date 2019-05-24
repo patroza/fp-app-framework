@@ -1,130 +1,93 @@
 import { PipeFunction, Result } from "@fp-app/neverthrow-extensions"
-import { Constructor, logger, setFunctionName, typedKeysOf } from "../../utils"
+import { Constructor, setFunctionName } from "../../utils"
 import assert from "../../utils/assert"
-import { UnitOfWork } from "../context.base"
-import { registerDomainEventHandler, registerIntegrationEventHandler } from "../createDependencyNamespace"
+import { registerEventHandler } from "../createDependencyNamespace"
 import { generateKey } from "../SimpleContainer"
 
 export interface RequestContextBase { id: string, correllationId: string }
 
 export type WithDependencies<TDependencies, T> = (deps: TDependencies) => T
-export type WithDependenciesConfig<TDependencies, T> = (((deps: TDependencies) => T) & { $$inject: TDependencies })
 export type EventHandlerWithDependencies<TDependencies, TInput, TOutput, TError> = HandlerWithDependencies<TDependencies, TInput, TOutput, TError>
 export type UsecaseWithDependencies<TDependencies, TInput, TOutput, TError> = HandlerWithDependencies<TDependencies, TInput, TOutput, TError>
 
-export const configureDependencies = <TDependencies, T>(
-  deps: TDependencies,
-  f: WithDependencies<TDependencies, T>,
-): WithDependenciesConfig<TDependencies, T> => {
-  const keys = typedKeysOf(deps)
-  if (keys.length && keys.some(key => !deps[key])) { throw new Error(`Has empty dependencies`) }
-  const anyF: any = f
-  anyF.$$inject = deps
-  return anyF
-}
-
-export const UOWKey = generateKey<UnitOfWork>("unit-of-work")
-
 type HandlerWithDependencies<TDependencies, TInput, TOutput, TError> = WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>
+type HandlerType = "COMMAND" | "QUERY" | "EVENT"
 
 // tslint:disable-next-line:max-line-length
-export type NamedHandlerWithDependencies<TDependencies, TInput, TOutput, TError> = WithDependencies<TDependencies, NamedRequestHandler<TInput, TOutput, TError>> & HandlerInfo<TDependencies>
-
-interface HandlerInfo<TDependencies> { name: string, type: HandlerType, $$inject: TDependencies }
-type HandlerType = "COMMAND" | "QUERY" | "DOMAINEVENT" | "INTEGRATIONEVENT"
-
-// tslint:disable-next-line:max-line-length
-// type HandlerTuple<TDependencies, TInput, TOutput, TError> = readonly [
-//   NamedHandlerWithDependencies<TDependencies, TInput, TOutput, TError>,
-//   TDependencies,
-//   { name: string, type: HandlerType }
-// ]
+type HandlerTuple<TDependencies, TInput, TOutput, TError> = readonly [
+  HandlerWithDependencies<TDependencies, TInput, TOutput, TError>,
+  NamedRequestHandler<TInput, TOutput, TError>,
+  TDependencies,
+  { name: string, type: HandlerType }
+]
 
 const registerUsecaseHandler = <TDependencies>(deps: TDependencies) =>
   (name: string, type: HandlerType) =>
     <TInput, TOutput, TError>(
       handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TError>,
-    ) => {
-      assert(!typedKeysOf(deps).some(x => !deps[x]), "Dependencies must not be null")
+    ): void => {
+      assert(!Object.keys(deps).some(x => !(deps as any)[x]), "Dependencies must not be null")
 
+      const key = generateKey<NamedRequestHandler<TInput, TOutput, TError>>(name)
       const anyHandler: any = handler
-      anyHandler.type = type
-      anyHandler.$$inject = deps
+      anyHandler.isCommand = type === "COMMAND"
       setFunctionName(handler, name)
 
-      const newHandler = handler as NamedHandlerWithDependencies<TDependencies, TInput, TOutput, TError>
-
-      // const r = [newHandler, deps, { name, type }] as const
-      // dependencyMap.set(handler, r)
-      requestAndEventHandlers.push(newHandler)
-      return newHandler
+      const r = [handler, key, deps, { name, type }] as const
+      dependencyMap.set(handler, r)
     }
 
 // tslint:disable-next-line:max-line-length
 const createCommandWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
   handler = copyHandler(handler)
   const setupWithDeps = registerUsecaseHandler(deps)
-  const newHandler = setupWithDeps(name, "COMMAND")(handler)
-  logger.debug(`Created Command handler ${name}`)
-  return newHandler
+  setupWithDeps(name, "COMMAND")(handler)
+  return handler
 }
 
 // tslint:disable-next-line:max-line-length
 const createQueryWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
   handler = copyHandler(handler)
   const setupWithDeps = registerUsecaseHandler(deps)
-  const newHandler = setupWithDeps(name, "QUERY")(handler)
-  logger.debug(`Created Query handler ${name}`)
-  return newHandler
+  setupWithDeps(name, "QUERY")(handler)
+  return handler
 }
 
 // tslint:disable-next-line:max-line-length
-const createDomainEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(event: Constructor<TInput>, name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
+const createEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(event: Constructor<TInput>, name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
   handler = copyHandler(handler)
   const setupWithDeps = registerUsecaseHandler(deps)
-  const newHandler = setupWithDeps(`on${event.name}${name}`, "DOMAINEVENT")(handler)
-  registerDomainEventHandler(event, handler)
-  return newHandler
-}
-
-// tslint:disable-next-line:max-line-length
-const createIntegrationEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(event: Constructor<TInput>, name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
-  handler = copyHandler(handler)
-  const setupWithDeps = registerUsecaseHandler(deps)
-  const newHandler = setupWithDeps(`on${event.name}${name}`, "INTEGRATIONEVENT")(handler)
-  registerIntegrationEventHandler(event, handler)
-  return newHandler
+  setupWithDeps(`on${event.name}${name}`, "EVENT")(handler)
+  registerEventHandler(event, dependencyMap.get(handler)![1])
+  return handler
 }
 
 const copyHandler = (handler: any) => (...args: any[]) => handler(...args)
 
-const requestAndEventHandlers: Array<NamedHandlerWithDependencies<any, any, any, any>> = []
+const getRegisteredRequestAndEventHandlers = () => [...dependencyMap.entries()]
 
-const getRegisteredRequestAndEventHandlers = () => [...requestAndEventHandlers]
+const getHandlerKey = (handler: UsecaseWithDependencies<any, any, any, any>) => {
+  const usecaseHandler = dependencyMap.get(handler)!
+  return usecaseHandler[1]
+}
 
 export {
+  getHandlerKey,
   getRegisteredRequestAndEventHandlers,
-  createCommandWithDeps, createDomainEventHandlerWithDeps,
-  createIntegrationEventHandlerWithDeps,
+  createCommandWithDeps, createEventHandlerWithDeps,
   createQueryWithDeps,
 }
 
 export type requestType = <TInput, TOutput, TError>(
-  requestHandler: NamedHandlerWithDependencies<any, TInput, TOutput, TError>,
+  requestHandler: UsecaseWithDependencies<any, TInput, TOutput, TError>,
   input: TInput,
 ) => Promise<Result<TOutput, TError>>
 
-export type requestInNewScopeType = <TInput, TOutput, TError>(
-  requestHandler: NamedHandlerWithDependencies<any, TInput, TOutput, TError>,
-  input: TInput,
-) => Promise<Result<TOutput, TError>>
-
-export type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<TInput, TOutput, TErr> & HandlerInfo<any>
+export type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<TInput, TOutput, TErr> & { name: string, isCommand: boolean }
 
 export const requestKey = generateKey<requestType>()
-export const requestInNewScopeKey = generateKey<requestInNewScopeType>()
 
-// const dependencyMap = new Map<HandlerWithDependencies<any, any, any, any>, HandlerTuple<any, any, any, any>>()
+const dependencyMap = new Map<HandlerWithDependencies<any, any, any, any>, HandlerTuple<any, any, any, any>>()
 
 // Allow requesting a class directly, instead of requiring a key
 // However one should depend on abstract base classes (don't satisfy the contraint)
