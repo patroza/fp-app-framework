@@ -2,9 +2,9 @@ import { flatMap, flatTee, liftType, mapErr, Result } from "@fp-app/neverthrow-e
 import { benchLog, logger } from "../../utils"
 import { UnitOfWork } from "../context.base"
 import { DbError } from "../errors"
-import { NamedRequestHandler } from "../mediator"
+import { configureDependencies, NamedRequestHandler } from "../mediator"
 
-export const loggingDecorator = (): RequestDecorator =>
+export const loggingDecorator = configureDependencies({}, (): RequestDecorator =>
   request =>
     (key, input) => {
       const prefix = `${key.name} ${key.type}`
@@ -14,7 +14,8 @@ export const loggingDecorator = (): RequestDecorator =>
         logger.log(`${prefix} result`, result)
         return result
       }, prefix)
-    }
+    },
+)
 
 export const uowDecorator = (unitOfWork: UnitOfWork): RequestDecorator =>
   request =>

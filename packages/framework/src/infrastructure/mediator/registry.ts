@@ -7,15 +7,25 @@ import { generateKey } from "../SimpleContainer"
 export interface RequestContextBase { id: string, correllationId: string }
 
 export type WithDependencies<TDependencies, T> = (deps: TDependencies) => T
+export type WithDependenciesConfig<TDependencies, T> = (((deps: TDependencies) => T) & { $$inject: TDependencies })
 export type EventHandlerWithDependencies<TDependencies, TInput, TOutput, TError> = HandlerWithDependencies<TDependencies, TInput, TOutput, TError>
 export type UsecaseWithDependencies<TDependencies, TInput, TOutput, TError> = HandlerWithDependencies<TDependencies, TInput, TOutput, TError>
+
+export const configureDependencies = <TDependencies, T>(
+  deps: TDependencies,
+  f: WithDependencies<TDependencies, T>,
+): WithDependenciesConfig<TDependencies, T> => {
+  const anyF: any = f
+  anyF.$$inject = deps
+  return anyF
+}
 
 type HandlerWithDependencies<TDependencies, TInput, TOutput, TError> = WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>
 
 // tslint:disable-next-line:max-line-length
-export type NamedHandlerWithDependencies<TDependencies, TInput, TOutput, TError> = WithDependencies<TDependencies, NamedRequestHandler<TInput, TOutput, TError>> & HandlerInfo
+export type NamedHandlerWithDependencies<TDependencies, TInput, TOutput, TError> = WithDependencies<TDependencies, NamedRequestHandler<TInput, TOutput, TError>> & HandlerInfo<TDependencies>
 
-interface HandlerInfo { name: string, type: HandlerType, deps: any[] }
+interface HandlerInfo<TDependencies> { name: string, type: HandlerType, $$inject: TDependencies }
 type HandlerType = "COMMAND" | "QUERY" | "DOMAINEVENT" | "INTEGRATIONEVENT"
 
 // tslint:disable-next-line:max-line-length
@@ -34,7 +44,7 @@ const registerUsecaseHandler = <TDependencies>(deps: TDependencies) =>
 
       const anyHandler: any = handler
       anyHandler.type = type
-      anyHandler.deps = deps
+      anyHandler.$$inject = deps
       setFunctionName(handler, name)
 
       const newHandler = handler as NamedHandlerWithDependencies<TDependencies, TInput, TOutput, TError>
@@ -104,7 +114,7 @@ export type requestInNewScopeType = <TInput, TOutput, TError>(
   input: TInput,
 ) => Promise<Result<TOutput, TError>>
 
-export type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<TInput, TOutput, TErr> & HandlerInfo
+export type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<TInput, TOutput, TErr> & HandlerInfo<any>
 
 export const requestKey = generateKey<requestType>()
 export const requestInNewScopeKey = generateKey<requestInNewScopeType>()

@@ -1,4 +1,4 @@
-import { Key, requestInNewScopeKey, UnitOfWork } from "@fp-app/framework"
+import { Key, UnitOfWork } from "@fp-app/framework"
 import { createDependencyNamespace } from "@fp-app/framework"
 import { exists, mkdir } from "../../../packages/io.diskdb/src/utils"
 import "./TrainTrip/eventhandlers" // To be ble to auto register them :/
@@ -21,8 +21,10 @@ const createRoot = () => {
     DbContextKey as any as Key<UnitOfWork>,
   )
 
-  container.registerScopedO(DbContextKey, () => container.createNewInstance(DiskDBContext))
+  container.registerScopedO2(DbContextKey, DiskDBContext)
 
+  container.registerSingletonO2(TrainTripPublisherKey, TrainTripPublisherInMemory)
+  container.registerSingletonO2(trainTripReadContextKey, TrainTripReadContext)
   container.registerSingletonF(sendCloudSyncKey, () => sendCloudSyncFake({ cloudUrl: "" }))
   container.registerSingletonF(
     getTripKey,
@@ -31,14 +33,6 @@ const createRoot = () => {
       return getTripF
     },
   )
-  container.registerSingletonO(TrainTripPublisherKey, () => new TrainTripPublisherInMemory(container.getF(requestInNewScopeKey)))
-  container.registerSingletonO(trainTripReadContextKey, () => new TrainTripReadContext())
-
-  // TODO: this needs to become automated, or simplified to register both key and class
-  // the key can be used for functions, the class for other classes, although they can also support keys
-  // so perhaps better to just generate keys for all, except that classes can be auto-injected based on
-  // decorator metadata so... (perhaps that can be done with functions at some point too - somehow?)
-  container.registerSingletonC(TrainTripReadContext, () => container.getO(trainTripReadContextKey))
 
   return {
     bindLogger,
