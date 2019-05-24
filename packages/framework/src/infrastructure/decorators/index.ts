@@ -1,5 +1,5 @@
 import { flatMap, flatTee, liftType, mapErr, Result } from "@fp-app/neverthrow-extensions"
-import { benchLog, logger } from "../../utils"
+import { benchLog, logger, using } from "../../utils"
 import { DbError } from "../errors"
 import { configureDependencies, NamedRequestHandler, UOWKey } from "../mediator"
 
@@ -22,11 +22,11 @@ export const uowDecorator = configureDependencies({ unitOfWork: UOWKey }, ({ uni
         return request(key, input)
       }
 
-      return request(key, input)
+      return using(unitOfWork, () => request(key, input)
         .pipe(
           mapErr(liftType<any | DbError>()),
           flatMap(flatTee(unitOfWork.save)),
-        )
+        ))
     },
 )
 

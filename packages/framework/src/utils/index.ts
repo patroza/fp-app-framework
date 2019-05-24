@@ -1,4 +1,5 @@
 import chalk from "chalk"
+import assert from "./assert"
 
 export * from "@fp-app/neverthrow-extensions"
 export * from "./validation"
@@ -44,10 +45,24 @@ const setFunctionName = (fnc: any, name: string) => Object.defineProperty(fnc, "
 
 export const typedKeysOf = <T>(obj: T) => Object.keys(obj) as Array<keyof T>
 
+export interface Disposable {
+  dispose(): void
+}
+
+const using = async <T>(disposable: Disposable, fnc: () => Promise<T> | T) => {
+  assert(!disposable || !!disposable.dispose, "The provided disposable must implement a `dispose` function")
+  try {
+    return await fnc()
+  } finally {
+    if (disposable) { disposable.dispose() }
+  }
+}
+
 export {
   asWritable,
   benchLog,
   setLogger,
   isTruthyFilter,
   setFunctionName,
+  using,
 }
