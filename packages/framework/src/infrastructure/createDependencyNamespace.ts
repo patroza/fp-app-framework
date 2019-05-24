@@ -12,9 +12,9 @@ import {
   getHandlerKey, getRegisteredRequestAndEventHandlers,
   publish, request, RequestContextBase, requestKey, requestType,
 } from "./mediator"
-import SimpleContainer, { DependencyScope, generateKey } from "./SimpleContainer"
+import SimpleContainer, { DependencyScope, generateKey, Key } from "./SimpleContainer"
 
-export default function createDependencyNamespace(namespace: string, requestScopeKey: RequestContextBase, uowKey: UnitOfWork) {
+export default function createDependencyNamespace(namespace: string, requestScopeKey: Key<RequestContextBase>, uowKey: Key<UnitOfWork>) {
   const ns = createNamespace(namespace)
   const dependencyScopeKey = "dependencyScope"
   const getDependencyScope = (): DependencyScope => getNamespace(namespace).get(dependencyScopeKey)
@@ -29,7 +29,7 @@ export default function createDependencyNamespace(namespace: string, requestScop
   }
 
   const bindLogger = (fnc: (...args2: any[]) => void) => (...args: any[]) => {
-    const context = container.tryGetF(requestScopeKey)
+    const context = container.tryGetO(requestScopeKey)
     const datetime = new Date()
     const timestamp = format(datetime, "YYYY-MM-DD HH:mm:ss")
     const id = context ? (context.correllationId === context.id
@@ -41,10 +41,10 @@ export default function createDependencyNamespace(namespace: string, requestScop
 
   const setupChildContext = <T>(cb: () => Promise<T>) =>
     ns.runPromise(() => {
-      let context = container.getF(requestScopeKey)
+      let context = container.getO(requestScopeKey)
       const { correllationId, id } = context
       container.createScope()
-      context = container.getF(requestScopeKey)
+      context = container.getO(requestScopeKey)
       Object.assign(context, { correllationId: correllationId || id })
 
       return cb()
@@ -54,7 +54,7 @@ export default function createDependencyNamespace(namespace: string, requestScop
     ns.runPromise(() => {
       container.createScope()
       return cb(
-        container.getF(requestScopeKey),
+        container.getO(requestScopeKey),
         (emitter: EventEmitter) => ns.bindEmitter(emitter),
       )
     })
@@ -70,7 +70,7 @@ export default function createDependencyNamespace(namespace: string, requestScop
   const uowDecoratorKey = generateKey<ReturnType<typeof uowDecorator>>()
   const loggingDecoratorKey = generateKey<ReturnType<typeof loggingDecorator>>()
 
-  container.registerScopedF(uowDecoratorKey, () => uowDecorator(container.getF(uowKey)))
+  container.registerScopedF(uowDecoratorKey, () => uowDecorator(container.getO(uowKey)))
   container.registerSingletonF(loggingDecoratorKey, () => loggingDecorator())
   container.registerDecorator(requestKey, uowDecoratorKey, loggingDecoratorKey)
   container.registerSingletonF(executePostCommitHandlersKey, () => executePostCommitHandlers({ setupChildContext }))
