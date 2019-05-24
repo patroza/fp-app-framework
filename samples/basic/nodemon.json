@@ -1,0 +1,12 @@
+{
+  "watch": [
+    ".",
+    "src/**/*",
+    "../../packages/**/*"
+  ],
+  "ignore": [
+    "data/**/*",
+    "router-schema.json"
+  ],
+  "ext": "ts, js, json"
+}

@@ -4,7 +4,7 @@ module.exports = {
     "^.+\\.tsx?$": "ts-jest"
   },
   "moduleNameMapper": {
-    "^@/(.*)$": "<rootDir>/samples/basic/src/$1"
+    "^@/(.*)$": "<rootDir>/src/$1"
   },
   globals: {
     'ts-jest': {
@@ -20,6 +20,5 @@ module.exports = {
     "jsx",
     "json",
     "node"
-  ],
-  "testPathIgnorePatterns": ["/node_modules/"]
+  ]
 }

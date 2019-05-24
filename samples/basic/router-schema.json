@@ -1,0 +1,370 @@
+{
+  "/train-trip": [
+    {
+      "method": "POST",
+      "subPath": "/",
+      "fullPath": "/train-trip/",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "pax": {
+            "type": "object",
+            "properties": {
+              "adults": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "babies": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "children": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "infants": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "teenagers": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              }
+            },
+            "additionalProperties": false,
+            "patterns": [],
+            "required": [
+              "adults",
+              "babies",
+              "children",
+              "infants",
+              "teenagers"
+            ]
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "templateId": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "patterns": [],
+        "required": [
+          "pax",
+          "startDate",
+          "templateId"
+        ]
+      }
+    },
+    {
+      "method": "GET",
+      "subPath": "/:trainTripId",
+      "fullPath": "/train-trip/:trainTripId",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "trainTripId": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "patterns": [],
+        "required": [
+          "trainTripId"
+        ]
+      }
+    },
+    {
+      "method": "PATCH",
+      "subPath": "/:trainTripId",
+      "fullPath": "/train-trip/:trainTripId",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "pax": {
+            "type": "object",
+            "properties": {
+              "adults": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "babies": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "children": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "infants": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "teenagers": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              }
+            },
+            "additionalProperties": false,
+            "patterns": [],
+            "required": [
+              "adults",
+              "babies",
+              "children",
+              "infants",
+              "teenagers"
+            ]
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "trainTripId": {
+            "type": "string"
+          },
+          "travelClass": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "patterns": [],
+        "required": [
+          "pax",
+          "trainTripId"
+        ]
+      }
+    },
+    {
+      "method": "DELETE",
+      "subPath": "/:trainTripId",
+      "fullPath": "/train-trip/:trainTripId",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "trainTripId": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "patterns": [],
+        "required": [
+          "trainTripId"
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "subPath": "/:trainTripId/lock",
+      "fullPath": "/train-trip/:trainTripId/lock",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "trainTripId": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "patterns": [],
+        "required": [
+          "trainTripId"
+        ]
+      }
+    }
+  ],
+  "/train-trip-auth": [
+    {
+      "method": "POST",
+      "subPath": "/",
+      "fullPath": "/train-trip-auth/",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "pax": {
+            "type": "object",
+            "properties": {
+              "adults": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "babies": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "children": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "infants": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "teenagers": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              }
+            },
+            "additionalProperties": false,
+            "patterns": [],
+            "required": [
+              "adults",
+              "babies",
+              "children",
+              "infants",
+              "teenagers"
+            ]
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "templateId": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "patterns": [],
+        "required": [
+          "pax",
+          "startDate",
+          "templateId"
+        ]
+      }
+    },
+    {
+      "method": "GET",
+      "subPath": "/:trainTripId",
+      "fullPath": "/train-trip-auth/:trainTripId",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "trainTripId": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "patterns": [],
+        "required": [
+          "trainTripId"
+        ]
+      }
+    },
+    {
+      "method": "PATCH",
+      "subPath": "/:trainTripId",
+      "fullPath": "/train-trip-auth/:trainTripId",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "pax": {
+            "type": "object",
+            "properties": {
+              "adults": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "babies": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "children": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "infants": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "teenagers": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              }
+            },
+            "additionalProperties": false,
+            "patterns": [],
+            "required": [
+              "adults",
+              "babies",
+              "children",
+              "infants",
+              "teenagers"
+            ]
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "trainTripId": {
+            "type": "string"
+          },
+          "travelClass": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "patterns": [],
+        "required": [
+          "pax",
+          "trainTripId"
+        ]
+      }
+    },
+    {
+      "method": "DELETE",
+      "subPath": "/:trainTripId",
+      "fullPath": "/train-trip-auth/:trainTripId",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "trainTripId": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "patterns": [],
+        "required": [
+          "trainTripId"
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "subPath": "/:trainTripId/lock",
+      "fullPath": "/train-trip-auth/:trainTripId/lock",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "trainTripId": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "patterns": [],
+        "required": [
+          "trainTripId"
+        ]
+      }
+    }
+  ]
+}

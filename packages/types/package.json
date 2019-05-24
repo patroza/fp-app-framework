@@ -1,0 +1,20 @@
+{
+  "name": "@types/fp-app-global",
+  "version": "0.1.0",
+  "main": "index.js",
+  "author": "Patrick Roza <contact@patrickroza.com>",
+  "license": "MIT",
+  "types": "index",
+  "dependencies": {
+    "neverthrow": "https://github.com/patroza/neverthrow.git#17b3e8fc5755aa191c1d6653524f555646fbf8bc"
+  },
+  "devDependencies": {
+    "@types/node": "12"
+  },
+  "scripts": {
+    "test": "jest",
+    "test:compile": "tsc --noEmit",
+    "test:lint": "tslint --project .",
+    "testsuite": "yarn test:compile && yarn test:lint && yarn test"
+  }
+}

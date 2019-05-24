@@ -1,0 +1,43 @@
+{
+  "name": "@fp-app/framework",
+  "version": "0.1.0",
+  "main": "index.js",
+  "author": "Patrick Roza <contact@patrickroza.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@hapi/joi": "^15.0.3",
+    "@fp-app/neverthrow-extensions": "0.1.0",
+    "chalk": "^2.4.2",
+    "cls-hooked": "^4.2.2",
+    "date-fns": "^1.30.1",
+    "invariant": "^2.2.4",
+    "joi-to-json-schema": "^5.0.0",
+    "lodash": "^4.17.11",
+    "short-uuid": "^3.1.1",
+    "tsconfig-paths": "^3.8.0",
+    "typescript": "^3.5.0rc",
+    "uuid": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/fp-app-global": "0.1.0",
+    "@types/cls-hooked": "^4.3.0",
+    "@types/hapi__joi": "^15.0.1",
+    "@types/invariant": "^2.2.29",
+    "@types/jest": "^24.0.13",
+    "@types/joi": "^14.3.3",
+    "@types/lodash": "^4.14.129",
+    "@types/node": "12",
+    "@types/uuid": "^3.4.4",
+    "jest": "^24.8.0",
+    "nodemon": "^1.19.0",
+    "ts-jest": "^24.0.2",
+    "ts-node": "^8.1.0",
+    "tslint": "^5.16.0"
+  },
+  "scripts": {
+    "test": "jest",
+    "test:compile": "tsc --noEmit",
+    "test:lint": "tslint --project .",
+    "testsuite": "yarn test:compile && yarn test:lint && yarn test"
+  }
+}
