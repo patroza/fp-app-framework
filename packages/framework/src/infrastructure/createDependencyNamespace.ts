@@ -4,7 +4,6 @@ import format from "date-fns/format"
 import { EventEmitter } from "events"
 import { Constructor, logger } from "../utils"
 import { generateShortUuid } from "../utils/generateUuid"
-import { UnitOfWork } from "./context.base"
 import { loggingDecorator, uowDecorator } from "./decorators"
 import DomainEventHandler, { executePostCommitHandlersKey } from "./domainEventHandler"
 import executePostCommitHandlers from "./executePostCommitHandlers"
@@ -12,9 +11,9 @@ import {
   getRegisteredRequestAndEventHandlers,
   publish, request, RequestContextBase, requestInNewScopeKey, requestInNewScopeType, requestKey, requestType,
 } from "./mediator"
-import SimpleContainer, { DependencyScope, generateKey, Key } from "./SimpleContainer"
+import SimpleContainer, { DependencyScope, Key } from "./SimpleContainer"
 
-export default function createDependencyNamespace(namespace: string, requestScopeKey: Key<RequestContextBase>, uowKey: Key<UnitOfWork>) {
+export default function createDependencyNamespace(namespace: string, requestScopeKey: Key<RequestContextBase>) {
   const ns = createNamespace(namespace)
   const dependencyScopeKey = "dependencyScope"
   const getDependencyScope = (): DependencyScope => getNamespace(namespace).get(dependencyScopeKey)
@@ -66,10 +65,9 @@ export default function createDependencyNamespace(namespace: string, requestScop
   container.registerScopedO(requestScopeKey, () => { const id = generateShortUuid(); return { id, correllationId: id } })
   getRegisteredRequestAndEventHandlers().forEach(h => container.registerScopedConcrete(h))
 
-  const uowDecoratorKey = generateKey<ReturnType<typeof uowDecorator>>()
-  container.registerScopedF(uowDecoratorKey, () => uowDecorator(container.getO(uowKey)))
+  container.registerScopedConcrete(uowDecorator)
   container.registerSingletonConcrete(loggingDecorator)
-  container.registerDecorator(requestKey, uowDecoratorKey, loggingDecorator)
+  container.registerDecorator(requestKey, uowDecorator, loggingDecorator)
 
   container.registerSingletonF(
     executePostCommitHandlersKey,

@@ -1,6 +1,7 @@
 import { PipeFunction, Result } from "@fp-app/neverthrow-extensions"
-import { Constructor, logger, setFunctionName } from "../../utils"
+import { Constructor, logger, setFunctionName, typedKeysOf } from "../../utils"
 import assert from "../../utils/assert"
+import { UnitOfWork } from "../context.base"
 import { registerDomainEventHandler, registerIntegrationEventHandler } from "../createDependencyNamespace"
 import { generateKey } from "../SimpleContainer"
 
@@ -15,10 +16,14 @@ export const configureDependencies = <TDependencies, T>(
   deps: TDependencies,
   f: WithDependencies<TDependencies, T>,
 ): WithDependenciesConfig<TDependencies, T> => {
+  const keys = typedKeysOf(deps)
+  if (keys.length && keys.some(key => !deps[key])) { throw new Error(`Has empty dependencies`) }
   const anyF: any = f
   anyF.$$inject = deps
   return anyF
 }
+
+export const UOWKey = generateKey<UnitOfWork>("unit-of-work")
 
 type HandlerWithDependencies<TDependencies, TInput, TOutput, TError> = WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>
 
@@ -40,7 +45,7 @@ const registerUsecaseHandler = <TDependencies>(deps: TDependencies) =>
     <TInput, TOutput, TError>(
       handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TError>,
     ) => {
-      assert(!Object.keys(deps).some(x => !(deps as any)[x]), "Dependencies must not be null")
+      assert(!typedKeysOf(deps).some(x => !deps[x]), "Dependencies must not be null")
 
       const anyHandler: any = handler
       anyHandler.type = type
