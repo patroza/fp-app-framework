@@ -3,11 +3,11 @@ import { ErrorBase } from "../errors"
 import assert from "../utils/assert"
 import { ValidatorType } from "../utils/validation"
 import { DbError } from "./errors"
-import { requestType, UsecaseWithDependencies } from "./mediator"
+import { NamedHandlerWithDependencies, requestType } from "./mediator"
 
 export default abstract class RouteBuilder<TContext> {
   private static register = <TContext>(method: METHODS, obj: RouteBuilder<TContext>) => <TDependencies, TInput, TOutput, TError, TValidationError>(
-    path: string, requestHandler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TError>,
+    path: string, requestHandler: NamedHandlerWithDependencies<TDependencies, TInput, TOutput, TError>,
     validator: ValidatorType<TInput, TValidationError>,
     errorHandler?: ErrorHandlerType<TContext, DbError | TError | TValidationError>,
   ) => {
@@ -56,7 +56,7 @@ export const defaultErrorPassthrough = () => (err: any) => err
 interface RegisteredRoute<TContext> {
   method: METHODS,
   path: string,
-  requestHandler: UsecaseWithDependencies<any, any, any, any>,
+  requestHandler: NamedHandlerWithDependencies<any, any, any, any>,
   validator: ValidatorType<any, any>,
   errorHandler?: ErrorHandlerType<TContext, DbError | any>,
 }

@@ -1,4 +1,4 @@
-import { Key, UnitOfWork } from "@fp-app/framework"
+import { Key, requestInNewScopeKey, UnitOfWork } from "@fp-app/framework"
 import { createDependencyNamespace } from "@fp-app/framework"
 import { exists, mkdir } from "../../../packages/io.diskdb/src/utils"
 import "./TrainTrip/eventhandlers" // To be ble to auto register them :/
@@ -31,7 +31,7 @@ const createRoot = () => {
       return getTripF
     },
   )
-  container.registerSingletonO(TrainTripPublisherKey, () => new TrainTripPublisherInMemory(request))
+  container.registerSingletonO(TrainTripPublisherKey, () => new TrainTripPublisherInMemory(container.getF(requestInNewScopeKey)))
   container.registerSingletonO(trainTripReadContextKey, () => new TrainTripReadContext())
 
   // TODO: this needs to become automated, or simplified to register both key and class

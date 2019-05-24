@@ -30,6 +30,13 @@ export default class SimpleContainer {
     return this.tryCreateInstance<T>(key)
   }
 
+  // tslint:disable-next-line:ban-types
+  tryGetConcrete<TDependencies, T>(key: (deps: TDependencies) => T) {
+    assert.isNotNull({ key })
+
+    return this.tryCreateInstance<T>(key)
+  }
+
   tryGetO<T>(key: Key<T>) {
     assert.isNotNull({ key })
 
@@ -41,6 +48,14 @@ export default class SimpleContainer {
     assert.isNotNull({ key })
 
     const f = this.tryGetF<T>(key)
+    if (!f) { throw new Error(`could not resolve ${key}`) }
+    return f
+  }
+
+  getConcrete<TDependencies, T>(key: (deps: TDependencies) => T) {
+    assert.isNotNull({ key })
+
+    const f = this.tryGetConcrete(key)
     if (!f) { throw new Error(`could not resolve ${key}`) }
     return f
   }
@@ -95,6 +110,12 @@ export default class SimpleContainer {
   registerScopedF<T extends (...args: any[]) => any>(key: T, factory: () => T) {
     assert.isNotNull({ key, factory })
     this.factories.set(key, () => tryOrNull(() => this.getDependencyScope(), s => s.getOrCreate(key, this.resolveDecoratorsF(key, factory))))
+  }
+
+  registerScopedConcrete<TDependencies, T>(key: (deps: TDependencies) => T, factory: () => T) {
+    assert.isNotNull({ key, factory })
+    // TODO
+    this.factories.set(key, () => tryOrNull(() => this.getDependencyScope(), s => s.getOrCreate(key, this.resolveDecoratorsF(key, factory as any))))
   }
 
   registerDecorator<T extends (...args: any[]) => any>(forKey: T, ...decorators: any[]) {

@@ -1,13 +1,13 @@
 import { TrainTripPublisher } from "@/TrainTrip/eventhandlers"
 import { TrainTripId } from "@/TrainTrip/TrainTrip"
-import { requestType } from "@fp-app/framework"
+import { requestInNewScopeType } from "@fp-app/framework"
 import { logger } from "@fp-app/framework"
 import registerCloud from "../usecases/registerCloud"
 
 export default class TrainTripPublisherInMemory implements TrainTripPublisher {
   private readonly map = new Map<TrainTripId, NodeJS.Timeout>()
 
-  constructor(private readonly request: requestType) { }
+  constructor(private readonly request: requestInNewScopeType) { }
 
   registerIfPending = async (trainTripId: TrainTripId) => {
     if (!this.trainTripIsPending(trainTripId)) { return }

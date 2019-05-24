@@ -1,15 +1,17 @@
 import Koa from "koa"
 
-import { CombinedValidationError, ErrorBase, FieldValidationError, ForbiddenError, ValidationError } from "@fp-app/framework"
+import {
+  CombinedValidationError, ErrorBase, FieldValidationError, ForbiddenError, NamedHandlerWithDependencies, ValidationError,
+} from "@fp-app/framework"
 import { ConnectionError, CouldNotAquireDbLockError, DbError, OptimisticLockError, RecordNotFound } from "@fp-app/framework"
-import { requestType, UsecaseWithDependencies } from "@fp-app/framework"
+import { requestType } from "@fp-app/framework"
 import { defaultErrorPassthrough, ErrorHandlerType } from "@fp-app/framework"
 import { logger } from "@fp-app/framework"
 import { flatMap, Result, startWithVal } from "@fp-app/framework"
 
 export default function generateKoaHandler<I, T, E extends ErrorBase, E2 extends ValidationError>(
   request: requestType,
-  handler: UsecaseWithDependencies<any, I, T, E>,
+  handler: NamedHandlerWithDependencies<any, I, T, E>,
   validate: (i: I) => Result<I, E2>,
   handleErrorOrPassthrough: ErrorHandlerType<Koa.Context, DbError | E | E2> = defaultErrorPassthrough,
 ) {

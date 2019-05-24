@@ -7,7 +7,7 @@ import { NamedRequestHandler } from "../mediator"
 export const loggingDecorator = (): RequestDecorator =>
   request =>
     (key, input) => {
-      const prefix = `${key.name} ${key.isCommand ? "Command" : "Query"}`
+      const prefix = `${key.name} ${key.type}`
       return benchLog(async () => {
         logger.log(`${prefix} input`, input)
         const result = await request(key, input)
@@ -19,7 +19,7 @@ export const loggingDecorator = (): RequestDecorator =>
 export const uowDecorator = (unitOfWork: UnitOfWork): RequestDecorator =>
   request =>
     (key, input) => {
-      if (!key.isCommand) {
+      if (key.type !== "COMMAND" && key.type !== "INTEGRATIONEVENT") {
         return request(key, input)
       }
 
