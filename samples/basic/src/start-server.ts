@@ -7,7 +7,7 @@ import createRoot from "./root"
 import createRootRouter from "./root.router"
 
 const startServer = async () => {
-  const { bindLogger, initialize, setupRootContext, request } = createRoot()
+  const { bindLogger, initialize, setupRequestContext, request } = createRoot()
 
   await initialize()
 
@@ -26,7 +26,7 @@ const startServer = async () => {
 
   const app = new Koa()
     .use(saveStartTime)
-    .use(setupNamespace({ setupRootContext }))
+    .use(setupNamespace({ setupRequestContext }))
     .use(logRequestTime)
     .use(bodyParser())
     .use(handleAuthenticationFailedMiddleware)

@@ -9,11 +9,11 @@ import onFinished from "on-finished"
 export const saveStartTime: Koa.Middleware = (ctx, next) => { ctx["start-time"] = process.hrtime(); return next() }
 
 export const setupNamespace = (
-  { setupRootContext }: {
-    setupRootContext: <T>(
+  { setupRequestContext }: {
+    setupRequestContext: <T>(
       cb: (context: RequestContextBase, bindEmitter: (emitter: EventEmitter) => void) => Promise<T>,
     ) => Promise<T>,
-  }): Koa.Middleware => (ctx, next) => setupRootContext((context, bindEmitter) => {
+  }): Koa.Middleware => (ctx, next) => setupRequestContext((context, bindEmitter) => {
     bindEmitter(ctx.req)
     bindEmitter(ctx.res)
 
@@ -32,7 +32,7 @@ export const logRequestTime: Koa.Middleware = async (ctx, next) => {
   onFinished(ctx.res, () => {
     const elapsed = calculateElapsed(ctx["start-time"])
     const elapsedFormatted = `${elapsed}ms`
-    logger.debug(`${chalk.bgWhite.black(elapsedFormatted)} ${chalk.bold(reqPath)} Closed request`)
+    logger.debug(`${chalk.bgWhite.black(elapsedFormatted)} ${chalk.bold(reqPath)} Closed HTTP request`)
   })
 
   await next()
@@ -42,7 +42,7 @@ export const logRequestTime: Koa.Middleware = async (ctx, next) => {
   const elapsed2 = calculateElapsed(ctx["start-time"])
   const elapsedFormatted2 = `${elapsed2}ms`
   logger.log(
-    `${chalk.bgWhite.black(elapsedFormatted2)} ${chalk.bold(reqPath)} Finished processing`,
+    `${chalk.bgWhite.black(elapsedFormatted2)} ${chalk.bold(reqPath)} Finished HTTP processing`,
     JSON.parse(JSON.stringify({ status, headers })),
   )
 }

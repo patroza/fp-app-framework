@@ -45,9 +45,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
     let events: any[] = []
     const items = [...this.cache.values()].map(x => x.data).concat(this.removals)
     items.forEach(r => {
-      const rDataAny = r as any
-      events = events.concat(rDataAny._EVENTS)
-      rDataAny._EVENTS = []
+      events = events.concat(r.intGetAndClearEvents())
     })
     return events
   }
@@ -132,7 +130,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
   }
 }
 
-interface DBRecord { id: string }
+interface DBRecord { id: string, intGetAndClearEvents: () => any[] }
 interface SerializedDBRecord { version: number, data: string }
 interface CachedRecord<T> { version: number, data: T }
 

@@ -3,7 +3,7 @@ import { benchLog, logger } from "../../utils"
 import { DbError } from "../errors"
 import { configureDependencies, NamedRequestHandler, UOWKey } from "../mediator"
 
-export const loggingDecorator = (): RequestDecorator =>
+const loggingDecorator = (): RequestDecorator =>
   request =>
     (key, input) => {
       const prefix = `${key.name} ${key.type}`
@@ -15,20 +15,27 @@ export const loggingDecorator = (): RequestDecorator =>
       }, prefix)
     }
 
-export const uowDecorator = configureDependencies({ unitOfWork: UOWKey }, ({ unitOfWork }): RequestDecorator =>
-  request =>
-    (key, input) => {
-      if (key.type !== "COMMAND" && key.type !== "INTEGRATIONEVENT") {
-        return request(key, input)
-      }
+const uowDecorator = configureDependencies({ unitOfWork: UOWKey },
+  "uowDecorator",
+  ({ unitOfWork }): RequestDecorator =>
+    request =>
+      (key, input) => {
+        if (key.type !== "COMMAND" && key.type !== "INTEGRATIONEVENT") {
+          return request(key, input)
+        }
 
-      return request(key, input)
-        .pipe(
-          mapErr(liftType<any | DbError>()),
-          flatMap(flatTee(unitOfWork.save)),
-        )
-    },
+        return request(key, input)
+          .pipe(
+            mapErr(liftType<any | DbError>()),
+            flatMap(flatTee(unitOfWork.save)),
+          )
+      },
 )
+
+export {
+  loggingDecorator,
+  uowDecorator,
+}
 
 type RequestDecorator = <TInput, TOutput, TError>(
   request: (key: NamedRequestHandler<TInput, TOutput, TError>, input: TInput) =>

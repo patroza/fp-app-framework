@@ -1,4 +1,4 @@
-import { createDependencyNamespace, Key, UnitOfWork, UOWKey } from "@fp-app/framework"
+import { createDependencyNamespace, factoryOf, Key, logger, UnitOfWork, UOWKey } from "@fp-app/framework"
 import { exists, mkdir } from "@fp-app/io.diskdb"
 import "./TrainTrip/eventhandlers" // To be ble to auto register them :/
 import { getPricingFake, getTemplateFake, getTrip, sendCloudSyncFake } from "./TrainTrip/infrastructure/api"
@@ -7,11 +7,13 @@ import TrainTripPublisherInMemory from "./TrainTrip/infrastructure/trainTripPubl
 import TrainTripReadContext, { trainTripReadContextKey } from "./TrainTrip/infrastructure/TrainTripReadContext.disk"
 import { DbContextKey, getTripKey, RequestContextKey, sendCloudSyncKey, TrainTripPublisherKey } from "./TrainTrip/usecases/types"
 
+import chalk from "chalk"
+
 const createRoot = () => {
   const {
     bindLogger,
     container,
-    setupRootContext,
+    setupRequestContext,
 
     request,
   } = createDependencyNamespace(
@@ -19,12 +21,12 @@ const createRoot = () => {
     RequestContextKey,
   )
 
-  container.registerScopedO2(DbContextKey, DiskDBContext)
-  container.registerScopedO(UOWKey, () => container.getO(DbContextKey as any as Key<UnitOfWork>))
+  container.registerScopedC2(DbContextKey, DiskDBContext)
+  container.registerPassthrough(UOWKey, DbContextKey as any as Key<UnitOfWork>)
 
-  container.registerSingletonO2(TrainTripPublisherKey, TrainTripPublisherInMemory)
-  container.registerSingletonO2(trainTripReadContextKey, TrainTripReadContext)
-  container.registerSingletonF(sendCloudSyncKey, () => sendCloudSyncFake({ cloudUrl: "" }))
+  container.registerSingletonC2(TrainTripPublisherKey, TrainTripPublisherInMemory)
+  container.registerSingletonC2(trainTripReadContextKey, TrainTripReadContext)
+  container.registerSingletonF(sendCloudSyncKey, factoryOf(sendCloudSyncFake, f => f({ cloudUrl: "" })))
   container.registerSingletonF(
     getTripKey,
     () => {
@@ -33,10 +35,26 @@ const createRoot = () => {
     },
   )
 
+  // Prevent stack-overflow; as logger depends on requestcontext
+  // tslint:disable-next-line:no-console
+  const consoleOrLogger = (key: any) => key !== RequestContextKey ? logger : console
+  container.registerInitializerF(
+    "global",
+    (i, key) => consoleOrLogger(key).debug(chalk.magenta(`Created function of ${key.name} (${i.name})`)),
+  )
+  container.registerInitializerC(
+    "global",
+    (i, key) => consoleOrLogger(key).debug(chalk.magenta(`Created instance of ${key.name} (${i.constructor.name})`)),
+  )
+  container.registerInitializerO(
+    "global",
+    (i, key) => consoleOrLogger(key).debug(chalk.magenta(`Created object of ${key.name} (${i.constructor.name})`)),
+  )
+
   return {
     bindLogger,
     initialize,
-    setupRootContext,
+    setupRequestContext,
 
     request,
   }

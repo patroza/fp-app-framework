@@ -66,4 +66,6 @@ export default class DomainEventHandler {
   }
 }
 
-export const executePostCommitHandlersKey = generateKey<(eventMap: Map<any, Array<EventHandlerWithDependencies<any, any, any, any>>>) => void>()
+export const executePostCommitHandlersKey = generateKey<(eventMap: Map<any, Array<EventHandlerWithDependencies<any, any, any, any>>>) => void>(
+  "executePostCommitHandlers",
+)

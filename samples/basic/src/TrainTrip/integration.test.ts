@@ -20,7 +20,7 @@ let root: ReturnType<typeof createRoot>
 // cls helpers
 const createRootAndBind = (cb: () => Promise<void>) => {
   root = createRoot()
-  return root.setupRootContext(cb)
+  return root.setupRequestContext(cb)
 }
 
 // Silence logger
