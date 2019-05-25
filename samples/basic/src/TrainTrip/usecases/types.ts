@@ -9,7 +9,7 @@ import { getTrip, sendCloudSyncFake, Template, TravelPlan } from "../infrastruct
 import PaxDefinition from "../PaxDefinition"
 
 export const getTripKey = generateKeyFromFn(getTrip)
-export const sendCloudSyncKey = generateKeyFromFn(sendCloudSyncFake)
+export const sendCloudSyncKey = generateKey<ReturnType<typeof sendCloudSyncFake>>("sendCloudSync")
 export type getTravelPlanType = PipeFunction<string, TravelPlan, ApiError>
 export type getTemplateType = PipeFunction<string, Template, ApiError>
 export type getPricingType = (templateId: string, pax: PaxDefinition, startDate: Date) => Promise<Result<{ price: Price }, ApiError>>

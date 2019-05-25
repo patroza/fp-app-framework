@@ -1,4 +1,4 @@
-import { createDependencyNamespace, Key, UnitOfWork, UOWKey } from "@fp-app/framework"
+import { createDependencyNamespace, factoryOf, Key, logger, UnitOfWork, UOWKey } from "@fp-app/framework"
 import { exists, mkdir } from "@fp-app/io.diskdb"
 import "./TrainTrip/eventhandlers" // To be ble to auto register them :/
 import { getPricingFake, getTemplateFake, getTrip, sendCloudSyncFake } from "./TrainTrip/infrastructure/api"
@@ -13,7 +13,7 @@ const createRoot = () => {
   const {
     bindLogger,
     container,
-    setupRootContext,
+    setupRequestContext,
 
     request,
   } = createDependencyNamespace(
@@ -26,7 +26,7 @@ const createRoot = () => {
 
   container.registerSingletonC2(TrainTripPublisherKey, TrainTripPublisherInMemory)
   container.registerSingletonC2(trainTripReadContextKey, TrainTripReadContext)
-  container.registerSingletonF(sendCloudSyncKey, () => sendCloudSyncFake({ cloudUrl: "" }))
+  container.registerSingletonF(sendCloudSyncKey, factoryOf(sendCloudSyncFake, f => f({ cloudUrl: "" })))
   container.registerSingletonF(
     getTripKey,
     () => {
@@ -35,17 +35,26 @@ const createRoot = () => {
     },
   )
 
+  // Prevent stack-overflow; as logger depends on requestcontext
   // tslint:disable-next-line:no-console
-  container.registerInitializerF("global", (i, key) => console.debug(chalk.magenta(`Created function of ${key.name} (${i.name})`)))
-  // tslint:disable-next-line:no-console
-  container.registerInitializerC<any>("global", (i, key) => console.debug(chalk.magenta(`Created instance of ${key.name} (${i.constructor.name})`)))
-  // tslint:disable-next-line:no-console
-  container.registerInitializerO<any>("global", (i, key) => console.debug(chalk.magenta(`Created object of ${key.name} (${i.constructor.name})`)))
+  const consoleOrLogger = (key: any) => key !== RequestContextKey ? logger : console
+  container.registerInitializerF(
+    "global",
+    (i, key) => consoleOrLogger(key).debug(chalk.magenta(`Created function of ${key.name} (${i.name})`)),
+  )
+  container.registerInitializerC(
+    "global",
+    (i, key) => consoleOrLogger(key).debug(chalk.magenta(`Created instance of ${key.name} (${i.constructor.name})`)),
+  )
+  container.registerInitializerO(
+    "global",
+    (i, key) => consoleOrLogger(key).debug(chalk.magenta(`Created object of ${key.name} (${i.constructor.name})`)),
+  )
 
   return {
     bindLogger,
     initialize,
-    setupRootContext,
+    setupRequestContext,
 
     request,
   }
