@@ -29,21 +29,19 @@ see `TrainTrip.router.ts` for paths and methods, and `router-schema.json` for a 
 
 ## Thoughts
 
-- Authentication (for whole router, for just a route, opt-in or opt-out)
+- Authentication (for whole router [DONE], for just a route, opt-in or opt-out)
   - Based on command/query metadata or is it infrastructure concern?
   - BasicAuth
   - future: OAuth based
 - Authorization
-- Decorator support for the container
+- Keep up with Typescript improvements for Generic inference etc.
 
 ## After stabilization
 
 - Enhance container to prevent dependency capturing (ie a singleton that 'captures' a transient or scoped dependency)
 - Remove "opinionation"
   - Make it easy to use any validation framework
-  - Extract Infrastructure framework implementations to separate packages
-    - hosting-koa
-    - io-disk
+- Look into performance signatures and identify areas that need improvement
 
 ### Additional usecase samples
 
