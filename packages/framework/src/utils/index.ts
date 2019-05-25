@@ -18,6 +18,15 @@ export let logger: logger = {
 }
 const setLogger = (l: logger) => Object.assign(logger, l)
 
+// TODO: Memoize / Optimize
+const getLogger = (name: string) => {
+  // const levels = ["info", "log", "debug", "error", "warn"] as const
+  return typedKeysOf(logger).reduce((prev, current) => {
+    prev[current] = (...args: any[]) => logger[current](chalk.yellow(`[${name}]`), ...args)
+    return prev
+  }, {} as typeof logger)
+}
+
 const isTruthyFilter = <T>(item: T | null | undefined | void): item is T => Boolean(item)
 
 export async function bench<T>(
@@ -63,6 +72,7 @@ const using = async <T>(disposable: Disposable, fnc: () => Promise<T> | T) => {
 export {
   asWritable,
   benchLog,
+  getLogger,
   setLogger,
   isTruthyFilter,
   setFunctionName,

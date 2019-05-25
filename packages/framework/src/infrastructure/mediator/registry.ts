@@ -1,10 +1,12 @@
 import { PipeFunction, Result } from "@fp-app/neverthrow-extensions"
 import chalk from "chalk"
-import { Constructor, logger, setFunctionName, typedKeysOf } from "../../utils"
+import { Constructor, getLogger, setFunctionName, typedKeysOf } from "../../utils"
 import assert from "../../utils/assert"
 import { UnitOfWork } from "../context.base"
 import { registerDomainEventHandler, registerIntegrationEventHandler } from "../createDependencyNamespace"
 import { generateKey, WithDependencies, WithDependenciesConfig } from "../SimpleContainer"
+
+const logger = getLogger("registry")
 
 export interface RequestContextBase { id: string, correllationId: string }
 

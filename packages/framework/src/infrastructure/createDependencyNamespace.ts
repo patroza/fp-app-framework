@@ -2,7 +2,7 @@ import chalk from "chalk"
 import { createNamespace, getNamespace } from "cls-hooked"
 import format from "date-fns/format"
 import { EventEmitter } from "events"
-import { Constructor, logger, using } from "../utils"
+import { Constructor, getLogger, using } from "../utils"
 import { generateShortUuid } from "../utils/generateUuid"
 import { loggingDecorator, uowDecorator } from "./decorators"
 import DomainEventHandler, { executePostCommitHandlersKey } from "./domainEventHandler"
@@ -12,6 +12,8 @@ import {
   publish, request, RequestContextBase, requestInNewScopeKey, requestInNewScopeType, requestKey, requestType,
 } from "./mediator"
 import SimpleContainer, { DependencyScope, factoryOf, Key } from "./SimpleContainer"
+
+const logger = getLogger("registry")
 
 export default function createDependencyNamespace(namespace: string, requestScopeKey: Key<RequestContextBase>) {
   const ns = createNamespace(namespace)

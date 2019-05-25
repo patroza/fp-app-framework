@@ -1,6 +1,8 @@
 import { err, PipeFunction, PipeFunctionN, Result, success } from "@fp-app/neverthrow-extensions"
 
-import { Constructor, logger } from "../../utils"
+import { Constructor, getLogger } from "../../utils"
+
+const logger = getLogger("publish")
 
 const publish = (getMany: <TInput extends Constructor<any>>(evt: TInput) => Array<PipeFunction<TInput, DomainEventReturnType, Error>>): publishType =>
   async <TInput extends Constructor<any>>(evt: TInput) => {
