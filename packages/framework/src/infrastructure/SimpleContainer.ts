@@ -13,60 +13,19 @@ export default class SimpleContainer {
   private initializersO = new Map()
   constructor(private tryGetDependencyScope: () => DependencyScope, private setDependencyScope: (scope: DependencyScope) => void) { }
 
-  registerInitializerF<T extends (...args: any[]) => any>(key: Key<T> | "global", ...initializers: Array<(f: T, key: Key<T>) => void>) {
-    const current = this.initializersF.get(key) || []
-    this.initializersF.set(key, current.concat(initializers))
-  }
-
-  registerInitializerC<T = any>(key: Constructor<T> | "global", ...initializers: Array<(instance: T, key: Constructor<T>) => void>) {
-    const current = this.initializersC.get(key) || []
-    this.initializersC.set(key, current.concat(initializers))
-  }
-
-  registerInitializerO<T>(key: Key<T> | "global", ...initializers: Array<(instance: T, key: Key<T>) => void>) {
-    const current = this.initializersO.get(key) || []
-    this.initializersO.set(key, current.concat(initializers))
-  }
-
   getC<T>(key: Constructor<T>): T {
     assert.isNotNull({ key })
 
-    const instance = this.tryGetC<T>(key)
+    const instance = this.tryCreateInstance<T>(key)
     if (!instance) { throw new Error(`could not resolve ${key}`) }
     return instance
-  }
-
-  tryGetC<T>(key: Constructor<T>): T {
-    assert.isNotNull({ key })
-
-    return this.tryCreateInstance<T>(key)
-  }
-
-  // tslint:disable-next-line:ban-types
-  tryGetF<T extends Function>(key: T) {
-    assert.isNotNull({ key })
-
-    return this.tryCreateInstance<T>(key)
-  }
-
-  // tslint:disable-next-line:ban-types
-  tryGetConcrete<TDependencies, T>(key: (deps: TDependencies) => T) {
-    assert.isNotNull({ key })
-
-    return this.tryCreateInstance<T>(key)
-  }
-
-  tryGetO<T>(key: Key<T>) {
-    assert.isNotNull({ key })
-
-    return this.tryCreateInstance<T>(key)
   }
 
   // tslint:disable-next-line:ban-types
   getF<T extends Function>(key: T) {
     assert.isNotNull({ key })
 
-    const f = this.tryGetF<T>(key)
+    const f = this.tryCreateInstance<T>(key)
     if (!f) { throw new Error(`could not resolve ${key}`) }
     return f
   }
@@ -74,7 +33,7 @@ export default class SimpleContainer {
   getConcrete<TDependencies, T>(key: (deps: TDependencies) => T) {
     assert.isNotNull({ key })
 
-    const f = this.tryGetConcrete(key)
+    const f = this.tryCreateInstance<T>(key)
     if (!f) { throw new Error(`could not resolve ${key}`) }
     return f
   }
@@ -82,7 +41,7 @@ export default class SimpleContainer {
   getO<T>(key: Key<T>) {
     assert.isNotNull({ key })
 
-    const f = this.tryGetO<T>(key)
+    const f = this.tryCreateInstance<T>(key)
     if (!f) { throw new Error(`could not resolve ${key}`) }
     return f
   }
@@ -220,7 +179,24 @@ export default class SimpleContainer {
     this.registerFactoryF(key, () => instance)
   }
 
-  createNewInstance<T>(constructor: Constructor<T>) {
+  registerInitializerF<T extends (...args: any[]) => any>(key: Key<T> | "global", ...initializers: Array<(f: T, key: Key<T>) => void>) {
+    this.registerInitializer(this.initializersF, key, initializers)
+  }
+
+  registerInitializerC<T = any>(key: Constructor<T> | "global", ...initializers: Array<(instance: T, key: Constructor<T>) => void>) {
+    this.registerInitializer(this.initializersC, key, initializers)
+  }
+
+  registerInitializerO<T>(key: Key<T> | "global", ...initializers: Array<(instance: T, key: Key<T>) => void>) {
+    this.registerInitializer(this.initializersO, key, initializers)
+  }
+
+  private registerInitializer(initializersMap: any, key: any, initializers: any[]) {
+    const current = initializersMap.get(key) || []
+    initializersMap.set(key, current.concat(initializers))
+  }
+
+  private createNewInstance<T>(constructor: Constructor<T>) {
     const keys = getDependencyKeys(constructor)
     let instance
     if (keys) {
@@ -247,22 +223,22 @@ export default class SimpleContainer {
   }
 
   private registerFactoryC<T>(key: any, factory: () => T, getScope?: () => DependencyScope) {
-    this.registerFactory(key, factory, this.hookInitializersC, this.resolveDecoratorsC, getScope)
+    this.registerFactory(key, factory, this.initializersC, this.resolveDecoratorsC, getScope)
   }
   private registerFactoryF<T>(key: any, factory: () => T, getScope?: () => DependencyScope) {
-    this.registerFactory(key, this.fixName(key, factory), this.hookInitializersF, this.resolveDecoratorsF, getScope)
+    this.registerFactory(key, this.fixName(key, factory), this.initializersF, this.resolveDecoratorsF, getScope)
   }
   private registerFactoryO<T>(key: any, factory: () => T, getScope?: () => DependencyScope) {
-    this.registerFactory(key, factory, this.hookInitializersO, () => factory, getScope)
+    this.registerFactory(key, factory, this.initializersO, () => factory, getScope)
   }
   private registerFactory<T>(
     key: any,
     factory: () => T,
-    hookInitializers: (key: any, factory: any) => any,
+    initializerMap: Map<any, any>,
     resolveDecorators: (key: any, factory: any) => any,
     getScope?: () => DependencyScope,
   ) {
-    factory = hookInitializers(key, resolveDecorators(key, factory))
+    factory = this.hookInitializers(initializerMap, key, resolveDecorators(key, factory))
     if (!getScope) {
       this.factories.set(
         key,
@@ -276,21 +252,9 @@ export default class SimpleContainer {
     )
   }
 
-  private hookInitializersC = (key: any, factory: any) => () => {
+  private hookInitializers = (initializerMap: any, key: any, factory: any) => () => {
     const instance = factory()
-    this.runInitializers(key, instance, this.initializersC)
-    return instance
-  }
-
-  private hookInitializersO = (key: any, factory: any) => () => {
-    const instance = factory()
-    this.runInitializers(key, instance, this.initializersO)
-    return instance
-  }
-
-  private hookInitializersF = (key: any, factory: any) => () => {
-    const instance = factory()
-    this.runInitializers(key, instance, this.initializersF)
+    this.runInitializers(key, instance, initializerMap)
     return instance
   }
 
