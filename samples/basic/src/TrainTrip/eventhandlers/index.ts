@@ -24,14 +24,14 @@ const createIntegrationEventHandler = createIntegrationEventHandlerWithDeps({ tr
 createIntegrationEventHandler<TrainTripCreated, void, any>(
   /* on */ TrainTripCreated, "ScheduleCloudSync",
   ({ trainTripPublisher }) => pipe(
-    map(({ id }) => trainTripPublisher.register(id)),
+    map(({ trainTripId }) => trainTripPublisher.register(trainTripId)),
   ),
 )
 
 createIntegrationEventHandler<TrainTripStateChanged, void, any>(
   /* on */ TrainTripStateChanged, "EitherDebounceOrScheduleCloudSync",
   ({ trainTripPublisher }) => pipe(
-    map(({ id }) => trainTripPublisher.register(id)),
+    map(({ trainTripId }) => trainTripPublisher.register(trainTripId)),
   ),
 )
 
@@ -40,7 +40,7 @@ const createDomainEventHandler = createDomainEventHandlerWithDeps({ db: DbContex
 createDomainEventHandler<TrainTripStateChanged, void, DbError>(
   /* on */ TrainTripStateChanged, "RefreshTripInfo",
   ({ db, getTrip }) => pipe(
-    flatMap(({ id }) => db.trainTrips.load(id)),
+    flatMap(({ trainTripId }) => db.trainTrips.load(trainTripId)),
     flatMap(toTup(trainTrip => getTrip(trainTrip.currentTravelClassConfiguration.travelClass.templateId))),
     map(([trip, trainTrip]) => trainTrip.updateTrip(trip)),
   ),
@@ -49,7 +49,7 @@ createDomainEventHandler<TrainTripStateChanged, void, DbError>(
 createIntegrationEventHandler<UserInputReceived, void, any>(
   /* on */ UserInputReceived, "DebouncePendingCloudSync",
   ({ trainTripPublisher }) => pipe(
-    map(({ id }) => trainTripPublisher.registerIfPending(id)),
+    map(({ trainTripId }) => trainTripPublisher.registerIfPending(trainTripId)),
   ),
 )
 

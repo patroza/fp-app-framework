@@ -1,22 +1,23 @@
 import { err, map, Result, success, tee } from "@fp-app/neverthrow-extensions"
+import Event from "../event"
 import { EventHandlerWithDependencies } from "./mediator"
 import { publishType } from "./mediator/publish"
 import { generateKey } from "./SimpleContainer"
 
 // tslint:disable-next-line:max-classes-per-file
 export default class DomainEventHandler {
-  private events: any[] = []
-  private processedEvents: any[] = []
+  private events: Event[] = []
+  private processedEvents: Event[] = []
 
   constructor(
     private readonly publish: publishType,
-    private readonly getIntegrationHandlers: (evt: any) => Array<EventHandlerWithDependencies<any, any, any, any>> | undefined,
+    private readonly getIntegrationHandlers: (evt: Event) => Array<EventHandlerWithDependencies<any, any, any, any>> | undefined,
     private readonly executeIntegrationEvents: typeof executePostCommitHandlersKey,
   ) { }
 
   // Note: Eventhandlers in this case have unbound errors..
   async commitAndPostEvents<T, TErr>(
-    getAndClearEvents: () => any[],
+    getAndClearEvents: () => Event[],
     commit: () => Promise<Result<T, TErr>>,
   ): Promise<Result<T, TErr | Error>> {
     // 1. pre-commit: post domain events
@@ -26,7 +27,7 @@ export default class DomainEventHandler {
     this.processedEvents = []
     const updateEvents = () => this.events = this.events.concat(getAndClearEvents())
     updateEvents()
-    let processedEvents: any[] = []
+    let processedEvents: Event[] = []
     // loop until we have all events captured, event events of events.
     // lets hope we don't get stuck in stackoverflow ;-)
     while (this.events.length) {
@@ -45,7 +46,7 @@ export default class DomainEventHandler {
       .pipe(tee(map(this.publishIntegrationEvents)))
   }
 
-  private readonly publishEvents = async (events: any[]): Promise<Result<void, Error>> => {
+  private readonly publishEvents = async (events: Event[]): Promise<Result<void, Error>> => {
     for (const evt of events) {
       const r = await this.publish(evt)
       if (r.isErr()) { return err(r.error) }

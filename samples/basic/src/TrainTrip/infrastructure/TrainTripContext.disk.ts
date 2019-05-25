@@ -1,6 +1,6 @@
 import TrainTrip, { TravelClassConfiguration } from "@/TrainTrip/TrainTrip"
 import { TrainTripContext } from "@/TrainTrip/usecases/types"
-import { autoinject, ContextBase, DomainEventHandler, RecordContext } from "@fp-app/framework"
+import { autoinject, ContextBase, DomainEventHandler, Event, RecordContext } from "@fp-app/framework"
 import { DbError } from "@fp-app/framework"
 import { DiskRecordContext } from "@fp-app/io.diskdb"
 import { map, mapErr, ok, Result } from "@fp-app/neverthrow-extensions"
@@ -26,7 +26,7 @@ export default class DiskDBContext extends ContextBase implements TrainTripConte
     // @paramInject(sendCloudSyncKey) sendCloudSync: typeof sendCloudSyncKey,
   ) { super(eventHandler) }
 
-  protected getAndClearEvents(): any[] { return this.trainTripsi.intGetAndClearEvents() }
+  protected getAndClearEvents(): Event[] { return this.trainTripsi.intGetAndClearEvents() }
   protected saveImpl(): Promise<Result<void, DbError>> {
     return this.trainTripsi.intSave(
       async i => ok(await this.readContext.create(i.id, TrainTripToView(i))),

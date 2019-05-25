@@ -2,6 +2,7 @@ import chalk from "chalk"
 import { createNamespace, getNamespace } from "cls-hooked"
 import format from "date-fns/format"
 import { EventEmitter } from "events"
+import Event from "../event"
 import { Constructor, getLogger, using } from "../utils"
 import { generateShortUuid } from "../utils/generateUuid"
 import { loggingDecorator, uowDecorator } from "./decorators"
@@ -57,8 +58,8 @@ export default function createDependencyNamespace(namespace: string, requestScop
     },
     ))
 
-  const publishDomainEventHandler = publish(evt => (domainHandlerMap.get(evt.constructor) || []).map(x => container.getF(x)))
-  const getIntegrationEventHandlers = (evt: any) => integrationHandlerMap.get(evt.constructor)
+  const publishDomainEventHandler = publish(evt => (domainHandlerMap.get(evt.constructor) || []).map(x => container.getF(x as any)))
+  const getIntegrationEventHandlers = (evt: Event) => integrationHandlerMap.get(evt.constructor)
   // const publishIntegrationEventHandler = publish(evt => (integrationHandlerMap.get(evt.constructor) || []).map(x => container.getF(x)))
   container.registerScopedC(
     DomainEventHandler,

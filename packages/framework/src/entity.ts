@@ -1,8 +1,9 @@
+import Event from "./event"
 import generateUuid from "./utils/generateUuid"
 
 export default abstract class Entity {
   readonly id: string = generateUuid()
-  private _EVENTS: any[] = []
+  private _EVENTS: Event[] = []
 
   readonly intGetAndClearEvents = () => {
     const events = this._EVENTS
@@ -10,7 +11,7 @@ export default abstract class Entity {
     return events
   }
 
-  protected registerDomainEvent(evt: any) {
+  protected registerDomainEvent(evt: Event) {
     this._EVENTS.push(evt)
   }
 }
