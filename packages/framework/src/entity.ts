@@ -2,7 +2,7 @@ import generateUuid from "./utils/generateUuid"
 
 export default abstract class Entity {
   readonly id: string = generateUuid()
-  private _EVENTS = [] as any[]
+  private _EVENTS: any[] = []
 
   readonly intGetAndClearEvents = () => {
     const events = this._EVENTS

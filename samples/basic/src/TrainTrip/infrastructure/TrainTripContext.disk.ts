@@ -79,11 +79,12 @@ const intDeserializeDbTrainTrip = (serializedTrainTrip: string) => {
         // TODO: restore CurrentTravelClassConfiguration data..
 
         // reset created domain events, as we didn't Create.
-        const trainTripAny: any = trainTrip
         Object.assign(trainTrip, rest, {
           createdAt: new Date(createdAt),
-          travelClassConfiguration: (travelClassConfiguration as any[]).map(x => mapTravelClassConfigurationDTO(t, x)),
+          travelClassConfiguration: travelClassConfiguration.map(x => mapTravelClassConfigurationDTO(t, x)),
         })
+
+        const trainTripAny: any = trainTrip
         trainTripAny._EVENTS = []
         return trainTrip
       }),
