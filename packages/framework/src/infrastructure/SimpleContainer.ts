@@ -1,4 +1,4 @@
-import { Constructor, setFunctionName } from "../utils"
+import { Constructor, Disposable, setFunctionName } from "../utils"
 import assert from "../utils/assert"
 
 import "reflect-metadata"
@@ -71,9 +71,9 @@ export default class SimpleContainer {
   createScope() {
     const scope = new DependencyScope()
     this.setDependencyScope(scope)
-    // return {
-    //   dispose: () => scope.dispose(),
-    // }
+    return {
+      dispose: () => scope.dispose(),
+    }
   }
 
   registerTransientC<T>(key: Constructor<T>, factory: () => T) {
@@ -292,7 +292,7 @@ const tryOrNull = <T, T2>(f: () => T | undefined, f2: (i: T) => T2) => {
 }
 
 // tslint:disable-next-line:max-classes-per-file
-export class DependencyScope {
+export class DependencyScope implements Disposable {
   instances: Map<any, any> = new Map()
 
   getOrCreate<T>(key: any, instanceCreator: () => T) {

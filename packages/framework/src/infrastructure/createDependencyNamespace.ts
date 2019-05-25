@@ -2,7 +2,7 @@ import chalk from "chalk"
 import { createNamespace, getNamespace } from "cls-hooked"
 import format from "date-fns/format"
 import { EventEmitter } from "events"
-import { Constructor, logger } from "../utils"
+import { Constructor, logger, using } from "../utils"
 import { generateShortUuid } from "../utils/generateUuid"
 import { loggingDecorator, uowDecorator } from "./decorators"
 import DomainEventHandler, { executePostCommitHandlersKey } from "./domainEventHandler"
@@ -34,23 +34,22 @@ export default function createDependencyNamespace(namespace: string, requestScop
 
   const setupChildContext = <T>(cb: () => Promise<T>) =>
     ns.runPromise(() => {
-      let context = container.getO(requestScopeKey)
-      const { correllationId, id } = context
-      container.createScope()
-      context = container.getO(requestScopeKey)
-      Object.assign(context, { correllationId: correllationId || id })
+      const currentContext = container.getO(requestScopeKey)
+      const { correllationId, id } = currentContext
+      return using(container.createScope(), () => {
+        const context = container.getO(requestScopeKey)
+        Object.assign(context, { correllationId: correllationId || id })
 
-      return cb()
+        return cb()
+      })
     })
 
   const setupRootContext = <T>(cb: (context: RequestContextBase, bindEmitter: (typeof ns)["bindEmitter"]) => Promise<T>) =>
-    ns.runPromise(() => {
-      container.createScope()
-      return cb(
-        container.getO(requestScopeKey),
-        (emitter: EventEmitter) => ns.bindEmitter(emitter),
-      )
-    })
+    ns.runPromise(() => using(container.createScope(), () => cb(
+      container.getO(requestScopeKey),
+      (emitter: EventEmitter) => ns.bindEmitter(emitter),
+    ),
+    ))
 
   const publishDomainEventHandler = publish(evt => (domainHandlerMap.get(evt.constructor) || []).map(x => container.getF(x)))
   // const publishIntegrationEventHandler = publish(evt => (integrationHandlerMap.get(evt.constructor) || []).map(x => container.getF(x)))
