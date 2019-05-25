@@ -27,8 +27,8 @@ export interface TrainTripContext extends ReadonlyTrainTripContext, UnitOfWork {
 // tslint:disable-next-line:no-empty-interface
 export type RequestContext = RequestContextBase & { [key: string]: any }
 
-export const RequestContextKey = generateKey<RequestContext>("context")
-export const DbContextKey = generateKey<ReadonlyTrainTripContext>("db")
+export const RequestContextKey = generateKey<RequestContext>("request-context")
+export const DbContextKey = generateKey<ReadonlyTrainTripContext>("db-context")
 export const TrainTripPublisherKey = generateKey<TrainTripPublisher>("trainTripPublisher")
 
 export const defaultDependencies = { context: RequestContextKey }

@@ -7,6 +7,8 @@ import TrainTripPublisherInMemory from "./TrainTrip/infrastructure/trainTripPubl
 import TrainTripReadContext, { trainTripReadContextKey } from "./TrainTrip/infrastructure/TrainTripReadContext.disk"
 import { DbContextKey, getTripKey, RequestContextKey, sendCloudSyncKey, TrainTripPublisherKey } from "./TrainTrip/usecases/types"
 
+import chalk from "chalk"
+
 const createRoot = () => {
   const {
     bindLogger,
@@ -19,11 +21,11 @@ const createRoot = () => {
     RequestContextKey,
   )
 
-  container.registerScopedO2(DbContextKey, DiskDBContext)
-  container.registerScopedO(UOWKey, () => container.getO(DbContextKey as any as Key<UnitOfWork>))
+  container.registerScopedC2(DbContextKey, DiskDBContext)
+  container.registerPassthrough(UOWKey, DbContextKey as any as Key<UnitOfWork>)
 
-  container.registerSingletonO2(TrainTripPublisherKey, TrainTripPublisherInMemory)
-  container.registerSingletonO2(trainTripReadContextKey, TrainTripReadContext)
+  container.registerSingletonC2(TrainTripPublisherKey, TrainTripPublisherInMemory)
+  container.registerSingletonC2(trainTripReadContextKey, TrainTripReadContext)
   container.registerSingletonF(sendCloudSyncKey, () => sendCloudSyncFake({ cloudUrl: "" }))
   container.registerSingletonF(
     getTripKey,
@@ -32,6 +34,13 @@ const createRoot = () => {
       return getTripF
     },
   )
+
+  // tslint:disable-next-line:no-console
+  container.registerInitializerF("global", (i, key) => console.debug(chalk.magenta(`Created function of ${key.name} (${i.name})`)))
+  // tslint:disable-next-line:no-console
+  container.registerInitializerC<any>("global", (i, key) => console.debug(chalk.magenta(`Created instance of ${key.name} (${i.constructor.name})`)))
+  // tslint:disable-next-line:no-console
+  container.registerInitializerO<any>("global", (i, key) => console.debug(chalk.magenta(`Created object of ${key.name} (${i.constructor.name})`)))
 
   return {
     bindLogger,

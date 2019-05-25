@@ -52,12 +52,13 @@ export default function createDependencyNamespace(namespace: string, requestScop
     ))
 
   const publishDomainEventHandler = publish(evt => (domainHandlerMap.get(evt.constructor) || []).map(x => container.getF(x)))
+  const getIntegrationEventHandlers = (evt: any) => integrationHandlerMap.get(evt.constructor)
   // const publishIntegrationEventHandler = publish(evt => (integrationHandlerMap.get(evt.constructor) || []).map(x => container.getF(x)))
   container.registerScopedC(
     DomainEventHandler,
     () => new DomainEventHandler(
       publishDomainEventHandler,
-      evt => integrationHandlerMap.get(evt.constructor),
+      getIntegrationEventHandlers,
       container.getF(executePostCommitHandlersKey),
     ),
   )
@@ -94,14 +95,14 @@ export default function createDependencyNamespace(namespace: string, requestScop
 }
 
 const registerDomainEventHandler = (event: Constructor<any>, handler: any) => {
-  logger.debug(`Registered Domain event handler for ${event.name}`)
+  logger.debug(chalk.magenta(`Registered Domain event handler for ${event.name}`))
   const current = domainHandlerMap.get(event) || []
   current.push(handler)
   domainHandlerMap.set(event, current)
 }
 
 const registerIntegrationEventHandler = (event: Constructor<any>, handler: any) => {
-  logger.debug(`Registered Integration event handler for ${event.name}`)
+  logger.debug(chalk.magenta(`Registered Integration event handler for ${event.name}`))
   const current = integrationHandlerMap.get(event) || []
   current.push(handler)
   integrationHandlerMap.set(event, current)

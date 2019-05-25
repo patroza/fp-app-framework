@@ -1,4 +1,5 @@
 import { PipeFunction, Result } from "@fp-app/neverthrow-extensions"
+import chalk from "chalk"
 import { Constructor, logger, setFunctionName, typedKeysOf } from "../../utils"
 import assert from "../../utils/assert"
 import { UnitOfWork } from "../context.base"
@@ -12,10 +13,12 @@ export type UsecaseWithDependencies<TDependencies, TInput, TOutput, TError> = Ha
 
 export const configureDependencies = <TDependencies, T>(
   deps: TDependencies,
+  name: string,
   f: WithDependencies<TDependencies, T>,
 ): WithDependenciesConfig<TDependencies, T> => {
   const keys = typedKeysOf(deps)
   if (keys.length && keys.some(key => !deps[key])) { throw new Error(`Has empty dependencies`) }
+  setFunctionName(f, name)
   const anyF: any = f
   anyF.$$inject = deps
   return anyF
@@ -60,25 +63,25 @@ const registerUsecaseHandler = <TDependencies>(deps: TDependencies) =>
 
 // tslint:disable-next-line:max-line-length
 const createCommandWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
-  handler = copyHandler(handler)
+  handler = wrapHandler(handler)
   const setupWithDeps = registerUsecaseHandler(deps)
-  const newHandler = setupWithDeps(name, "COMMAND")(handler)
-  logger.debug(`Created Command handler ${name}`)
+  const newHandler = setupWithDeps(name + "Command", "COMMAND")(handler)
+  logger.debug(chalk.magenta(`Created Command handler ${name}`))
   return newHandler
 }
 
 // tslint:disable-next-line:max-line-length
 const createQueryWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
-  handler = copyHandler(handler)
+  handler = wrapHandler(handler)
   const setupWithDeps = registerUsecaseHandler(deps)
-  const newHandler = setupWithDeps(name, "QUERY")(handler)
-  logger.debug(`Created Query handler ${name}`)
+  const newHandler = setupWithDeps(name + "Query", "QUERY")(handler)
+  logger.debug(chalk.magenta(`Created Query handler ${name}`))
   return newHandler
 }
 
 // tslint:disable-next-line:max-line-length
 const createDomainEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(event: Constructor<TInput>, name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
-  handler = copyHandler(handler)
+  handler = wrapHandler(handler)
   const setupWithDeps = registerUsecaseHandler(deps)
   const newHandler = setupWithDeps(`on${event.name}${name}`, "DOMAINEVENT")(handler)
   registerDomainEventHandler(event, handler)
@@ -87,14 +90,14 @@ const createDomainEventHandlerWithDeps = <TDependencies>(deps: TDependencies) =>
 
 // tslint:disable-next-line:max-line-length
 const createIntegrationEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(event: Constructor<TInput>, name: string, handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>) => {
-  handler = copyHandler(handler)
+  handler = wrapHandler(handler)
   const setupWithDeps = registerUsecaseHandler(deps)
   const newHandler = setupWithDeps(`on${event.name}${name}`, "INTEGRATIONEVENT")(handler)
   registerIntegrationEventHandler(event, handler)
   return newHandler
 }
 
-const copyHandler = (handler: any) => (...args: any[]) => handler(...args)
+const wrapHandler = (handler: any) => (...args: any[]) => handler(...args)
 
 const requestAndEventHandlers: Array<NamedHandlerWithDependencies<any, any, any, any>> = []
 
@@ -119,8 +122,8 @@ export type requestInNewScopeType = <TInput, TOutput, TError>(
 
 export type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<TInput, TOutput, TErr> & HandlerInfo<any>
 
-export const requestKey = generateKey<requestType>()
-export const requestInNewScopeKey = generateKey<requestInNewScopeType>()
+export const requestKey = generateKey<requestType>("request")
+export const requestInNewScopeKey = generateKey<requestInNewScopeType>("requestInNewScope")
 
 // const dependencyMap = new Map<HandlerWithDependencies<any, any, any, any>, HandlerTuple<any, any, any, any>>()
 
