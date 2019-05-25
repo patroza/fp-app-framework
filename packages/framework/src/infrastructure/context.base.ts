@@ -1,9 +1,11 @@
-import { Disposable } from "@fp-app/framework"
 import { PipeFunction, PipeFunctionN, Result } from "@fp-app/neverthrow-extensions"
+import { Disposable } from "../utils"
 import DomainEventHandler from "./domainEventHandler"
 import { DbError } from "./errors"
+import { autoinject } from "./SimpleContainer"
 
 // tslint:disable-next-line:max-classes-per-file
+@autoinject
 export default abstract class ContextBase implements Disposable {
   private disposed = false
 
