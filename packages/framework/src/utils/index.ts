@@ -13,8 +13,10 @@ export type Writeable<T> = { -readonly [P in keyof T]-?: T[P] }
 
 type logger = Pick<typeof console, "log" | "error" | "warn" | "debug">
 
-export let logger: logger = console
-const setLogger = (l: logger) => logger = l
+export let logger: logger = {
+  ...console,
+}
+const setLogger = (l: logger) => Object.assign(logger, l)
 
 const isTruthyFilter = <T>(item: T | null | undefined | void): item is T => Boolean(item)
 
