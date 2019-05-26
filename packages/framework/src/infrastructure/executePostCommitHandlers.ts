@@ -1,5 +1,7 @@
-import { benchLog, logger } from "../utils"
+import { benchLog, getLogger } from "../utils"
 import { NamedHandlerWithDependencies, requestInNewScopeType } from "./mediator"
+
+const logger = getLogger("executePostCommitHandlers")
 
 const executePostCommitHandlers = ({ executeIntegrationEvent }: { executeIntegrationEvent: requestInNewScopeType }) =>
   (eventsMap: Map<any, Array<NamedHandlerWithDependencies<any, any, any, any>>>) => {

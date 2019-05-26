@@ -1,4 +1,5 @@
 import { PipeFunction, PipeFunctionN, Result } from "@fp-app/neverthrow-extensions"
+import Event from "../event"
 import { Disposable } from "../utils"
 import DomainEventHandler from "./domainEventHandler"
 import { DbError } from "./errors"
@@ -25,7 +26,7 @@ export default abstract class ContextBase implements Disposable {
     this.disposed = true
   }
 
-  protected abstract getAndClearEvents(): any[]
+  protected abstract getAndClearEvents(): Event[]
 
   protected abstract async saveImpl(): Promise<Result<void, DbError>>
 }

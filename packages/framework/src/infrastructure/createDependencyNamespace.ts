@@ -2,7 +2,8 @@ import chalk from "chalk"
 import { createNamespace, getNamespace } from "cls-hooked"
 import format from "date-fns/format"
 import { EventEmitter } from "events"
-import { Constructor, logger, using } from "../utils"
+import Event from "../event"
+import { Constructor, getLogger, removeElement, using } from "../utils"
 import { generateShortUuid } from "../utils/generateUuid"
 import { loggingDecorator, uowDecorator } from "./decorators"
 import DomainEventHandler, { executePostCommitHandlersKey } from "./domainEventHandler"
@@ -13,24 +14,38 @@ import {
 } from "./mediator"
 import SimpleContainer, { DependencyScope, factoryOf, Key } from "./SimpleContainer"
 
+const logger = getLogger("registry")
+
 export default function createDependencyNamespace(namespace: string, requestScopeKey: Key<RequestContextBase>) {
   const ns = createNamespace(namespace)
-  const dependencyScopeKey = "dependencyScope"
   const getDependencyScope = (): DependencyScope => getNamespace(namespace).get(dependencyScopeKey)
   const setDependencyScope = (scope: DependencyScope) => getNamespace(namespace).set(dependencyScopeKey, scope)
   const hasDependencyScope = () => getDependencyScope() != null
 
+  interface LoggingScope { items: Array<{}> }
+
   const container = new SimpleContainer(getDependencyScope, setDependencyScope)
+
+  const getLoggingScope = (): LoggingScope => getNamespace(namespace).get(loggingScopeKey)
+
+  const addToLoggingContext = (item: { [key: string]: any }) => {
+    getLoggingScope().items.push(item)
+    return {
+      dispose: () => removeElement(getLoggingScope().items, item),
+    }
+  }
 
   const bindLogger = (fnc: (...args2: any[]) => void) => (...args: any[]) => {
     const context = hasDependencyScope() && container.getO(requestScopeKey)
     const datetime = new Date()
     const timestamp = format(datetime, "YYYY-MM-DD HH:mm:ss")
+    const scope = getLoggingScope()
+    const items = scope && scope.items.reduce((prev, cur) => ({ ...prev, ...cur }), {} as any)
     const id = context ? (context.correllationId === context.id
       ? context.id
       : `${context.id} (${context.correllationId})`)
       : "root context"
-    return fnc(`${chalk.green(timestamp)} ${chalk.blue(`[${id}]`)}`, ...args)
+    return fnc(`${chalk.green(timestamp)} ${chalk.blue(`[${id}]`)}`, ...args.concat(items && Object.keys(items).length ? [items] : []))
   }
 
   const setupChildContext = <T>(cb: () => Promise<T>) =>
@@ -47,6 +62,7 @@ export default function createDependencyNamespace(namespace: string, requestScop
 
   const setupRequestContext = <T>(cb: (context: RequestContextBase, bindEmitter: (typeof ns)["bindEmitter"]) => Promise<T>) =>
     ns.runPromise(() => using(container.createScope(), () => {
+      getNamespace(namespace).set(loggingScopeKey, { items: [] })
       logger.debug(chalk.magenta("Created request context"))
       return cb(
         container.getO(requestScopeKey),
@@ -55,8 +71,8 @@ export default function createDependencyNamespace(namespace: string, requestScop
     },
     ))
 
-  const publishDomainEventHandler = publish(evt => (domainHandlerMap.get(evt.constructor) || []).map(x => container.getF(x)))
-  const getIntegrationEventHandlers = (evt: any) => integrationHandlerMap.get(evt.constructor)
+  const publishDomainEventHandler = publish(evt => (domainHandlerMap.get(evt.constructor) || []).map(x => container.getF(x as any)))
+  const getIntegrationEventHandlers = (evt: Event) => integrationHandlerMap.get(evt.constructor)
   // const publishIntegrationEventHandler = publish(evt => (integrationHandlerMap.get(evt.constructor) || []).map(x => container.getF(x)))
   container.registerScopedC(
     DomainEventHandler,
@@ -90,6 +106,7 @@ export default function createDependencyNamespace(namespace: string, requestScop
   const request2: requestType = (key, input) => container.getF(requestKey)(key, input)
 
   return {
+    addToLoggingContext,
     bindLogger,
     container,
     setupRequestContext,
@@ -97,6 +114,9 @@ export default function createDependencyNamespace(namespace: string, requestScop
     request: request2,
   }
 }
+
+const dependencyScopeKey = "dependencyScope"
+const loggingScopeKey = "loggingScope"
 
 const registerDomainEventHandler = (event: Constructor<any>, handler: any) => {
   logger.debug(chalk.magenta(`Registered Domain event handler for ${event.name}`))

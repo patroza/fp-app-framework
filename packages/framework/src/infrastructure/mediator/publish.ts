@@ -1,9 +1,12 @@
 import { err, PipeFunction, PipeFunctionN, Result, success } from "@fp-app/neverthrow-extensions"
 
-import { Constructor, logger } from "../../utils"
+import Event from "../../event"
+import { getLogger } from "../../utils"
 
-const publish = (getMany: <TInput extends Constructor<any>>(evt: TInput) => Array<PipeFunction<TInput, DomainEventReturnType, Error>>): publishType =>
-  async <TInput extends Constructor<any>>(evt: TInput) => {
+const logger = getLogger("publish")
+
+const publish = (getMany: <TInput extends Event>(evt: TInput) => Array<PipeFunction<TInput, DomainEventReturnType, Error>>): publishType =>
+  async <TInput extends Event>(evt: TInput) => {
     const hndl = getMany(evt)
     logger.log(`Publishing Domain event: ${evt.constructor.name} (${hndl ? hndl.length : 0} handlers)`, JSON.stringify(evt))
 
@@ -22,7 +25,7 @@ const publish = (getMany: <TInput extends Constructor<any>>(evt: TInput) => Arra
 export default publish
 
 // tslint:disable-next-line:max-line-length
-export type publishType = <TInput extends Constructor<any>>(evt: TInput) => Promise<Result<void, Error>>
+export type publishType = <TInput extends Event>(evt: TInput) => Promise<Result<void, Error>>
 
 export type DomainEventReturnType = void | IntegrationEventReturnType
 export interface IntegrationEventReturnType {

@@ -3,6 +3,7 @@
 import { Entity, ForbiddenError, ValidationError } from "@fp-app/framework"
 import { assert, asWritable } from "@fp-app/framework"
 import { valueEquals } from "@fp-app/framework"
+import Event from "@fp-app/framework/src/event"
 import {
   anyTrue, applyIfNotUndefined, err, flatMap, map, mapStatic, ok, Result, success, valueOrUndefined,
 } from "@fp-app/neverthrow-extensions"
@@ -191,20 +192,22 @@ These event names look rather technical (like CRUD) and not very domain driven
 
 */
 
-export class TrainTripCreated {
-  constructor(readonly id: TrainTripId) { }
+export class TrainTripCreated extends Event {
+  constructor(readonly trainTripId: TrainTripId) {
+    super()
+  }
 }
 
-export class UserInputReceived {
-  constructor(readonly id: TrainTripId) { }
+export class UserInputReceived extends Event {
+  constructor(readonly trainTripId: TrainTripId) { super() }
 }
 
-export class TrainTripStateChanged {
-  constructor(readonly id: TrainTripId) { }
+export class TrainTripStateChanged extends Event {
+  constructor(readonly trainTripId: TrainTripId) { super() }
 }
 
-export class TrainTripDeleted {
-  constructor(readonly id: TrainTripId) { }
+export class TrainTripDeleted extends Event {
+  constructor(readonly trainTripId: TrainTripId) { super() }
 }
 
 export interface StateProposition {

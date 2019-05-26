@@ -7,13 +7,14 @@ import createRoot from "./root"
 import createRootRouter from "./root.router"
 
 const startServer = async () => {
-  const { bindLogger, initialize, setupRequestContext, request } = createRoot()
+  const { addToLoggingContext, bindLogger, initialize, setupRequestContext, request } = createRoot()
 
   await initialize()
 
   const rootRouter = createRootRouter(request)
 
   setLogger(({
+    addToLoggingContext,
     // tslint:disable-next-line:no-console
     debug: bindLogger(console.debug),
     // tslint:disable-next-line:no-console

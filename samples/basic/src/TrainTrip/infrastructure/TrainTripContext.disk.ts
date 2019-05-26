@@ -1,6 +1,6 @@
 import TrainTrip, { TravelClassConfiguration } from "@/TrainTrip/TrainTrip"
 import { TrainTripContext } from "@/TrainTrip/usecases/types"
-import { autoinject, ContextBase, DomainEventHandler, RecordContext } from "@fp-app/framework"
+import { autoinject, ContextBase, DomainEventHandler, Event, RecordContext } from "@fp-app/framework"
 import { DbError } from "@fp-app/framework"
 import { DiskRecordContext } from "@fp-app/io.diskdb"
 import { map, mapErr, ok, Result } from "@fp-app/neverthrow-extensions"
@@ -26,7 +26,7 @@ export default class DiskDBContext extends ContextBase implements TrainTripConte
     // @paramInject(sendCloudSyncKey) sendCloudSync: typeof sendCloudSyncKey,
   ) { super(eventHandler) }
 
-  protected getAndClearEvents(): any[] { return this.trainTripsi.intGetAndClearEvents() }
+  protected getAndClearEvents(): Event[] { return this.trainTripsi.intGetAndClearEvents() }
   protected saveImpl(): Promise<Result<void, DbError>> {
     return this.trainTripsi.intSave(
       async i => ok(await this.readContext.create(i.id, TrainTripToView(i))),
@@ -79,11 +79,12 @@ const intDeserializeDbTrainTrip = (serializedTrainTrip: string) => {
         // TODO: restore CurrentTravelClassConfiguration data..
 
         // reset created domain events, as we didn't Create.
-        const trainTripAny: any = trainTrip
         Object.assign(trainTrip, rest, {
           createdAt: new Date(createdAt),
-          travelClassConfiguration: (travelClassConfiguration as any[]).map(x => mapTravelClassConfigurationDTO(t, x)),
+          travelClassConfiguration: travelClassConfiguration.map(x => mapTravelClassConfigurationDTO(t, x)),
         })
+
+        const trainTripAny: any = trainTrip
         trainTripAny._EVENTS = []
         return trainTrip
       }),

@@ -1,11 +1,15 @@
 import { TrainTripPublisher } from "@/TrainTrip/eventhandlers"
 import { TrainTripId } from "@/TrainTrip/TrainTrip"
 import { paramInject, requestInNewScopeKey, requestInNewScopeType } from "@fp-app/framework"
-import { logger } from "@fp-app/framework"
+import { getLogger } from "@fp-app/framework"
 import registerCloud from "../usecases/registerCloud"
 
 export default class TrainTripPublisherInMemory implements TrainTripPublisher {
   private readonly map = new Map<TrainTripId, NodeJS.Timeout>()
+  // TODO: easy way how to inject a configured logger
+  // ie the key is 'configuredLogger', and it will be configured based on the
+  // function/class.
+  private readonly logger = getLogger(this.constructor.name)
 
   constructor(
     @paramInject(requestInNewScopeKey) private readonly request: requestInNewScopeType,
@@ -27,16 +31,16 @@ export default class TrainTripPublisherInMemory implements TrainTripPublisher {
 
   private tryPublishTrainTrip = async (trainTripId: string) => {
     try {
-      logger.log(`Publishing TrainTrip to Cloud: ${trainTripId}`)
+      this.logger.log(`Publishing TrainTrip to Cloud: ${trainTripId}`)
       // Talk to the Cloud Service to sync with Cloud
       const result = await this.request(registerCloud, { trainTripId })
       if (result.isErr()) {
         // TODO: really handle error
-        logger.error(result.error)
+        this.logger.error(result.error)
       }
     } catch (err) {
       // TODO: really handle error
-      logger.error(err)
+      this.logger.error(err)
     } finally {
       this.map.delete(trainTripId)
     }
