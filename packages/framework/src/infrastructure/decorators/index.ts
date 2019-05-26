@@ -7,14 +7,12 @@ const loggingDecorator = (): RequestDecorator =>
   request =>
     (key, input) => {
       const prefix = `${key.name} ${key.type}`
-      return benchLog(() => {
-        return using(logger.addToLoggingContext({ request: prefix }), async () => {
-          logger.log(`${prefix} input`, input)
-          const result = await request(key, input)
-          logger.log(`${prefix} result`, result)
-          return result
-        })
-      }, prefix)
+      return benchLog(() => using(logger.addToLoggingContext({ request: prefix }), async () => {
+        logger.log(`${prefix} input`, input)
+        const result = await request(key, input)
+        logger.log(`${prefix} result`, result)
+        return result
+      }), prefix)
     }
 
 const uowDecorator = configureDependencies({ unitOfWork: UOWKey },
