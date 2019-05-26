@@ -12,6 +12,7 @@ import {
   getRegisteredRequestAndEventHandlers,
   publish, request, RequestContextBase, requestInNewScopeKey, requestInNewScopeType, requestKey, requestType,
 } from "./mediator"
+import { processReceivedEvent, resolveEventKey } from "./pubsub"
 import SimpleContainer, { DependencyScope, factoryOf, Key } from "./SimpleContainer"
 
 const logger = getLogger("registry")
@@ -73,7 +74,7 @@ export default function createDependencyNamespace(namespace: string, requestScop
 
   const publishDomainEventHandler = publish(evt => (domainHandlerMap.get(evt.constructor) || []).map(x => container.getF(x as any)))
   const getIntegrationEventHandlers = (evt: Event) => integrationHandlerMap.get(evt.constructor)
-  // const publishIntegrationEventHandler = publish(evt => (integrationHandlerMap.get(evt.constructor) || []).map(x => container.getF(x)))
+  const publishIntegrationEventHandler = publish(evt => (integrationHandlerMap.get(evt.constructor) || []).map(x => container.getF(x)))
   container.registerScopedC(
     DomainEventHandler,
     () => new DomainEventHandler(
@@ -94,6 +95,16 @@ export default function createDependencyNamespace(namespace: string, requestScop
     factoryOf(executePostCommitHandlers, i => i({ executeIntegrationEvent: container.getF(requestInNewScopeKey) })),
   )
 
+  const publishInNewContext = (evt: string, requestId: string) => setupRequestContext(context => {
+    const correllationId = requestId || context.id
+    Object.assign(context, { correllationId })
+
+    return processReceivedEvent({
+      publish: publishIntegrationEventHandler,
+      resolveEvent: container.getF(resolveEventKey),
+    })(evt)
+  })
+
   const requestInNewContext: requestInNewScopeType = (key: any, evt: any) =>
     setupChildContext(() => container.getF(requestKey)(key, evt))
   container.registerSingletonF(requestKey, factoryOf(request, i => i(key => container.getConcrete(key))))
@@ -111,6 +122,7 @@ export default function createDependencyNamespace(namespace: string, requestScop
     container,
     setupRequestContext,
 
+    publishInNewContext,
     request: request2,
   }
 }

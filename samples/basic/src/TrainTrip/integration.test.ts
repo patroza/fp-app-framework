@@ -1,8 +1,10 @@
 jest.mock("@fp-app/framework/src/infrastructure/executePostCommitHandlers")
 
+import { CustomerRequestedChangesDTO } from "@/resolveIntegrationEvent"
 import { logger, noop, setLogger } from "@fp-app/framework"
-import { executePostCommitHandlers, RecordNotFound } from "@fp-app/framework"
 import { CombinedValidationError, ValidationError } from "@fp-app/framework"
+import { executePostCommitHandlers, RecordNotFound } from "@fp-app/framework"
+import { generateShortUuid } from "@fp-app/framework/src/utils/generateUuid"
 import { Err, Ok } from "@fp-app/neverthrow-extensions"
 import createRoot from "../root"
 import changeTrainTrip, { StateProposition } from "./usecases/changeTrainTrip"
@@ -164,4 +166,21 @@ describe("register Cloud", () => {
     expect(result._unsafeUnwrap()).toBe(void 0)
     expect(executePostCommitHandlersMock).toBeCalledTimes(0)
   }))
+})
+
+describe("integration events", () => {
+  describe("CustomerRequestedChanges", () => {
+    it("locks the TrainTrip", () => createRootAndBind(async () => {
+      await root.publishInNewContext(
+        JSON.stringify({
+          payload: { trainTripId, itineraryId: "some-itinerary-id" },
+          type: "CustomerRequestedChanges",
+        } as CustomerRequestedChangesDTO),
+        generateShortUuid(),
+      )
+
+      const newTrainTripResult = await root.request(getTrainTrip, { trainTripId })
+      expect(newTrainTripResult._unsafeUnwrap().allowUserModification).toBe(false)
+    }))
+  })
 })
