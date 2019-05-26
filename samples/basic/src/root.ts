@@ -11,6 +11,7 @@ import chalk from "chalk"
 
 const createRoot = () => {
   const {
+    addToLoggingContext,
     bindLogger,
     container,
     setupRequestContext,
@@ -52,6 +53,7 @@ const createRoot = () => {
   )
 
   return {
+    addToLoggingContext,
     bindLogger,
     initialize,
     setupRequestContext,

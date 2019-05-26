@@ -1,5 +1,5 @@
 import { flatMap, flatTee, liftType, mapErr, Result } from "@fp-app/neverthrow-extensions"
-import { benchLog, logger } from "../../utils"
+import { benchLog, logger, using } from "../../utils"
 import { DbError } from "../errors"
 import { configureDependencies, NamedRequestHandler, UOWKey } from "../mediator"
 
@@ -7,11 +7,13 @@ const loggingDecorator = (): RequestDecorator =>
   request =>
     (key, input) => {
       const prefix = `${key.name} ${key.type}`
-      return benchLog(async () => {
-        logger.log(`${prefix} input`, input)
-        const result = await request(key, input)
-        logger.log(`${prefix} result`, result)
-        return result
+      return benchLog(() => {
+        return using(logger.addToLoggingContext({ request: prefix }), async () => {
+          logger.log(`${prefix} input`, input)
+          const result = await request(key, input)
+          logger.log(`${prefix} result`, result)
+          return result
+        })
       }, prefix)
     }
 

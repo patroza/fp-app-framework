@@ -11,20 +11,26 @@ export type Constructor<T> = new (...args: any[]) => T
 const asWritable = <T>(obj: T) => obj as Writeable<T>
 export type Writeable<T> = { -readonly [P in keyof T]-?: T[P] }
 
-type logger = Pick<typeof console, "log" | "error" | "warn" | "debug">
+type logger = Pick<typeof console, "log" | "error" | "warn" | "debug"> & { addToLoggingContext: (item: { [key: string]: any }) => Disposable }
 
 export let logger: logger = {
   ...console,
+  addToLoggingContext: () => ({ dispose: () => void 0 }),
 }
 const setLogger = (l: logger) => Object.assign(logger, l)
 
-// TODO: Memoize / Optimize
+// TODO: add support for log context open/close (via using?), tracked via async namespace?
+const loggers = new Map()
 const getLogger = (name: string) => {
+  if (loggers.has(name)) { return loggers.get(name) }
+
   // const levels = ["info", "log", "debug", "error", "warn"] as const
-  return typedKeysOf(logger).reduce((prev, current) => {
+  const l = typedKeysOf(logger).reduce((prev, current) => {
     prev[current] = (...args: any[]) => logger[current](chalk.yellow(`[${name}]`), ...args)
     return prev
   }, {} as typeof logger)
+  loggers.set(name, l)
+  return logger
 }
 
 const isTruthyFilter = <T>(item: T | null | undefined | void): item is T => Boolean(item)
@@ -65,7 +71,18 @@ const using = async <T>(disposable: Disposable, fnc: () => Promise<T> | T) => {
   try {
     return await fnc()
   } finally {
-    if (disposable) { disposable.dispose() }
+    disposable.dispose()
+  }
+}
+
+const removeElement = <T>(array: T[], element: T) => {
+  assert.isNotNull({
+    array,
+    element,
+  })
+  const index = array.indexOf(element)
+  if (index !== -1) {
+    array.splice(index, 1)
   }
 }
 
@@ -75,6 +92,7 @@ export {
   getLogger,
   setLogger,
   isTruthyFilter,
+  removeElement,
   setFunctionName,
   using,
 }
