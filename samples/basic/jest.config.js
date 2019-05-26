@@ -6,6 +6,10 @@ module.exports = {
   "moduleNameMapper": {
     "^@/(.*)$": "<rootDir>/src/$1"
   },
+  "watchPathIgnorePatterns": [
+    "data/*",
+    "router-schema.json"
+  ],
   globals: {
     'ts-jest': {
       diagnostics: false
