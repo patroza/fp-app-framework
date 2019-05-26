@@ -1,8 +1,8 @@
 jest.mock("@fp-app/framework/src/infrastructure/executePostCommitHandlers")
 
-import { logger, setLogger } from "@fp-app/framework"
-import { CombinedValidationError, ValidationError } from "@fp-app/framework"
+import { logger, noop, setLogger } from "@fp-app/framework"
 import { executePostCommitHandlers, RecordNotFound } from "@fp-app/framework"
+import { CombinedValidationError, ValidationError } from "@fp-app/framework"
 import { Err, Ok } from "@fp-app/neverthrow-extensions"
 import createRoot from "../root"
 import changeTrainTrip, { StateProposition } from "./usecases/changeTrainTrip"
@@ -24,7 +24,6 @@ const createRootAndBind = (cb: () => Promise<void>) => {
 }
 
 // Silence logger
-const noop = () => void 0
 setLogger(({
   debug: noop,
   error: noop,

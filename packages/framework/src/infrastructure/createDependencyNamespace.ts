@@ -45,7 +45,7 @@ export default function createDependencyNamespace(namespace: string, requestScop
       ? context.id
       : `${context.id} (${context.correllationId})`)
       : "root context"
-    return fnc(`${chalk.green(timestamp)} ${chalk.blue(`[${id}]`)}`, ...args, items)
+    return fnc(`${chalk.green(timestamp)} ${chalk.blue(`[${id}]`)}`, ...args.concat(items && Object.keys(items).length ? [items] : []))
   }
 
   const setupChildContext = <T>(cb: () => Promise<T>) =>

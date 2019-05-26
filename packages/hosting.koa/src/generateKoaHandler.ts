@@ -7,7 +7,7 @@ import { ConnectionError, CouldNotAquireDbLockError, DbError, OptimisticLockErro
 import { requestType } from "@fp-app/framework"
 import { defaultErrorPassthrough, ErrorHandlerType } from "@fp-app/framework"
 import { logger } from "@fp-app/framework"
-import { flatMap, Result, startWithVal } from "@fp-app/framework"
+import { flatMap, Result, startWithVal } from "@fp-app/neverthrow-extensions"
 
 export default function generateKoaHandler<I, T, E extends ErrorBase, E2 extends ValidationError>(
   request: requestType,
