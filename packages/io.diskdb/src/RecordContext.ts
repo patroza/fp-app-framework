@@ -1,4 +1,6 @@
-import { assert, ConnectionError, CouldNotAquireDbLockError, DbError, Event, OptimisticLockError, RecordContext, RecordNotFound } from "@fp-app/framework"
+import {
+  assert, ConnectionError, CouldNotAquireDbLockError, DbError, Event, OptimisticLockError, RecordContext, RecordNotFound,
+} from "@fp-app/framework"
 import { err, flatMap, liftType, map, mapErr, ok, PipeFunctionN, Result, startWithVal, success } from "@fp-app/neverthrow-extensions"
 import { lock } from "proper-lockfile"
 import { deleteFile, exists, readFile, writeFile } from "./utils"
