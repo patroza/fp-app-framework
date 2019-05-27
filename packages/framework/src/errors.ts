@@ -21,6 +21,8 @@ export class Error extends ErrorBase { }
 
 export class ValidationError extends ErrorBase { }
 
+export class InvalidStateError extends ErrorBase { }
+
 export class ForbiddenError extends ErrorBase { }
 
 export class FieldValidationError extends ValidationError {

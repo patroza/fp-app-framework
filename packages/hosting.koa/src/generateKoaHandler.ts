@@ -2,8 +2,8 @@ import Koa from "koa"
 
 import {
   CombinedValidationError, ConnectionError, CouldNotAquireDbLockError, DbError, defaultErrorPassthrough, ErrorBase,
-  ErrorHandlerType, FieldValidationError, ForbiddenError, logger, NamedHandlerWithDependencies, OptimisticLockError, RecordNotFound,
-  requestType, ValidationError,
+  ErrorHandlerType, FieldValidationError, ForbiddenError, InvalidStateError, logger, NamedHandlerWithDependencies, OptimisticLockError,
+  RecordNotFound, requestType, ValidationError,
 } from "@fp-app/framework"
 import { flatMap, Result, startWithVal } from "@fp-app/neverthrow-extensions"
 
@@ -76,6 +76,9 @@ const handleDefaultError = (ctx: Koa.Context) => (err: ErrorBase) => {
   } else if (err instanceof ValidationError) {
     ctx.body = { message }
     ctx.status = 400
+  } else if (err instanceof InvalidStateError) {
+    ctx.body = { message }
+    ctx.status = 422
   } else if (err instanceof ForbiddenError) {
     ctx.body = { message }
     ctx.status = 403
