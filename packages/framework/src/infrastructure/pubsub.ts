@@ -1,6 +1,5 @@
 import Event from "../event"
-import { publishType } from "./mediator"
-import { generateKey } from "./SimpleContainer"
+import { publishType, resolveEventType } from "./mediator"
 
 const processReceivedEvent = ({ publish, resolveEvent }: {
   resolveEvent: resolveEventType,
@@ -21,12 +20,7 @@ const createEventDTO = (evt: Event): EventDTO => {
   }
 }
 
-type resolveEventType = (evt: { type: any, payload: any }) => Event | undefined
-const resolveEventKey = generateKey<resolveEventType>("resolveEvent")
-
 export {
   createEventDTO,
   processReceivedEvent,
-  resolveEventKey,
-  resolveEventType,
 }

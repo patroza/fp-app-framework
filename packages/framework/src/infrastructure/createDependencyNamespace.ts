@@ -9,9 +9,9 @@ import DomainEventHandler, { executePostCommitHandlersKey } from "./domainEventH
 import executePostCommitHandlers from "./executePostCommitHandlers"
 import {
   getRegisteredRequestAndEventHandlers,
-  publish, request, RequestContextBase, requestInNewScopeKey, requestInNewScopeType, requestKey, requestType,
+  publish, request, RequestContextBase, requestInNewScopeKey, requestInNewScopeType, requestKey, requestType, resolveEventKey,
 } from "./mediator"
-import { processReceivedEvent, resolveEventKey } from "./pubsub"
+import { processReceivedEvent } from "./pubsub"
 import SimpleContainer, { DependencyScope, factoryOf, Key } from "./SimpleContainer"
 
 const logger = getLogger("registry")

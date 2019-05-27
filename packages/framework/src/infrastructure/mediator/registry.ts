@@ -1,5 +1,6 @@
 import { PipeFunction, Result } from "@fp-app/neverthrow-extensions"
 import chalk from "chalk"
+import Event from "../../event"
 import { Constructor, getLogger, setFunctionName, typedKeysOf } from "../../utils"
 import assert from "../../utils/assert"
 import { UnitOfWork } from "../context.base"
@@ -27,6 +28,9 @@ export const configureDependencies = <TDependencies, T>(
 }
 
 export const UOWKey = generateKey<UnitOfWork>("unit-of-work")
+
+export type resolveEventType = (evt: { type: any, payload: any }) => Event | undefined
+export const resolveEventKey = generateKey<resolveEventType>("resolveEvent")
 
 type HandlerWithDependencies<TDependencies, TInput, TOutput, TError> = WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>
 
