@@ -1,6 +1,6 @@
 import { TrainTripCreated, TrainTripId, TrainTripStateChanged, UserInputReceived } from "@/TrainTrip/TrainTrip"
 import { DbContextKey, defaultDependencies, getTripKey, TrainTripPublisherKey } from "@/TrainTrip/usecases/types"
-import { createDomainEventHandlerWithDeps, createIntegrationEventHandlerWithDeps, DbError, Event, requestKey } from "@fp-app/framework"
+import { createDomainEventHandlerWithDeps, createIntegrationEventHandlerWithDeps, DbError, requestKey } from "@fp-app/framework"
 import { flatMap, map, pipe, toTup } from "@fp-app/neverthrow-extensions"
 import lockTrainTrip from "../usecases/lockTrainTrip"
 import { CustomerRequestedChanges } from "./integration.events"

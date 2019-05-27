@@ -17,8 +17,6 @@ export abstract class ErrorBase {
   }
 }
 
-export class Error extends ErrorBase { }
-
 export class ValidationError extends ErrorBase {
   readonly name = "ValidationError"
 }
@@ -32,7 +30,7 @@ export class ForbiddenError extends ErrorBase {
 }
 
 export class FieldValidationError extends ValidationError {
-  constructor(readonly fieldName: string, readonly error: ValidationError) { super(error.message) }
+  constructor(readonly fieldName: string, readonly error: ValidationError | ErrorBase) { super(error.message) }
 
   toString() {
     return `${this.fieldName}: ${this.message}`

@@ -2,7 +2,7 @@ jest.mock("@fp-app/framework/src/infrastructure/executePostCommitHandlers")
 
 import { CustomerRequestedChangesDTO } from "@/resolveIntegrationEvent"
 import {
-  CombinedValidationError, executePostCommitHandlers, generateShortUuid, InvalidStateError, logger, noop, RecordNotFound, setLogger, ValidationError,
+  CombinedValidationError, executePostCommitHandlers, generateShortUuid, InvalidStateError, logger, noop, RecordNotFound, setLogger,
 } from "@fp-app/framework"
 import { Err, Ok } from "@fp-app/neverthrow-extensions"
 import createRoot from "../root"

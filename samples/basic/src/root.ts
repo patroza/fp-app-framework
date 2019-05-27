@@ -1,5 +1,4 @@
-import { createDependencyNamespace, factoryOf, Key, logger, UnitOfWork, UOWKey } from "@fp-app/framework"
-import { resolveEventKey } from "@fp-app/framework/src/infrastructure/pubsub"
+import { createDependencyNamespace, factoryOf, Key, logger, resolveEventKey, UnitOfWork, UOWKey } from "@fp-app/framework"
 import { exists, mkdir } from "@fp-app/io.diskdb"
 import chalk from "chalk"
 import resolveEvent from "./resolveIntegrationEvent"
