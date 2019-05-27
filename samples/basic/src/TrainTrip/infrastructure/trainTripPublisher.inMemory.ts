@@ -1,7 +1,6 @@
 import { TrainTripPublisher } from "@/TrainTrip/eventhandlers"
 import { TrainTripId } from "@/TrainTrip/TrainTrip"
-import { paramInject, requestInNewScopeKey, requestInNewScopeType } from "@fp-app/framework"
-import { getLogger } from "@fp-app/framework"
+import { getLogger, paramInject, requestInNewScopeKey, requestInNewScopeType } from "@fp-app/framework"
 import registerCloud from "../usecases/registerCloud"
 
 export default class TrainTripPublisherInMemory implements TrainTripPublisher {

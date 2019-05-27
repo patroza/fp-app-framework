@@ -1,5 +1,4 @@
-import { assert, typedKeysOf, ValidationError } from "@fp-app/framework"
-import { createValidator, Joi, predicate } from "@fp-app/framework"
+import { assert, createValidator, Joi, predicate, typedKeysOf, ValidationError } from "@fp-app/framework"
 import { flatMap, map, Result } from "@fp-app/neverthrow-extensions"
 
 export default class PaxDefinition {

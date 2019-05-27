@@ -1,5 +1,4 @@
-import { RequestContextBase } from "@fp-app/framework"
-import { calculateElapsed, logger } from "@fp-app/framework"
+import { calculateElapsed, logger, RequestContextBase } from "@fp-app/framework"
 import chalk from "chalk"
 import { EventEmitter } from "events"
 import Koa from "koa"
