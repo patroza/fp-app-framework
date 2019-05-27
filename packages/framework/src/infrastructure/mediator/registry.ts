@@ -109,11 +109,15 @@ const requestAndEventHandlers: Array<NamedHandlerWithDependencies<any, any, any,
 
 const getRegisteredRequestAndEventHandlers = () => [...requestAndEventHandlers]
 
+const curryRequest = <TDependencies, TInput, TOutput, TErr>(req: NamedHandlerWithDependencies<TDependencies, TInput, TOutput, TErr>) =>
+  ({ request }: { request: requestType }) => (input: TInput) => request(req, input)
+
 export {
   getRegisteredRequestAndEventHandlers,
   createCommandWithDeps, createDomainEventHandlerWithDeps,
   createIntegrationEventHandlerWithDeps,
   createQueryWithDeps,
+  curryRequest,
 }
 
 export type requestType = <TInput, TOutput, TError>(
