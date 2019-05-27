@@ -1,6 +1,6 @@
 // tslint:disable:max-classes-per-file
 
-import { assert, asWritable, Entity, ForbiddenError, ValidationError, valueEquals } from "@fp-app/framework"
+import { assert, asWritable, Entity, ForbiddenError, InvalidStateError, ValidationError, valueEquals } from "@fp-app/framework"
 import Event from "@fp-app/framework/src/event"
 import {
   anyTrue, applyIfNotUndefined, err, flatMap, map, mapStatic, ok, Result, success, valueOrUndefined,
@@ -147,9 +147,9 @@ export default class TrainTrip extends Entity {
     return true
   }
 
-  private readonly intChangeTravelClass = (travelClass: TravelClassDefinition): Result<boolean, ValidationError> => {
+  private readonly intChangeTravelClass = (travelClass: TravelClassDefinition): Result<boolean, InvalidStateError> => {
     const slc = this.travelClassConfiguration.find(x => x.travelClass.name === travelClass.value)
-    if (!slc) { return err(new ValidationError(`${travelClass.value} not found`)) }
+    if (!slc) { return err(new InvalidStateError(`${travelClass.value} not available currently`)) }
     if (this.currentTravelClassConfiguration === slc) { return ok(false) }
     this.w.currentTravelClassConfiguration = slc
     return ok(true)

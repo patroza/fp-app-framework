@@ -1,6 +1,6 @@
 //// Separate endpoint sample; unused.
 
-import { createCommandWithDeps, RecordNotFound, ValidationError } from "@fp-app/framework"
+import { createCommandWithDeps, ForbiddenError, InvalidStateError, RecordNotFound, ValidationError } from "@fp-app/framework"
 import { flatMap, pipe, toFlatTup, toTup } from "@fp-app/neverthrow-extensions"
 import FutureDate from "../FutureDate"
 import TravelClassDefinition, { TravelClassName } from "../TravelClassDefinition"
@@ -28,4 +28,4 @@ export const changeTravelClass = createCommand<ChangeTravelClassInput, void, Cha
 )
 
 export interface ChangeTravelClassInput { trainTripId: string, travelClass: TravelClassName }
-type ChangeTravelClassError = ValidationError | RecordNotFound
+type ChangeTravelClassError = ForbiddenError | InvalidStateError | ValidationError | RecordNotFound
