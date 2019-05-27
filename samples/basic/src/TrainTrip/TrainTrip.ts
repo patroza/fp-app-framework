@@ -3,7 +3,7 @@
 import { assert, asWritable, Entity, ForbiddenError, InvalidStateError, ValidationError, valueEquals } from "@fp-app/framework"
 import Event from "@fp-app/framework/src/event"
 import {
-  anyTrue, applyIfNotUndefined, err, flatMap, map, mapStatic, ok, Result, success, valueOrUndefined,
+  anyTrue, applyIfNotUndefined, err, flatMap, liftType, map, mapErr, mapStatic, ok, Result, success, valueOrUndefined,
 } from "@fp-app/neverthrow-extensions"
 import isEqual from "lodash/fp/isEqual"
 import FutureDate from "./FutureDate"
@@ -50,6 +50,7 @@ export default class TrainTrip extends Entity {
 
     return this.confirmUserChangeAllowed()
       .pipe(
+        mapErr(liftType<ValidationError | ForbiddenError | InvalidStateError>()),
         mapStatic(state),
         flatMap(this.applyDefinedChanges),
         map(this.createChangeEvents),
@@ -114,6 +115,7 @@ export default class TrainTrip extends Entity {
 
     return this.confirmUserChangeAllowed()
       .pipe(
+        mapErr(liftType<ForbiddenError | InvalidStateError>()),
         mapStatic(travelClass),
         flatMap(this.intChangeTravelClass),
         map(this.createChangeEvents),
@@ -123,7 +125,7 @@ export default class TrainTrip extends Entity {
   ////////////
 
   private readonly applyDefinedChanges = ({ startDate, pax, travelClass }: StateProposition) =>
-    anyTrue<ValidationError>(
+    anyTrue<ValidationError | InvalidStateError>(
       map(() => applyIfNotUndefined(startDate, this.intChangeStartDate)),
       map(() => applyIfNotUndefined(pax, this.intChangePax)),
       flatMap(() => valueOrUndefined(travelClass, this.intChangeTravelClass)),
@@ -155,7 +157,7 @@ export default class TrainTrip extends Entity {
     return ok(true)
   }
 
-  private confirmUserChangeAllowed(): Result<void, ValidationError> {
+  private confirmUserChangeAllowed(): Result<void, ForbiddenError> {
     if (this.isLocked) {
       return err(new ForbiddenError(`No longer allowed to change TrainTrip ${this.id}`))
     }

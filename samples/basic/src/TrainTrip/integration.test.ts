@@ -2,7 +2,7 @@ jest.mock("@fp-app/framework/src/infrastructure/executePostCommitHandlers")
 
 import { CustomerRequestedChangesDTO } from "@/resolveIntegrationEvent"
 import {
-  CombinedValidationError, executePostCommitHandlers, generateShortUuid, logger, noop, RecordNotFound, setLogger, ValidationError,
+  CombinedValidationError, executePostCommitHandlers, generateShortUuid, InvalidStateError, logger, noop, RecordNotFound, setLogger, ValidationError,
 } from "@fp-app/framework"
 import { Err, Ok } from "@fp-app/neverthrow-extensions"
 import createRoot from "../root"
@@ -103,8 +103,8 @@ describe("propose new state", () => {
 
     expect(r.isErr()).toBe(true)
     const error = r._unsafeUnwrapErr()
-    expect(error).toBeInstanceOf(ValidationError)
-    expect(error.message).toBe("business not found")
+    expect(error).toBeInstanceOf(InvalidStateError)
+    expect(error.message).toBe("business not available currently")
     expect(executePostCommitHandlersMock).toBeCalledTimes(0)
   }))
 

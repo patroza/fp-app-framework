@@ -19,11 +19,17 @@ export abstract class ErrorBase {
 
 export class Error extends ErrorBase { }
 
-export class ValidationError extends ErrorBase { }
+export class ValidationError extends ErrorBase {
+  readonly name = "ValidationError"
+}
 
-export class InvalidStateError extends ErrorBase { }
+export class InvalidStateError extends ErrorBase {
+  readonly name = "InvalidStateError"
+}
 
-export class ForbiddenError extends ErrorBase { }
+export class ForbiddenError extends ErrorBase {
+  readonly name = "ForbiddenError"
+}
 
 export class FieldValidationError extends ValidationError {
   constructor(readonly fieldName: string, readonly error: ValidationError) { super(error.message) }

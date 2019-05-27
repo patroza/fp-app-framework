@@ -17,7 +17,7 @@ export const changeStartDate = createCommand<ChangeStartDateInput, void, ChangeS
 )
 
 export interface ChangeStartDateInput { trainTripId: string, startDate: string }
-type ChangeStartDateError = ValidationError | RecordNotFound
+type ChangeStartDateError = ValidationError | ForbiddenError | RecordNotFound
 
 export const changeTravelClass = createCommand<ChangeTravelClassInput, void, ChangeTravelClassError>("changeTravelClass",
   ({ db }) => pipe(

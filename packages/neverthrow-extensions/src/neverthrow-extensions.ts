@@ -263,6 +263,7 @@ export const liftType = <T>() => <TInput extends T>(e: TInput) => e as T
 // Experiment
 
 // Very nasty, need to find a cleaner approach
+// TODO: This actually breaks error type enforcement
 export const anyTrue = <TErr = any>(...mappers: any[]): Result<boolean, TErr> => {
   let hasChanged = false
 

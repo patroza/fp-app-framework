@@ -22,6 +22,7 @@ export class RecordNotFound extends ErrorBase {
 }
 
 export class CouldNotAquireDbLockError extends Error {
+  readonly name = "CouldNotAquireDbLockError"
   constructor(readonly type: string, readonly id: string, readonly error: Error) {
     super(`Couldn't lock db record ${type}: ${id}`)
     assert.isNotNull({ id, type })
@@ -29,6 +30,7 @@ export class CouldNotAquireDbLockError extends Error {
 }
 
 export class OptimisticLockError extends Error {
+  readonly name = "OptimisticLockError"
   constructor(readonly type: string, readonly id: string) {
     super(`Existing ${type} ${id} record changed`)
     assert.isNotNull({ id, type })
