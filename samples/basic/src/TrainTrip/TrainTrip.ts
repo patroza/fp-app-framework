@@ -39,9 +39,9 @@ export default class TrainTrip extends Entity {
   }
 
   readonly createdAt = new Date()
-  readonly isLocked: boolean = false
   readonly opportunityId?: string
   readonly lockedAt?: Date
+  get isLocked() { return Boolean(this.lockedAt) }
 
   /** use TrainTrip.create() instead */
   constructor(
@@ -74,7 +74,6 @@ export default class TrainTrip extends Entity {
   }
 
   lock() {
-    this.w.isLocked = true
     this.w.lockedAt = new Date()
 
     this.registerDomainEvent(new TrainTripStateChanged(this.id))
