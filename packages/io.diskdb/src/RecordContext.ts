@@ -43,12 +43,11 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
 
   // Internal
   readonly intGetAndClearEvents = () => {
-    let events: Event[] = []
     const items = [...this.cache.values()].map(x => x.data).concat(this.removals)
-    items.forEach(r => {
-      events = events.concat(r.intGetAndClearEvents())
-    })
-    return events
+    return items.reduce(
+      (prev, cur) => prev.concat(cur.intGetAndClearEvents()),
+      [] as Event[],
+    )
   }
 
   readonly intSave = (
