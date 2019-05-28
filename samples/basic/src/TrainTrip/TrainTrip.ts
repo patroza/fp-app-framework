@@ -50,8 +50,8 @@ export default class TrainTrip extends Entity {
 
     return this.confirmUserChangeAllowed()
       .pipe(
-        mapErr(liftType<ValidationError | ForbiddenError | InvalidStateError>()),
         mapStatic(state),
+        mapErr(liftType<ValidationError | ForbiddenError | InvalidStateError>()),
         flatMap(this.applyDefinedChanges),
         map(this.createChangeEvents),
       )
@@ -115,8 +115,8 @@ export default class TrainTrip extends Entity {
 
     return this.confirmUserChangeAllowed()
       .pipe(
-        mapErr(liftType<ForbiddenError | InvalidStateError>()),
         mapStatic(travelClass),
+        mapErr(liftType<ForbiddenError | InvalidStateError>()),
         flatMap(this.intChangeTravelClass),
         map(this.createChangeEvents),
       )

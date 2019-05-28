@@ -37,8 +37,21 @@ const removeElement = <T>(array: T[], element: T) => {
 
 const noop = () => void 0
 
+// Defers object creation until the instance is accessed
+const createLazy = <T>(creatorFunction: () => T) => {
+  assert.isNotNull({ creatorFunction })
+
+  let instance: T
+  return {
+    get value() {
+      return instance || (instance = creatorFunction())
+    },
+  }
+}
+
 export {
   asWritable,
+  createLazy,
   isTruthyFilter,
   noop,
   removeElement,
