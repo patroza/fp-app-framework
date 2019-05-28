@@ -56,7 +56,7 @@ const serializeTrainTrip = ({ events, ...rest }: any) => stringify(rest)
 
 function deserializeDbTrainTrip(serializedTrainTrip: string) {
   const {
-    id, createdAt, currentTravelClassConfiguration, trip, startDate, pax: paxInput, travelClassConfiguration,
+    id, createdAt, currentTravelClassConfiguration, lockedAt, trip, startDate, pax: paxInput, travelClassConfiguration,
     ...rest
   } = parse(serializedTrainTrip) as TrainTripDTO
   // what do we do? we restore all properties that are just property bags
@@ -72,7 +72,11 @@ function deserializeDbTrainTrip(serializedTrainTrip: string) {
     travelClassConfigurations,
     travelClassConfigurations.find(x => x.travelClass.name === currentTravelClassConfiguration.travelClass.name)!,
     t,
-    rest,
+    {
+      ...rest,
+      createdAt: new Date(createdAt),
+      lockedAt: lockedAt ? new Date(lockedAt) : undefined,
+    },
   )
 
   return trainTrip
@@ -93,8 +97,10 @@ const mapTravelClassDTO = ({ createdAt, templateId, name }: TravelClassDTO): Tra
 interface TrainTripDTO {
   createdAt: string
   currentTravelClassConfiguration: TravelClassConfigurationDTO,
+  id: string,
   trip: TripDTO,
   startDate: string
+  lockedAt?: string
   pax: {
     value: Pax,
   },

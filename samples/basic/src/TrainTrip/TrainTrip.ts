@@ -41,17 +41,21 @@ export default class TrainTrip extends Entity {
   readonly createdAt = new Date()
   readonly isLocked: boolean = false
   readonly opportunityId?: string
-  readonly lockedAt: Date | null = null
+  readonly lockedAt?: Date
 
   /** use TrainTrip.create() instead */
   constructor(
     id: string,
     readonly pax: PaxDefinition,
     readonly startDate: Date,
-    readonly travelClassConfiguration: TravelClassConfiguration[],
+    readonly travelClassConfiguration: TravelClassConfiguration[] = [],
     readonly currentTravelClassConfiguration: TravelClassConfiguration,
     readonly trip: Trip,
-    rest?: Partial<{ -readonly [key in keyof TrainTrip]: TrainTrip[key] }>,
+    rest?: Partial<Omit<
+      { -readonly [key in keyof TrainTrip]: TrainTrip[key] },
+      "id" | "pax" | "startDate" | "travelClassConfiguration" | "currentTravelClassConfiguration" | "trip"
+    >>,
+    // rest?: Partial<{ -readonly [key in keyof TrainTrip]: TrainTrip[key] }>,
   ) {
     super(id)
     Object.assign(this, rest)
