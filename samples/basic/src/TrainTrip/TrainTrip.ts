@@ -1,6 +1,6 @@
 // tslint:disable:max-classes-per-file
 
-import { assert, asWritable, Entity, ForbiddenError, InvalidStateError, ValidationError, valueEquals } from "@fp-app/framework"
+import { assert, Entity, ForbiddenError, InvalidStateError, ValidationError, valueEquals } from "@fp-app/framework"
 import Event from "@fp-app/framework/src/event"
 import {
   anyTrue, applyIfNotUndefined, err, flatMap, liftType, map, mapErr, mapStatic, ok, Result, success, valueOrUndefined,
@@ -12,34 +12,41 @@ import TravelClassDefinition from "./TravelClassDefinition"
 import Trip, { TravelClass } from "./Trip"
 
 export default class TrainTrip extends Entity {
+
+  static create(
+    { startDate, pax }: { startDate: FutureDate, pax: PaxDefinition },
+    trip: Trip,
+    currentTravelClass: TravelClass,
+  ) {
+    assert.isNotNull({ trip, currentTravelClass })
+
+    const t = new TrainTrip()
+    t.w.trip = trip
+    t.w.startDate = startDate.value
+    t.w.pax = pax
+    t.w.travelClassConfiguration = trip.travelClasss.map(x => new TravelClassConfiguration(x))
+
+    const currentTravelClassConfiguration = t.travelClassConfiguration.find(x => x.travelClass.name === currentTravelClass.name)
+    // TODO: try not to throw Error, nor converting to static create()..
+    if (!currentTravelClassConfiguration) { throw new Error("passed an unknown travel class") }
+    t.w.currentTravelClassConfiguration = currentTravelClassConfiguration
+
+    t.registerDomainEvent(new TrainTripCreated(t.id))
+
+    return t
+  }
+
   readonly createdAt = new Date()
-  readonly pax: PaxDefinition
-  readonly startDate: Date
+  readonly pax!: PaxDefinition
+  readonly startDate!: Date
   readonly isLocked: boolean = false
   readonly lockedAt?: Date
   readonly opportunityId?: string
   readonly travelClassConfiguration: TravelClassConfiguration[] = []
-  readonly currentTravelClassConfiguration: TravelClassConfiguration
+  readonly currentTravelClassConfiguration!: TravelClassConfiguration
+  readonly trip!: Trip
 
-  constructor(
-    { startDate, pax }: { startDate: FutureDate, pax: PaxDefinition },
-    readonly trip: Trip,
-    currentTravelClass: TravelClass,
-  ) {
-    super()
-    assert.isNotNull({ trip, currentTravelClass })
-
-    this.startDate = startDate.value
-    this.pax = pax
-    this.travelClassConfiguration = trip.travelClasss.map(x => new TravelClassConfiguration(x))
-
-    const currentTravelClassConfiguration = this.travelClassConfiguration.find(x => x.travelClass.name === currentTravelClass.name)
-    // TODO: try not to throw Error, nor converting to static create()..
-    if (!currentTravelClassConfiguration) { throw new Error("passed an unknown travel class") }
-    this.currentTravelClassConfiguration = currentTravelClassConfiguration
-
-    this.registerDomainEvent(new TrainTripCreated(this.id))
-  }
+  private constructor() { super() }
 
   proposeChanges(state: StateProposition) {
     assert.isNotNull({ state })

@@ -52,7 +52,7 @@ const TrainTripToView = ({
   }
 }
 
-const serializeTrainTrip = ({ _EVENTS, ...rest }: any) => stringify(rest)
+const serializeTrainTrip = ({ events, ...rest }: any) => stringify(rest)
 
 function deserializeDbTrainTrip(serializedTrainTrip: string) {
   const {
@@ -64,22 +64,18 @@ function deserializeDbTrainTrip(serializedTrainTrip: string) {
   // TODO: use type information or configuration, probably a library ;-)
   // (trip.travelClasss as any[]).map(sl => tplToTravelClass(sl.template))
   const t = new Trip(trip.travelClasss.map(mapTravelClassDTO))
-  const trainTrip = new TrainTrip({
-    pax: new (PaxDefinition as any)(paxInput.value),
-    // we omit FutureDate because it is temporal..
-    startDate: { value: new Date(startDate) },
-  }, t, t.travelClasss.find(x => x.name === currentTravelClassConfiguration.travelClass.name)!)
+  const trainTrip = new (TrainTrip as any)()
 
   // TODO: restore CurrentTravelClassConfiguration data..
-
-  // reset created domain events, as we didn't Create.
   Object.assign(trainTrip, rest, {
     createdAt: new Date(createdAt),
+    pax: new (PaxDefinition as any)(paxInput.value),
+    // we omit FutureDate because it is temporal..
+    startDate: new Date(startDate),
     travelClassConfiguration: travelClassConfiguration.map(x => mapTravelClassConfigurationDTO(t, x)),
+    trip: t,
   })
 
-  const trainTripAny: any = trainTrip
-  trainTripAny._EVENTS = []
   return trainTrip
 }
 
