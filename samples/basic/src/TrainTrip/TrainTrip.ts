@@ -12,11 +12,7 @@ import TravelClassDefinition from "./TravelClassDefinition"
 import Trip, { TravelClass } from "./Trip"
 
 export default class TrainTrip extends Entity {
-  // workaround so that we can make props look readonly on the outside, but allow to change on the inside.
-  // doesn't work if assigned as property :/
-  private get w() { return asWritable(this) }
   readonly createdAt = new Date()
-
   readonly pax: PaxDefinition
   readonly startDate: Date
   readonly isLocked: boolean = false
@@ -171,20 +167,10 @@ export default class TrainTrip extends Entity {
 }
 
 export class TravelClassConfiguration {
-  // workaround so that we can make props look readonly on the outside, but allow to change on the inside.
-  // doesn't work if assigned as property :/
-  private get w() { return asWritable(this) }
-
   readonly priceLastUpdated?: Date
   readonly price!: Price
 
   constructor(readonly travelClass: TravelClass) { }
-
-  updateTravelClass(travelClass: TravelClass) {
-    assert.isNotNull({ travelClass })
-
-    this.w.travelClass = travelClass
-  }
 }
 
 /*

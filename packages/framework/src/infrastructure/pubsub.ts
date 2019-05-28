@@ -13,12 +13,10 @@ const processReceivedEvent = ({ publish, resolveEvent }: {
 
 export interface EventDTO { type: string, payload: any }
 
-const createEventDTO = (evt: Event): EventDTO => {
-  return {
-    payload: evt,
-    type: evt.constructor.name,
-  }
-}
+const createEventDTO = (evt: Event): EventDTO => ({
+  payload: evt,
+  type: evt.constructor.name,
+})
 
 export {
   createEventDTO,
