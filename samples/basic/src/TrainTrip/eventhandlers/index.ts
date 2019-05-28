@@ -1,6 +1,6 @@
 import { TrainTripCreated, TrainTripId, TrainTripStateChanged, UserInputReceived } from "@/TrainTrip/TrainTrip"
 import { DbContextKey, defaultDependencies, getTripKey, TrainTripPublisherKey } from "@/TrainTrip/usecases/types"
-import { createDomainEventHandlerWithDeps, createIntegrationEventHandlerWithDeps, DbError, requestKey } from "@fp-app/framework"
+import { createDomainEventHandlerWithDeps, createIntegrationEventHandlerWithDeps, curryRequest, DbError, requestKey } from "@fp-app/framework"
 import { flatMap, map, pipe, toTup } from "@fp-app/neverthrow-extensions"
 import lockTrainTrip from "../usecases/lockTrainTrip"
 import { CustomerRequestedChanges } from "./integration.events"
@@ -60,8 +60,7 @@ const createIntegrationCommandEventHandler = createIntegrationEventHandlerWithDe
 
 createIntegrationCommandEventHandler<CustomerRequestedChanges, void, DbError>(
   /* on */ CustomerRequestedChanges, "LockTrainTrip",
-  ({ request }) => input => request(lockTrainTrip, input),
-  // lockTrainTrip,
+  curryRequest(lockTrainTrip),
 )
 
 export interface TrainTripPublisher {
