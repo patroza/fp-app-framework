@@ -2,7 +2,7 @@ import TrainTrip, { TravelClassConfiguration } from "@/TrainTrip/TrainTrip"
 import { TrainTripContext } from "@/TrainTrip/usecases/types"
 import { autoinject, ContextBase, DbError, DomainEventHandler, Event, RecordContext } from "@fp-app/framework"
 import { DiskRecordContext } from "@fp-app/io.diskdb"
-import { map, mapErr, ok, Result } from "@fp-app/neverthrow-extensions"
+import { ok, Result } from "@fp-app/neverthrow-extensions"
 import { parse, stringify } from "flatted"
 import PaxDefinition, { Pax } from "../PaxDefinition"
 import { TravelClassName } from "../TravelClassDefinition"
@@ -10,7 +10,9 @@ import Trip, { TravelClass } from "../Trip"
 import { TrainTripView } from "../usecases/getTrainTrip"
 import TrainTripReadContext from "./TrainTripReadContext.disk"
 
-// TODO: hide fact that this is a class? :-)
+// Since we assume that saving a valid object, means restoring a valid object
+// we can assume data correctness and can skip normal validation and constructing.
+// until proven otherwise.
 // tslint:disable-next-line:max-classes-per-file
 @autoinject
 export default class DiskDBContext extends ContextBase implements TrainTripContext {
@@ -52,42 +54,33 @@ const TrainTripToView = ({
 
 const serializeTrainTrip = ({ _EVENTS, ...rest }: any) => stringify(rest)
 
-const deserializeDbTrainTrip = (serializedTrainTrip: string) =>
-  intDeserializeDbTrainTrip(serializedTrainTrip)
-    .pipe(mapErr(x => { throw new Error("Database consistency error: " + x.message) }))
-
-const intDeserializeDbTrainTrip = (serializedTrainTrip: string) => {
+function deserializeDbTrainTrip(serializedTrainTrip: string) {
   const {
     createdAt, currentTravelClassConfiguration, trip, startDate, pax: paxInput, travelClassConfiguration,
     ...rest
   } = parse(serializedTrainTrip) as TrainTripDTO
-  return PaxDefinition.create(paxInput.value)
-    .pipe(
-      map(pax => {
-        // what do we do? we restore all properties that are just property bags
-        // and we recreate proper object graph for properties that have behaviors
-        // TODO: use type information or configuration, probably a library ;-)
-        // (trip.travelClasss as any[]).map(sl => tplToTravelClass(sl.template))
-        const t = new Trip(trip.travelClasss.map(mapTravelClassDTO))
-        const trainTrip = new TrainTrip({
-          pax,
-          // we omit FutureDate because it is temporal..
-          startDate: { value: new Date(startDate) },
-        }, t, t.travelClasss.find(x => x.name === currentTravelClassConfiguration.travelClass.name)!)
+  // what do we do? we restore all properties that are just property bags
+  // and we recreate proper object graph for properties that have behaviors
+  // TODO: use type information or configuration, probably a library ;-)
+  // (trip.travelClasss as any[]).map(sl => tplToTravelClass(sl.template))
+  const t = new Trip(trip.travelClasss.map(mapTravelClassDTO))
+  const trainTrip = new TrainTrip({
+    pax: new (PaxDefinition as any)(paxInput.value),
+    // we omit FutureDate because it is temporal..
+    startDate: { value: new Date(startDate) },
+  }, t, t.travelClasss.find(x => x.name === currentTravelClassConfiguration.travelClass.name)!)
 
-        // TODO: restore CurrentTravelClassConfiguration data..
+  // TODO: restore CurrentTravelClassConfiguration data..
 
-        // reset created domain events, as we didn't Create.
-        Object.assign(trainTrip, rest, {
-          createdAt: new Date(createdAt),
-          travelClassConfiguration: travelClassConfiguration.map(x => mapTravelClassConfigurationDTO(t, x)),
-        })
+  // reset created domain events, as we didn't Create.
+  Object.assign(trainTrip, rest, {
+    createdAt: new Date(createdAt),
+    travelClassConfiguration: travelClassConfiguration.map(x => mapTravelClassConfigurationDTO(t, x)),
+  })
 
-        const trainTripAny: any = trainTrip
-        trainTripAny._EVENTS = []
-        return trainTrip
-      }),
-    )
+  const trainTripAny: any = trainTrip
+  trainTripAny._EVENTS = []
+  return trainTrip
 }
 
 const mapTravelClassConfigurationDTO = (trip: Trip, { travelClass, ...slRest }: any) => {

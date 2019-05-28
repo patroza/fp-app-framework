@@ -13,7 +13,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
   constructor(
     private readonly type: string,
     private readonly serializer: (record: T) => string,
-    private readonly deserializer: (serialized: string) => Result<T, never>,
+    private readonly deserializer: (serialized: string) => T,
   ) { }
 
   readonly add = (record: T) => {
@@ -33,7 +33,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
     return await tryReadFromDb(this.type, id)
       .pipe(
         map(serializedStr => JSON.parse(serializedStr) as SerializedDBRecord),
-        flatMap(({ version, data }) => this.deserializer(data).pipe(map(dd => ({ version, data: dd })))),
+        map(({ data, version }) => ({ data: this.deserializer(data), version })),
         map(({ version, data }) => {
           this.cache.set(id, { version, data })
           return data
