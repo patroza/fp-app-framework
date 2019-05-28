@@ -56,25 +56,24 @@ const serializeTrainTrip = ({ events, ...rest }: any) => stringify(rest)
 
 function deserializeDbTrainTrip(serializedTrainTrip: string) {
   const {
-    createdAt, currentTravelClassConfiguration, trip, startDate, pax: paxInput, travelClassConfiguration,
+    id, createdAt, currentTravelClassConfiguration, trip, startDate, pax: paxInput, travelClassConfiguration,
     ...rest
   } = parse(serializedTrainTrip) as TrainTripDTO
   // what do we do? we restore all properties that are just property bags
   // and we recreate proper object graph for properties that have behaviors
   // TODO: use type information or configuration, probably a library ;-)
-  // (trip.travelClasss as any[]).map(sl => tplToTravelClass(sl.template))
-  const t = new Trip(trip.travelClasss.map(mapTravelClassDTO))
-  const trainTrip = new (TrainTrip as any)()
 
-  // TODO: restore CurrentTravelClassConfiguration data..
-  Object.assign(trainTrip, rest, {
-    createdAt: new Date(createdAt),
-    pax: new (PaxDefinition as any)(paxInput.value),
-    // we omit FutureDate because it is temporal..
-    startDate: new Date(startDate),
-    travelClassConfiguration: travelClassConfiguration.map(x => mapTravelClassConfigurationDTO(t, x)),
-    trip: t,
-  })
+  const travelClassConfigurations = travelClassConfiguration.map(x => mapTravelClassConfigurationDTO(t, x))
+  const t = new Trip(trip.travelClasss.map(mapTravelClassDTO))
+  const trainTrip = new TrainTrip(
+    id,
+    new (PaxDefinition as any)(paxInput.value),
+    new Date(startDate),
+    travelClassConfigurations,
+    travelClassConfigurations.find(x => x.travelClass.name === currentTravelClassConfiguration.travelClass.name)!,
+    t,
+    rest,
+  )
 
   return trainTrip
 }

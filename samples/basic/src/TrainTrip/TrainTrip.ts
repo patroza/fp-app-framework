@@ -1,6 +1,6 @@
 // tslint:disable:max-classes-per-file
 
-import { assert, Entity, ForbiddenError, InvalidStateError, ValidationError, valueEquals } from "@fp-app/framework"
+import { assert, Entity, ForbiddenError, generateUuid, InvalidStateError, ValidationError, valueEquals } from "@fp-app/framework"
 import Event from "@fp-app/framework/src/event"
 import {
   anyTrue, applyIfNotUndefined, err, flatMap, liftType, map, mapErr, mapStatic, ok, Result, success, valueOrUndefined,
@@ -12,7 +12,7 @@ import TravelClassDefinition from "./TravelClassDefinition"
 import Trip, { TravelClass } from "./Trip"
 
 export default class TrainTrip extends Entity {
-
+  /** the primary way to create a new TrainTrip */
   static create(
     { startDate, pax }: { startDate: FutureDate, pax: PaxDefinition },
     trip: Trip,
@@ -20,33 +20,42 @@ export default class TrainTrip extends Entity {
   ) {
     assert.isNotNull({ trip, currentTravelClass })
 
-    const t = new TrainTrip()
-    t.w.trip = trip
-    t.w.startDate = startDate.value
-    t.w.pax = pax
-    t.w.travelClassConfiguration = trip.travelClasss.map(x => new TravelClassConfiguration(x))
-
-    const currentTravelClassConfiguration = t.travelClassConfiguration.find(x => x.travelClass.name === currentTravelClass.name)
-    // TODO: try not to throw Error, nor converting to static create()..
+    const travelClassConfiguration = trip.travelClasss.map(x => new TravelClassConfiguration(x))
+    const currentTravelClassConfiguration = travelClassConfiguration.find(x => x.travelClass.name === currentTravelClass.name)
     if (!currentTravelClassConfiguration) { throw new Error("passed an unknown travel class") }
-    t.w.currentTravelClassConfiguration = currentTravelClassConfiguration
 
+    // TODO: not trip.
+    const t = new TrainTrip(
+      generateUuid(),
+      pax,
+      startDate.value,
+      travelClassConfiguration,
+      currentTravelClassConfiguration,
+      trip,
+    )
     t.registerDomainEvent(new TrainTripCreated(t.id))
 
     return t
   }
 
   readonly createdAt = new Date()
-  readonly pax!: PaxDefinition
-  readonly startDate!: Date
   readonly isLocked: boolean = false
-  readonly lockedAt?: Date
   readonly opportunityId?: string
-  readonly travelClassConfiguration: TravelClassConfiguration[] = []
-  readonly currentTravelClassConfiguration!: TravelClassConfiguration
-  readonly trip!: Trip
+  readonly lockedAt: Date | null = null
 
-  private constructor() { super() }
+  /** use TrainTrip.create() instead */
+  constructor(
+    id: string,
+    readonly pax: PaxDefinition,
+    readonly startDate: Date,
+    readonly travelClassConfiguration: TravelClassConfiguration[],
+    readonly currentTravelClassConfiguration: TravelClassConfiguration,
+    readonly trip: Trip,
+    rest?: Partial<{ -readonly [key in keyof TrainTrip]: TrainTrip[key] }>,
+  ) {
+    super(id)
+    Object.assign(this, rest)
+  }
 
   proposeChanges(state: StateProposition) {
     assert.isNotNull({ state })
