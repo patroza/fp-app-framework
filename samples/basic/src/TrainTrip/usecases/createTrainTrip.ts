@@ -1,6 +1,6 @@
 import {
   ApiError, CombinedValidationError, combineValidationErrors,
-  createCommandWithDeps, DbError, toFieldError, ValidationError,
+  createCommandWithDeps, DbError, InvalidStateError, toFieldError, ValidationError,
 } from "@fp-app/framework"
 import { err, flatMap, map, mapErr, ok, pipe, PipeFunction, Result, resultTuple, tee, toTup } from "@fp-app/neverthrow-extensions"
 import FutureDate from "../FutureDate"
@@ -14,7 +14,7 @@ const createTrainTrip = createCommand<Input, string, CreateError>("createTrainTr
   ({ db, getTrip }) => pipe(
     flatMap(validateCreateTrainTripInfo),
     flatMap(toTup(({ templateId }) => getTrip(templateId))),
-    map(([trip, proposal]) => trip.createTrainTrip(proposal)),
+    flatMap(([trip, proposal]) => trip.createTrainTrip(proposal)),
     map(tee(db.trainTrips.add)),
     map(trainTrip => trainTrip.id),
   ),
@@ -61,4 +61,4 @@ const validateCreateTrainTripInfo: PipeFunction<Input, CreateTrainTripInfo, Vali
 const validateString = <T extends string>(str: string): Result<T, ValidationError> =>
   str ? ok(str as T) : err(new ValidationError("not a valid str"))
 
-type CreateError = CombinedValidationError | ValidationError | ApiError | DbError
+type CreateError = CombinedValidationError | InvalidStateError | ValidationError | ApiError | DbError

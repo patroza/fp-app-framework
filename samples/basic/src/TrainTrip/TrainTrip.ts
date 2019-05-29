@@ -9,18 +9,16 @@ import isEqual from "lodash/fp/isEqual"
 import FutureDate from "./FutureDate"
 import PaxDefinition from "./PaxDefinition"
 import TravelClassDefinition from "./TravelClassDefinition"
-import Trip, { TravelClass } from "./Trip"
+import Trip, { TravelClass, TripWithSelectedTravelClass } from "./Trip"
 
 export default class TrainTrip extends Entity {
   /** the primary way to create a new TrainTrip */
   static create(
     { startDate, pax }: { startDate: FutureDate, pax: PaxDefinition },
-    trip: Trip,
-    currentTravelClass: TravelClass,
+    trip: TripWithSelectedTravelClass,
   ) {
-    const travelClassConfiguration = trip.travelClasss.map(x => new TravelClassConfiguration(x))
-    const currentTravelClassConfiguration = travelClassConfiguration.find(x => x.travelClass.name === currentTravelClass.name)
-    if (!currentTravelClassConfiguration) { throw new Error("passed an unknown travel class") }
+    const travelClassConfiguration = trip.travelClasses.map(x => new TravelClassConfiguration(x))
+    const currentTravelClassConfiguration = travelClassConfiguration.find(x => x.travelClass.name === trip.currentTravelClass.name)!
 
     // TODO: not trip.
     const t = new TrainTrip(
@@ -29,7 +27,6 @@ export default class TrainTrip extends Entity {
       startDate.value,
       travelClassConfiguration,
       currentTravelClassConfiguration,
-      trip,
     )
     t.registerDomainEvent(new TrainTripCreated(t.id))
 
@@ -48,7 +45,6 @@ export default class TrainTrip extends Entity {
     readonly startDate: Date,
     readonly travelClassConfiguration: TravelClassConfiguration[] = [],
     readonly currentTravelClassConfiguration: TravelClassConfiguration,
-    readonly trip: Trip,
     rest?: Partial<Omit<
       { -readonly [key in keyof TrainTrip]: TrainTrip[key] },
       "id" | "pax" | "startDate" | "travelClassConfiguration" | "currentTravelClassConfiguration" | "trip"
@@ -80,10 +76,9 @@ export default class TrainTrip extends Entity {
   }
 
   readonly updateTrip = (trip: Trip) => {
-    this.w.trip = trip
     // This will clear all configurations upon trip update
     // TODO: Investigate a resolution mechanism to update existing configurations, depends on business case ;-)
-    this.w.travelClassConfiguration = trip.travelClasss.map(x => new TravelClassConfiguration(x))
+    this.w.travelClassConfiguration = trip.travelClasses.map(x => new TravelClassConfiguration(x))
     const currentTravelClassConfiguration = (
       this.travelClassConfiguration.find(x => this.currentTravelClassConfiguration.travelClass.name === x.travelClass.name)
     )
