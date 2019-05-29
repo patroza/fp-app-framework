@@ -1,5 +1,5 @@
 import {
-  assert, ConnectionError, CouldNotAquireDbLockError, DbError, Event, OptimisticLockError, RecordContext, RecordNotFound,
+  ConnectionError, CouldNotAquireDbLockError, DbError, Event, OptimisticLockError, RecordContext, RecordNotFound,
 } from "@fp-app/framework"
 import { err, flatMap, liftType, map, mapErr, ok, PipeFunctionN, Result, startWithVal, success } from "@fp-app/neverthrow-extensions"
 import { lock } from "proper-lockfile"
@@ -17,17 +17,14 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
   ) { }
 
   readonly add = (record: T) => {
-    assert.isNotNull({ record })
     this.cache.set(record.id, { version: 0, data: record })
   }
 
   readonly remove = (record: T) => {
-    assert.isNotNull({ record })
     this.removals.push(record)
   }
 
   readonly load = async (id: string): Promise<Result<T, DbError>> => {
-    assert.isNotNull({ id })
     const cachedRecord = this.cache.get(id)
     if (cachedRecord) { return ok(cachedRecord.data) }
     return await tryReadFromDb(this.type, id)
@@ -93,7 +90,6 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
   }
 
   private readonly saveRecord = async (record: T): Promise<Result<void, DbError>> => {
-    assert.isNotNull({ record })
     const cachedRecord = this.cache.get(record.id)!
 
     if (!cachedRecord.version) {
@@ -114,12 +110,10 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
       ))
   }
 
-  private readonly deleteRecord = async (record: T): Promise<Result<void, DbError>> => {
-    assert.isNotNull({ record })
-    return await lockRecordOnDisk(this.type, record.id, () =>
+  private readonly deleteRecord = (record: T): Promise<Result<void, DbError>> =>
+    lockRecordOnDisk(this.type, record.id, () =>
       startWithVal(void 0)<DbError>().pipe(map(() => deleteFile(getFilename(this.type, record.id)))),
     )
-  }
 
   private readonly actualSave = async (record: T, version: number) => {
     const data = this.serializer(record)

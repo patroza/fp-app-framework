@@ -1,10 +1,8 @@
-import { assert, createValidator, Joi, predicate, typedKeysOf, ValidationError } from "@fp-app/framework"
+import { createValidator, Joi, predicate, typedKeysOf, ValidationError } from "@fp-app/framework"
 import { flatMap, map, Result } from "@fp-app/neverthrow-extensions"
 
 export default class PaxDefinition {
   static create(pax: Pax): Result<PaxDefinition, ValidationError> {
-    assert.isNotNull({ pax })
-
     return validate(pax)
       .pipe(
         flatMap(predicate(p => typedKeysOf(p).some(k => p[k] > 0), "pax requires at least 1 person")),

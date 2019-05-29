@@ -1,6 +1,6 @@
 // tslint:disable:max-classes-per-file
 
-import { assert, Entity, ForbiddenError, generateUuid, InvalidStateError, ValidationError, valueEquals } from "@fp-app/framework"
+import { Entity, ForbiddenError, generateUuid, InvalidStateError, ValidationError, valueEquals } from "@fp-app/framework"
 import Event from "@fp-app/framework/src/event"
 import {
   anyTrue, applyIfNotUndefined, err, flatMap, liftType, map, mapErr, mapStatic, ok, Result, success, valueOrUndefined,
@@ -18,8 +18,6 @@ export default class TrainTrip extends Entity {
     trip: Trip,
     currentTravelClass: TravelClass,
   ) {
-    assert.isNotNull({ trip, currentTravelClass })
-
     const travelClassConfiguration = trip.travelClasss.map(x => new TravelClassConfiguration(x))
     const currentTravelClassConfiguration = travelClassConfiguration.find(x => x.travelClass.name === currentTravelClass.name)
     if (!currentTravelClassConfiguration) { throw new Error("passed an unknown travel class") }
@@ -62,8 +60,6 @@ export default class TrainTrip extends Entity {
   }
 
   proposeChanges(state: StateProposition) {
-    assert.isNotNull({ state })
-
     return this.confirmUserChangeAllowed()
       .pipe(
         mapStatic(state),
@@ -84,8 +80,6 @@ export default class TrainTrip extends Entity {
   }
 
   readonly updateTrip = (trip: Trip) => {
-    assert.isNotNull({ trip })
-
     this.w.trip = trip
     // This will clear all configurations upon trip update
     // TODO: Investigate a resolution mechanism to update existing configurations, depends on business case ;-)
@@ -104,8 +98,6 @@ export default class TrainTrip extends Entity {
   ////////////
   //// Separate sample; not used other than testing
   async changeStartDate(startDate: FutureDate) {
-    assert.isNotNull({ startDate })
-
     return this.confirmUserChangeAllowed()
       .pipe(
         mapStatic(startDate),
@@ -115,8 +107,6 @@ export default class TrainTrip extends Entity {
   }
 
   async changePax(pax: PaxDefinition) {
-    assert.isNotNull({ pax })
-
     return this.confirmUserChangeAllowed()
       .pipe(
         mapStatic(pax),
@@ -126,8 +116,6 @@ export default class TrainTrip extends Entity {
   }
 
   async changeTravelClass(travelClass: TravelClassDefinition) {
-    assert.isNotNull({ travelClass })
-
     return this.confirmUserChangeAllowed()
       .pipe(
         mapStatic(travelClass),

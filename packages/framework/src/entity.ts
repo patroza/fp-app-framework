@@ -1,12 +1,10 @@
 import Event from "./event"
-import { assert, Writeable } from "./utils"
+import { Writeable } from "./utils"
 
 export default abstract class Entity {
   private events: Event[] = []
 
   constructor(readonly id: string) {
-    assert.isNotNull({ id })
-
     // workaround so that we can make props look readonly on the outside, but allow to change on the inside.
     // doesn't work if assigned as property :/
     Object.defineProperty(this, "w", { value: this })
