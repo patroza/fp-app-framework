@@ -1,65 +1,71 @@
 // tslint:disable:max-classes-per-file
 
-import { Entity, ForbiddenError, ValidationError } from "@fp-app/framework"
-import { assert, asWritable } from "@fp-app/framework"
-import { valueEquals } from "@fp-app/framework"
+import { Entity, ForbiddenError, generateUuid, InvalidStateError, ValidationError, valueEquals } from "@fp-app/framework"
 import Event from "@fp-app/framework/src/event"
 import {
-  anyTrue, applyIfNotUndefined, err, flatMap, map, mapStatic, ok, Result, success, valueOrUndefined,
+  anyTrue, applyIfNotUndefined, err, flatMap, liftType, map, mapErr, mapStatic, ok, Result, success, valueOrUndefined,
 } from "@fp-app/neverthrow-extensions"
 import isEqual from "lodash/fp/isEqual"
 import FutureDate from "./FutureDate"
 import PaxDefinition from "./PaxDefinition"
 import TravelClassDefinition from "./TravelClassDefinition"
-import Trip, { TravelClass } from "./Trip"
+import Trip, { TravelClass, TripWithSelectedTravelClass } from "./Trip"
 
 export default class TrainTrip extends Entity {
-  // workaround so that we can make props look readonly on the outside, but allow to change on the inside.
-  // doesn't work if assigned as property :/
-  private get w() { return asWritable(this) }
-  readonly createdAt = new Date()
-
-  readonly pax: PaxDefinition
-  readonly startDate: Date
-  readonly isLocked: boolean = false
-  readonly lockedAt?: Date
-  readonly opportunityId?: string
-  readonly travelClassConfiguration: TravelClassConfiguration[] = []
-  readonly currentTravelClassConfiguration: TravelClassConfiguration
-
-  constructor(
+  /** the primary way to create a new TrainTrip */
+  static create(
     { startDate, pax }: { startDate: FutureDate, pax: PaxDefinition },
-    readonly trip: Trip,
-    currentTravelClass: TravelClass,
+    trip: TripWithSelectedTravelClass,
   ) {
-    super()
-    assert.isNotNull({ trip, currentTravelClass })
+    const travelClassConfiguration = trip.travelClasses.map(x => new TravelClassConfiguration(x))
+    const currentTravelClassConfiguration = travelClassConfiguration.find(x => x.travelClass.name === trip.currentTravelClass.name)!
 
-    this.startDate = startDate.value
-    this.pax = pax
-    this.travelClassConfiguration = trip.travelClasss.map(x => new TravelClassConfiguration(x))
+    // TODO: not trip.
+    const t = new TrainTrip(
+      generateUuid(),
+      pax,
+      startDate.value,
+      travelClassConfiguration,
+      currentTravelClassConfiguration,
+    )
+    t.registerDomainEvent(new TrainTripCreated(t.id))
 
-    const currentTravelClassConfiguration = this.travelClassConfiguration.find(x => x.travelClass.name === currentTravelClass.name)
-    // TODO: try not to throw Error, nor converting to static create()..
-    if (!currentTravelClassConfiguration) { throw new Error("passed an unknown travel class") }
-    this.currentTravelClassConfiguration = currentTravelClassConfiguration
+    return t
+  }
 
-    this.registerDomainEvent(new TrainTripCreated(this.id))
+  readonly createdAt = new Date()
+  readonly opportunityId?: string
+  readonly lockedAt?: Date
+  get isLocked() { return Boolean(this.lockedAt) }
+
+  /** use TrainTrip.create() instead */
+  constructor(
+    id: string,
+    readonly pax: PaxDefinition,
+    readonly startDate: Date,
+    readonly travelClassConfiguration: TravelClassConfiguration[] = [],
+    readonly currentTravelClassConfiguration: TravelClassConfiguration,
+    rest?: Partial<Omit<
+      { -readonly [key in keyof TrainTrip]: TrainTrip[key] },
+      "id" | "pax" | "startDate" | "travelClassConfiguration" | "currentTravelClassConfiguration" | "trip"
+    >>,
+    // rest?: Partial<{ -readonly [key in keyof TrainTrip]: TrainTrip[key] }>,
+  ) {
+    super(id)
+    Object.assign(this, rest)
   }
 
   proposeChanges(state: StateProposition) {
-    assert.isNotNull({ state })
-
     return this.confirmUserChangeAllowed()
       .pipe(
         mapStatic(state),
+        mapErr(liftType<ValidationError | ForbiddenError | InvalidStateError>()),
         flatMap(this.applyDefinedChanges),
         map(this.createChangeEvents),
       )
   }
 
   lock() {
-    this.w.isLocked = true
     this.w.lockedAt = new Date()
 
     this.registerDomainEvent(new TrainTripStateChanged(this.id))
@@ -70,12 +76,9 @@ export default class TrainTrip extends Entity {
   }
 
   readonly updateTrip = (trip: Trip) => {
-    assert.isNotNull({ trip })
-
-    this.w.trip = trip
     // This will clear all configurations upon trip update
     // TODO: Investigate a resolution mechanism to update existing configurations, depends on business case ;-)
-    this.w.travelClassConfiguration = trip.travelClasss.map(x => new TravelClassConfiguration(x))
+    this.w.travelClassConfiguration = trip.travelClasses.map(x => new TravelClassConfiguration(x))
     const currentTravelClassConfiguration = (
       this.travelClassConfiguration.find(x => this.currentTravelClassConfiguration.travelClass.name === x.travelClass.name)
     )
@@ -90,8 +93,6 @@ export default class TrainTrip extends Entity {
   ////////////
   //// Separate sample; not used other than testing
   async changeStartDate(startDate: FutureDate) {
-    assert.isNotNull({ startDate })
-
     return this.confirmUserChangeAllowed()
       .pipe(
         mapStatic(startDate),
@@ -101,8 +102,6 @@ export default class TrainTrip extends Entity {
   }
 
   async changePax(pax: PaxDefinition) {
-    assert.isNotNull({ pax })
-
     return this.confirmUserChangeAllowed()
       .pipe(
         mapStatic(pax),
@@ -112,11 +111,10 @@ export default class TrainTrip extends Entity {
   }
 
   async changeTravelClass(travelClass: TravelClassDefinition) {
-    assert.isNotNull({ travelClass })
-
     return this.confirmUserChangeAllowed()
       .pipe(
         mapStatic(travelClass),
+        mapErr(liftType<ForbiddenError | InvalidStateError>()),
         flatMap(this.intChangeTravelClass),
         map(this.createChangeEvents),
       )
@@ -125,7 +123,7 @@ export default class TrainTrip extends Entity {
   ////////////
 
   private readonly applyDefinedChanges = ({ startDate, pax, travelClass }: StateProposition) =>
-    anyTrue<ValidationError>(
+    anyTrue<ValidationError | InvalidStateError>(
       map(() => applyIfNotUndefined(startDate, this.intChangeStartDate)),
       map(() => applyIfNotUndefined(pax, this.intChangePax)),
       flatMap(() => valueOrUndefined(travelClass, this.intChangeTravelClass)),
@@ -149,15 +147,15 @@ export default class TrainTrip extends Entity {
     return true
   }
 
-  private readonly intChangeTravelClass = (travelClass: TravelClassDefinition): Result<boolean, ValidationError> => {
+  private readonly intChangeTravelClass = (travelClass: TravelClassDefinition): Result<boolean, InvalidStateError> => {
     const slc = this.travelClassConfiguration.find(x => x.travelClass.name === travelClass.value)
-    if (!slc) { return err(new ValidationError(`${travelClass.value} not found`)) }
+    if (!slc) { return err(new InvalidStateError(`${travelClass.value} not available currently`)) }
     if (this.currentTravelClassConfiguration === slc) { return ok(false) }
     this.w.currentTravelClassConfiguration = slc
     return ok(true)
   }
 
-  private confirmUserChangeAllowed(): Result<void, ValidationError> {
+  private confirmUserChangeAllowed(): Result<void, ForbiddenError> {
     if (this.isLocked) {
       return err(new ForbiddenError(`No longer allowed to change TrainTrip ${this.id}`))
     }
@@ -171,20 +169,10 @@ export default class TrainTrip extends Entity {
 }
 
 export class TravelClassConfiguration {
-  // workaround so that we can make props look readonly on the outside, but allow to change on the inside.
-  // doesn't work if assigned as property :/
-  private get w() { return asWritable(this) }
-
   readonly priceLastUpdated?: Date
   readonly price!: Price
 
   constructor(readonly travelClass: TravelClass) { }
-
-  updateTravelClass(travelClass: TravelClass) {
-    assert.isNotNull({ travelClass })
-
-    this.w.travelClass = travelClass
-  }
 }
 
 /*

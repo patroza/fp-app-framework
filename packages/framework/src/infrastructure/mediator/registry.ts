@@ -1,5 +1,6 @@
 import { PipeFunction, Result } from "@fp-app/neverthrow-extensions"
 import chalk from "chalk"
+import Event from "../../event"
 import { Constructor, getLogger, setFunctionName, typedKeysOf } from "../../utils"
 import assert from "../../utils/assert"
 import { UnitOfWork } from "../context.base"
@@ -27,6 +28,9 @@ export const configureDependencies = <TDependencies, T>(
 }
 
 export const UOWKey = generateKey<UnitOfWork>("unit-of-work")
+
+export type resolveEventType = (evt: { type: any, payload: any }) => Event | undefined
+export const resolveEventKey = generateKey<resolveEventType>("resolveEvent")
 
 type HandlerWithDependencies<TDependencies, TInput, TOutput, TError> = WithDependencies<TDependencies, PipeFunction<TInput, TOutput, TError>>
 
@@ -105,11 +109,15 @@ const requestAndEventHandlers: Array<NamedHandlerWithDependencies<any, any, any,
 
 const getRegisteredRequestAndEventHandlers = () => [...requestAndEventHandlers]
 
+const curryRequest = <TDependencies, TInput, TOutput, TErr>(req: NamedHandlerWithDependencies<TDependencies, TInput, TOutput, TErr>) =>
+  ({ request }: { request: requestType }) => (input: TInput) => request(req, input)
+
 export {
   getRegisteredRequestAndEventHandlers,
   createCommandWithDeps, createDomainEventHandlerWithDeps,
   createIntegrationEventHandlerWithDeps,
   createQueryWithDeps,
+  curryRequest,
 }
 
 export type requestType = <TInput, TOutput, TError>(

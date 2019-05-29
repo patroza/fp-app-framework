@@ -1,13 +1,13 @@
-import { createDependencyNamespace, factoryOf, Key, logger, UnitOfWork, UOWKey } from "@fp-app/framework"
+import { createDependencyNamespace, factoryOf, Key, logger, resolveEventKey, UnitOfWork, UOWKey } from "@fp-app/framework"
 import { exists, mkdir } from "@fp-app/io.diskdb"
+import chalk from "chalk"
+import resolveEvent from "./resolveIntegrationEvent"
 import "./TrainTrip/eventhandlers" // To be ble to auto register them :/
 import { getPricingFake, getTemplateFake, getTrip, sendCloudSyncFake } from "./TrainTrip/infrastructure/api"
 import DiskDBContext from "./TrainTrip/infrastructure/TrainTripContext.disk"
 import TrainTripPublisherInMemory from "./TrainTrip/infrastructure/trainTripPublisher.inMemory"
 import TrainTripReadContext, { trainTripReadContextKey } from "./TrainTrip/infrastructure/TrainTripReadContext.disk"
 import { DbContextKey, getTripKey, RequestContextKey, sendCloudSyncKey, TrainTripPublisherKey } from "./TrainTrip/usecases/types"
-
-import chalk from "chalk"
 
 const createRoot = () => {
   const {
@@ -16,6 +16,7 @@ const createRoot = () => {
     container,
     setupRequestContext,
 
+    publishInNewContext,
     request,
   } = createDependencyNamespace(
     namespace,
@@ -35,6 +36,8 @@ const createRoot = () => {
       return getTripF
     },
   )
+
+  container.registerSingletonF(resolveEventKey, () => resolveEvent())
 
   // Prevent stack-overflow; as logger depends on requestcontext
   // tslint:disable-next-line:no-console
@@ -58,6 +61,7 @@ const createRoot = () => {
     initialize,
     setupRequestContext,
 
+    publishInNewContext,
     request,
   }
 }

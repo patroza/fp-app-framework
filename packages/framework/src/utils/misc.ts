@@ -25,10 +25,6 @@ const using = async <T>(disposable: Disposable, fnc: () => Promise<T> | T) => {
 }
 
 const removeElement = <T>(array: T[], element: T) => {
-  assert.isNotNull({
-    array,
-    element,
-  })
   const index = array.indexOf(element)
   if (index !== -1) {
     array.splice(index, 1)
@@ -37,8 +33,19 @@ const removeElement = <T>(array: T[], element: T) => {
 
 const noop = () => void 0
 
+// Defers object creation until the instance is accessed
+const createLazy = <T>(creatorFunction: () => T) => {
+  let instance: T
+  return {
+    get value() {
+      return instance || (instance = creatorFunction())
+    },
+  }
+}
+
 export {
   asWritable,
+  createLazy,
   isTruthyFilter,
   noop,
   removeElement,

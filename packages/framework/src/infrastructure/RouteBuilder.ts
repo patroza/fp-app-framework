@@ -1,6 +1,5 @@
 import fs from "fs"
 import { ErrorBase } from "../errors"
-import assert from "../utils/assert"
 import { ValidatorType } from "../utils/validation"
 import { DbError } from "./errors"
 import { NamedHandlerWithDependencies, requestType } from "./mediator"
@@ -33,8 +32,6 @@ export default abstract class RouteBuilder<TContext> {
   }
 
   enableBasicAuth(userPass: string) {
-    assert.isNotNull({ userPass })
-
     this.basicAuthEnabled = true
     this.userPass = userPass
     return this

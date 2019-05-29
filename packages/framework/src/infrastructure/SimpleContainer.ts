@@ -14,8 +14,6 @@ export default class SimpleContainer {
   constructor(private tryGetDependencyScope: () => DependencyScope, private setDependencyScope: (scope: DependencyScope) => void) { }
 
   getC<T>(key: Constructor<T>): T {
-    assert.isNotNull({ key })
-
     const instance = this.tryCreateInstance<T>(key)
     if (!instance) { throw new Error(`could not resolve ${key}`) }
     return instance
@@ -23,24 +21,18 @@ export default class SimpleContainer {
 
   // tslint:disable-next-line:ban-types
   getF<T extends Function>(key: T) {
-    assert.isNotNull({ key })
-
     const f = this.tryCreateInstance<T>(key)
     if (!f) { throw new Error(`could not resolve ${key}`) }
     return f
   }
 
   getConcrete<TDependencies, T>(key: (deps: TDependencies) => T) {
-    assert.isNotNull({ key })
-
     const f = this.tryCreateInstance<T>(key)
     if (!f) { throw new Error(`could not resolve ${key}`) }
     return f
   }
 
   getO<T>(key: Key<T>) {
-    assert.isNotNull({ key })
-
     const f = this.tryCreateInstance<T>(key)
     if (!f) { throw new Error(`could not resolve ${key}`) }
     return f
@@ -55,27 +47,22 @@ export default class SimpleContainer {
   }
 
   registerTransientC<T>(key: Constructor<T>, factory: () => T) {
-    assert.isNotNull({ key, factory })
     this.registerFactoryC(key, factory)
   }
 
   registerScopedC<T>(key: Constructor<T>, factory: () => T) {
-    assert.isNotNull({ key, factory })
     this.registerFactoryC(key, factory, this.getDependencyScope)
   }
 
   registerSingletonC<T>(key: Constructor<T>, factory: () => T) {
-    assert.isNotNull({ key, factory })
     this.registerFactoryC(key, factory, this.getSingletonScope)
   }
 
   registerInstanceC<T>(key: Constructor<T>, instance: T) {
-    assert.isNotNull({ key, instance })
     this.registerFactoryC(key, () => instance, this.getSingletonScope)
   }
 
   registerTransientF<T extends (...args: any[]) => any>(key: T, factory: () => T) {
-    assert.isNotNull({ key, factory })
     this.registerFactoryF(key, factory)
   }
 
@@ -84,33 +71,27 @@ export default class SimpleContainer {
   }
 
   registerScopedO<T>(key: Key<T>, factory?: () => T) {
-    assert.isNotNull({ key })
     const fact = factory || (() => this.createNewInstance(key as any))
     this.registerFactoryO(key, fact, this.getDependencyScope)
   }
 
   registerScopedF<T extends (...args: any[]) => any>(key: T, factory: () => T) {
-    assert.isNotNull({ key, factory })
     this.registerFactoryF(key, factory, this.getDependencyScope)
   }
 
   registerScopedF2<TDependencies, T extends (...args: any[]) => any>(key: Key<T>, impl: WithDependenciesConfig<TDependencies, T>) {
-    assert.isNotNull({ key, impl })
     const factory = () => this.createFunctionInstance(impl)
     setFunctionName(factory, impl.name || `f(${key.name}`)
     this.registerFactoryF(key, factory, this.getDependencyScope)
   }
 
   registerSingletonF2<TDependencies, T extends (...args: any[]) => any>(key: Key<T>, impl: WithDependenciesConfig<TDependencies, T>) {
-    assert.isNotNull({ key, impl })
     const factory = () => this.createFunctionInstance(impl)
     setFunctionName(factory, impl.name || `f(${key.name}`)
     this.registerSingletonF(key, factory)
   }
 
   registerSingletonConcrete<TDependencies, T>(key: WithDependenciesConfig<TDependencies, T> | (() => T), factory?: () => T) {
-    assert.isNotNull({ key })
-
     if (!factory) {
       factory = () => this.createFunctionInstance(key)
       setFunctionName(factory, key.name)
@@ -121,8 +102,6 @@ export default class SimpleContainer {
   }
 
   registerScopedConcrete<TDependencies, T>(key: WithDependenciesConfig<TDependencies, T> | (() => T), factory?: () => T) {
-    assert.isNotNull({ key })
-
     if (!factory) {
       factory = () => this.createFunctionInstance(key)
       setFunctionName(factory, key.name)
@@ -132,7 +111,6 @@ export default class SimpleContainer {
   }
 
   registerDecorator<T extends (...args: any[]) => any>(forKey: T, ...decorators: any[]) {
-    assert.isNotNull({ forKey, decorators })
     decorators.forEach(x => assert(x !== null, "decorator must not be null"))
     const current = this.decorators.get(forKey) || []
     current.push(...decorators)
@@ -140,19 +118,16 @@ export default class SimpleContainer {
   }
 
   registerSingletonF<T extends (...args: any[]) => any>(key: T, factory: () => T) {
-    assert.isNotNull({ key, factory })
     this.registerFactoryF(key, factory, this.getSingletonScope)
   }
 
   registerSingletonO<T>(key: Key<T>, factory?: () => T) {
-    assert.isNotNull({ key, factory })
     const fact = factory || (() => this.createNewInstance(key as any))
     // this.factories.set(key, () => this.singletonScope.getOrCreate(key, fact))
     this.registerFactoryO(key, fact, this.getSingletonScope)
   }
 
   registerSingletonC2<T>(key: Key<T>, impl: Constructor<T>) {
-    assert.isNotNull({ key, impl })
     const factory = () => this.createNewInstance(impl)
     this.registerSingletonC(key as any, factory)
 
@@ -161,7 +136,6 @@ export default class SimpleContainer {
   }
 
   registerScopedC2<T>(key: Key<T>, impl: Constructor<T>) {
-    assert.isNotNull({ key, impl })
     const factory = () => this.createNewInstance(impl)
     this.registerScopedC(key as any, factory)
     // Also register the concrete implementation
@@ -169,13 +143,11 @@ export default class SimpleContainer {
   }
 
   // registerSingletonO2<TDependencies, T>(key: Key<T>, impl: WithDependenciesConfig<TDependencies, T>) {
-  //   assert.isNotNull({ key, impl })
   //   const factory = () => this.createFunctionInstance(impl)
   //   this.registerSingletonO(key, factory)
   // }
 
   registerInstanceF<T extends (...args: any[]) => any>(key: T, instance: T) {
-    assert.isNotNull({ key, instance })
     this.registerFactoryF(key, () => instance)
   }
 
@@ -323,22 +295,18 @@ export default class SimpleContainer {
     }
 
   // public registerTransient<T>(key: string, factory: () => T) {
-  //   assert.isNotNull({key, factory})
   //   this.factories.set(key, factory)
   // }
 
   // public registerScoped<T>(key: string, factory: () => T) {
-  //   assert.isNotNull({key, factory})
   //   this.factories.set(key, () => tryOrNull(() => this.getDependencyScope(), s => s.getOrCreate(key, factory)))
   // }
 
   // public registerSingleton<T>(key: string, factory: () => T) {
-  //   assert.isNotNull({key, factory})
   //   this.factories.set(key, () => this.singletonScope.getOrCreate(key, factory))
   // }
 
   // public registerInstance<T>(key: string, instance: T) {
-  //   assert.isNotNull({key, instance})
   //   this.factories.set(key, () => this.singletonScope.getOrCreate(key, () => instance))
   // }
 
@@ -391,7 +359,7 @@ export type Key<T> = T & { name: string; }
  * @param {Array<Function>} dependencyConstructors
  */
 export const inject = (...dependencyConstructors: any[]): ClassDecorator => {
-  dependencyConstructors.forEach(x => assert.isNotNull({ x }))
+  dependencyConstructors.forEach(dependencyConstructor => assert.isNotNull({ dependencyConstructor }))
   // NOTE: Must have a {..} scope here or the Decorators exhibit weird behaviors..
   return (target: any) => {
     target.$$inject = dependencyConstructors
@@ -399,6 +367,7 @@ export const inject = (...dependencyConstructors: any[]): ClassDecorator => {
 }
 
 export const paramInject = (dependencyConstructor: any): ParameterDecorator => {
+  assert.isNotNull({ dependencyConstructor })
   return (target: any, _: string | symbol, parameterIndex: number) => {
     if (!target.$$inject) {
       target.$$inject = []
@@ -408,7 +377,9 @@ export const paramInject = (dependencyConstructor: any): ParameterDecorator => {
 }
 
 export const autoinject = (target: any) => {
-  const metadata = Reflect.getMetadata("design:paramtypes", target)
+  const metadata = Reflect.getMetadata("design:paramtypes", target) as any[]
+  metadata.forEach(dependencyConstructor => assert.isNotNull({ dependencyConstructor }))
+
   // merge existing (ie placed by paraminject)
   if (target.hasOwnProperty("$$inject")) {
     const existing = target.$$inject

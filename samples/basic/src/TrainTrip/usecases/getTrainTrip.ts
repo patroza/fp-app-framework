@@ -4,8 +4,7 @@
 // the alternative is making sure there are return types defined in Typescript, and e.g validated with Tests.
 // to make sure accidental `any` casts are catched.
 
-import { DbError } from "@fp-app/framework"
-import { createQueryWithDeps } from "@fp-app/framework"
+import { createQueryWithDeps, DbError } from "@fp-app/framework"
 import { flatMap, map, pipe } from "@fp-app/neverthrow-extensions"
 import { trainTripReadContextKey } from "../infrastructure/TrainTripReadContext.disk"
 import { Pax } from "../PaxDefinition"
@@ -32,6 +31,6 @@ export interface TrainTripView {
 
   pax: Pax
   travelClass: TravelClassName
-  travelClasss: Array<{ templateId: string, name: TravelClassName }>
+  travelClasses: Array<{ templateId: string, name: TravelClassName }>
   startDate: Date
 }

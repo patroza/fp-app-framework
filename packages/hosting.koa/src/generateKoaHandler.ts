@@ -1,12 +1,10 @@
 import Koa from "koa"
 
 import {
-  CombinedValidationError, ErrorBase, FieldValidationError, ForbiddenError, NamedHandlerWithDependencies, ValidationError,
+  CombinedValidationError, ConnectionError, CouldNotAquireDbLockError, DbError, defaultErrorPassthrough, ErrorBase,
+  ErrorHandlerType, FieldValidationError, ForbiddenError, InvalidStateError, logger, NamedHandlerWithDependencies, OptimisticLockError,
+  RecordNotFound, requestType, ValidationError,
 } from "@fp-app/framework"
-import { ConnectionError, CouldNotAquireDbLockError, DbError, OptimisticLockError, RecordNotFound } from "@fp-app/framework"
-import { requestType } from "@fp-app/framework"
-import { defaultErrorPassthrough, ErrorHandlerType } from "@fp-app/framework"
-import { logger } from "@fp-app/framework"
 import { flatMap, Result, startWithVal } from "@fp-app/neverthrow-extensions"
 
 export default function generateKoaHandler<I, T, E extends ErrorBase, E2 extends ValidationError>(
@@ -78,6 +76,9 @@ const handleDefaultError = (ctx: Koa.Context) => (err: ErrorBase) => {
   } else if (err instanceof ValidationError) {
     ctx.body = { message }
     ctx.status = 400
+  } else if (err instanceof InvalidStateError) {
+    ctx.body = { message }
+    ctx.status = 422
   } else if (err instanceof ForbiddenError) {
     ctx.body = { message }
     ctx.status = 403

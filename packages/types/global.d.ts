@@ -14,3 +14,14 @@ type AllowedNames<Base, Condition> =
 
 type SubType<Base, Condition> =
   Pick<Base, AllowedNames<Base, Condition>>
+
+
+
+// tslint:disable-next-line:ban-types
+// type NonFunction<T> = T extends ((...args: any[]) => any) | Function ? never : T
+// type SubType<Base, Condition> = Pick<Base, {
+//   [Key in keyof Base]: Base[Key] extends Condition ? Key : never
+// }[keyof Base]>
+
+// tslint:disable-next-line:ban-types
+// type NotMethods<T> = SubType<NonFunction<T>, Function | Date | string | number | undefined | null>

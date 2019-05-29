@@ -1,7 +1,9 @@
 import { TrainTripCreated, TrainTripId, TrainTripStateChanged, UserInputReceived } from "@/TrainTrip/TrainTrip"
 import { DbContextKey, defaultDependencies, getTripKey, TrainTripPublisherKey } from "@/TrainTrip/usecases/types"
-import { createDomainEventHandlerWithDeps, createIntegrationEventHandlerWithDeps, DbError } from "@fp-app/framework"
+import { createDomainEventHandlerWithDeps, createIntegrationEventHandlerWithDeps, curryRequest, DbError, requestKey } from "@fp-app/framework"
 import { flatMap, map, pipe, toTup } from "@fp-app/neverthrow-extensions"
+import lockTrainTrip from "../usecases/lockTrainTrip"
+import { CustomerRequestedChanges } from "./integration.events"
 
 // Domain Events should primarily be used to be turned into Integration Event (Post-Commit, call other service)
 // There may be other small reasons to use it, like to talk to an external system Pre-Commit.
@@ -51,6 +53,14 @@ createIntegrationEventHandler<UserInputReceived, void, any>(
   ({ trainTripPublisher }) => pipe(
     map(({ trainTripId }) => trainTripPublisher.registerIfPending(trainTripId)),
   ),
+)
+
+// const createIntegrationCommandEventHandler = createIntegrationEventHandlerWithDeps({ db: DbContextKey, ...defaultDependencies })
+const createIntegrationCommandEventHandler = createIntegrationEventHandlerWithDeps({ request: requestKey, ...defaultDependencies })
+
+createIntegrationCommandEventHandler<CustomerRequestedChanges, void, DbError>(
+  /* on */ CustomerRequestedChanges, "LockTrainTrip",
+  curryRequest(lockTrainTrip),
 )
 
 export interface TrainTripPublisher {

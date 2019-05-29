@@ -1,7 +1,7 @@
 import { StateProposition as ValidatedStateProposition } from "@/TrainTrip/TrainTrip"
-import { combineValidationErrors, toFieldError, ValidationError } from "@fp-app/framework"
-import { DbError } from "@fp-app/framework"
-import { createCommandWithDeps } from "@fp-app/framework"
+import {
+  combineValidationErrors, createCommandWithDeps, DbError, ForbiddenError, InvalidStateError, toFieldError, ValidationError,
+} from "@fp-app/framework"
 import {
   flatMap, map, mapErr, ok, pipe, PipeFunction, resultTuple, toFlatTup, toTup, valueOrUndefined,
 } from "@fp-app/neverthrow-extensions"
@@ -50,4 +50,4 @@ const validateStateProposition: PipeFunction<StateProposition, ValidatedStatePro
     })),
   )
 
-type ChangeTrainTripError = ValidationError | DbError
+type ChangeTrainTripError = ForbiddenError | InvalidStateError | ValidationError | DbError

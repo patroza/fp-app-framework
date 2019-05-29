@@ -1,6 +1,6 @@
-import { RecordContext } from "@fp-app/framework"
-import { assert, ConnectionError, CouldNotAquireDbLockError, DbError, OptimisticLockError, RecordNotFound } from "@fp-app/framework"
-import { Event } from "@fp-app/framework"
+import {
+  ConnectionError, CouldNotAquireDbLockError, DbError, Event, OptimisticLockError, RecordContext, RecordNotFound,
+} from "@fp-app/framework"
 import { err, flatMap, liftType, map, mapErr, ok, PipeFunctionN, Result, startWithVal, success } from "@fp-app/neverthrow-extensions"
 import { lock } from "proper-lockfile"
 import { deleteFile, exists, readFile, writeFile } from "./utils"
@@ -13,27 +13,24 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
   constructor(
     private readonly type: string,
     private readonly serializer: (record: T) => string,
-    private readonly deserializer: (serialized: string) => Result<T, never>,
+    private readonly deserializer: (serialized: string) => T,
   ) { }
 
   readonly add = (record: T) => {
-    assert.isNotNull({ record })
     this.cache.set(record.id, { version: 0, data: record })
   }
 
   readonly remove = (record: T) => {
-    assert.isNotNull({ record })
     this.removals.push(record)
   }
 
   readonly load = async (id: string): Promise<Result<T, DbError>> => {
-    assert.isNotNull({ id })
     const cachedRecord = this.cache.get(id)
     if (cachedRecord) { return ok(cachedRecord.data) }
     return await tryReadFromDb(this.type, id)
       .pipe(
         map(serializedStr => JSON.parse(serializedStr) as SerializedDBRecord),
-        flatMap(({ version, data }) => this.deserializer(data).pipe(map(dd => ({ version, data: dd })))),
+        map(({ data, version }) => ({ data: this.deserializer(data), version })),
         map(({ version, data }) => {
           this.cache.set(id, { version, data })
           return data
@@ -43,12 +40,11 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
 
   // Internal
   readonly intGetAndClearEvents = () => {
-    let events: Event[] = []
     const items = [...this.cache.values()].map(x => x.data).concat(this.removals)
-    items.forEach(r => {
-      events = events.concat(r.intGetAndClearEvents())
-    })
-    return events
+    return items.reduce(
+      (prev, cur) => prev.concat(cur.intGetAndClearEvents()),
+      [] as Event[],
+    )
   }
 
   readonly intSave = (
@@ -94,7 +90,6 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
   }
 
   private readonly saveRecord = async (record: T): Promise<Result<void, DbError>> => {
-    assert.isNotNull({ record })
     const cachedRecord = this.cache.get(record.id)!
 
     if (!cachedRecord.version) {
@@ -115,12 +110,10 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
       ))
   }
 
-  private readonly deleteRecord = async (record: T): Promise<Result<void, DbError>> => {
-    assert.isNotNull({ record })
-    return await lockRecordOnDisk(this.type, record.id, () =>
+  private readonly deleteRecord = (record: T): Promise<Result<void, DbError>> =>
+    lockRecordOnDisk(this.type, record.id, () =>
       startWithVal(void 0)<DbError>().pipe(map(() => deleteFile(getFilename(this.type, record.id)))),
     )
-  }
 
   private readonly actualSave = async (record: T, version: number) => {
     const data = this.serializer(record)
