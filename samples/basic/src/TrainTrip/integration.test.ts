@@ -65,7 +65,7 @@ describe("usecases", () => {
         pax: { adults: 2, babies: 0, children: 0, infants: 0, teenagers: 0 },
         startDate: expect.any(String),
         travelClass: "second",
-        travelClasss: [{ templateId: "template-id1", name: "second" }, { templateId: "template-id2", name: "first" }],
+        travelClasses: [{ templateId: "template-id1", name: "second" }, { templateId: "template-id2", name: "first" }],
       })
 
       logger.log(result._unsafeUnwrap())

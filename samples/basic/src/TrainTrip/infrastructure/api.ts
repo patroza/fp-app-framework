@@ -17,17 +17,17 @@ const toTrip = (getTemplate: getTemplateType) => (tpl: Template) => {
   const currentTravelClass = tplToTravelClass(tpl)
   return sequenceAsync(
     [startWithVal(currentTravelClass)<ApiError>()].concat(
-      typedKeysOf(tpl.travelClasss)
+      typedKeysOf(tpl.travelClasses)
         .filter(x => x !== currentTravelClass.name)
-        .map(slKey => tpl.travelClasss[slKey]!)
+        .map(slKey => tpl.travelClasses[slKey]!)
         .map(sl => getTemplate(sl.id).pipe(map(tplToTravelClass))),
     ),
-  ).pipe(map(travelClasss => new Trip(travelClasss)))
+  ).pipe(map(travelClasses => new Trip(travelClasses)))
 }
 
 const tplToTravelClass = (tpl: Template) => new TravelClass(tpl.id, getTplLevelName(tpl))
 
-const getTplLevelName = (tpl: Template) => typedKeysOf(tpl.travelClasss).find(x => tpl.travelClasss[x]!.id === tpl.id) as TravelClassName
+const getTplLevelName = (tpl: Template) => typedKeysOf(tpl.travelClasses).find(x => tpl.travelClasses[x]!.id === tpl.id) as TravelClassName
 
 // Typescript support for partial application is not really great, so we try currying instead for now
 // https://stackoverflow.com/questions/50400120/using-typescript-for-partial-application
@@ -40,8 +40,8 @@ const getTemplateFake = (
 }
 
 const mockedTemplates: () => { [key: string]: Template } = () => ({
-  "template-id1": { id: "template-id1", travelClasss: { second: { id: "template-id1" }, first: { id: "template-id2" } } } as Template,
-  "template-id2": { id: "template-id2", travelClasss: { second: { id: "template-id1" }, first: { id: "template-id2" } } } as Template,
+  "template-id1": { id: "template-id1", travelClasses: { second: { id: "template-id1" }, first: { id: "template-id2" } } } as Template,
+  "template-id2": { id: "template-id2", travelClasses: { second: { id: "template-id1" }, first: { id: "template-id2" } } } as Template,
 })
 
 const getPricingFake = (
@@ -91,7 +91,7 @@ export interface Template {
 
   cityCodes: string[]
 
-  travelClasss: {
+  travelClasses: {
     business?: { id: string }
     first?: { id: string }
     second?: { id: string },

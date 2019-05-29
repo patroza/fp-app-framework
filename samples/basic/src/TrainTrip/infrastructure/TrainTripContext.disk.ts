@@ -6,7 +6,7 @@ import { ok, Result } from "@fp-app/neverthrow-extensions"
 import { parse, stringify } from "flatted"
 import PaxDefinition, { Pax } from "../PaxDefinition"
 import { TravelClassName } from "../TravelClassDefinition"
-import Trip, { TravelClass } from "../Trip"
+import { TravelClass } from "../Trip"
 import { TrainTripView } from "../usecases/getTrainTrip"
 import TrainTripReadContext from "./TrainTripReadContext.disk"
 
@@ -37,7 +37,7 @@ export default class DiskDBContext extends ContextBase implements TrainTripConte
 }
 
 const TrainTripToView = ({
-  isLocked, createdAt, id, pax, currentTravelClassConfiguration, startDate, trip,
+  isLocked, createdAt, id, pax, currentTravelClassConfiguration, startDate, travelClassConfiguration,
 }: TrainTrip): TrainTripView => {
   return {
     id,
@@ -48,7 +48,7 @@ const TrainTripToView = ({
     pax: pax.value,
     startDate,
     travelClass: currentTravelClassConfiguration.travelClass.name,
-    travelClasss: trip.travelClasss.map(({ templateId, name }) => ({ templateId, name })),
+    travelClasses: travelClassConfiguration.map(({ travelClass: { templateId, name } }) => ({ templateId, name })),
   }
 }
 
@@ -56,22 +56,20 @@ const serializeTrainTrip = ({ events, ...rest }: any) => stringify(rest)
 
 function deserializeDbTrainTrip(serializedTrainTrip: string) {
   const {
-    id, createdAt, currentTravelClassConfiguration, lockedAt, trip, startDate, pax: paxInput, travelClassConfiguration,
+    id, createdAt, currentTravelClassConfiguration, lockedAt, startDate, pax: paxInput, travelClassConfiguration,
     ...rest
   } = parse(serializedTrainTrip) as TrainTripDTO
   // what do we do? we restore all properties that are just property bags
   // and we recreate proper object graph for properties that have behaviors
   // TODO: use type information or configuration, probably a library ;-)
 
-  const travelClassConfigurations = travelClassConfiguration.map(x => mapTravelClassConfigurationDTO(t, x))
-  const t = new Trip(trip.travelClasss.map(mapTravelClassDTO))
+  const travelClassConfigurations = travelClassConfiguration.map(x => mapTravelClassConfigurationDTO(x))
   const trainTrip = new TrainTrip(
     id,
     new (PaxDefinition as any)(paxInput.value),
     new Date(startDate),
     travelClassConfigurations,
     travelClassConfigurations.find(x => x.travelClass.name === currentTravelClassConfiguration.travelClass.name)!,
-    t,
     {
       ...rest,
       createdAt: new Date(createdAt),
@@ -82,10 +80,10 @@ function deserializeDbTrainTrip(serializedTrainTrip: string) {
   return trainTrip
 }
 
-const mapTravelClassConfigurationDTO = (trip: Trip, { travelClass, ...slRest }: any) => {
-  const sl = new TravelClassConfiguration(trip.travelClasss.find(s => s.name === travelClass.name)!)
-  Object.assign(sl, slRest)
-  return sl
+const mapTravelClassConfigurationDTO = ({ travelClass, ...slRest }: { travelClass: TravelClassDTO }) => {
+  const slc = new TravelClassConfiguration(mapTravelClassDTO(travelClass))
+  Object.assign(slc, slRest)
+  return slc
 }
 
 const mapTravelClassDTO = ({ createdAt, templateId, name }: TravelClassDTO): TravelClass => {
@@ -110,7 +108,7 @@ interface TravelClassConfigurationDTO {
   travelClass: TravelClassDTO
 }
 interface TripDTO {
-  travelClasss: TravelClassDTO[]
+  travelClasses: TravelClassDTO[]
 }
 interface TravelClassDTO {
   createdAt: string

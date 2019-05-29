@@ -31,6 +31,6 @@ export interface TrainTripView {
 
   pax: Pax
   travelClass: TravelClassName
-  travelClasss: Array<{ templateId: string, name: TravelClassName }>
+  travelClasses: Array<{ templateId: string, name: TravelClassName }>
   startDate: Date
 }
