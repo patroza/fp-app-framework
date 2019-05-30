@@ -5,9 +5,7 @@
   "author": "Patrick Roza <contact@patrickroza.com>",
   "license": "MIT",
   "types": "index",
-  "dependencies": {
-    "neverthrow": "https://github.com/patroza/neverthrow.git#17b3e8fc5755aa191c1d6653524f555646fbf8bc"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "12"
   },
