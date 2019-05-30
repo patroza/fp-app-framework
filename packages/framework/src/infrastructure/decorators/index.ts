@@ -2,11 +2,12 @@ import { flatMap, flatTee, liftType, mapErr, Result } from "@fp-app/neverthrow-e
 import { benchLog, logger, using } from "../../utils"
 import { DbError } from "../errors"
 import { configureDependencies, NamedRequestHandler, UOWKey } from "../mediator"
+import { requestTypeSymbol } from "../SimpleContainer"
 
 const loggingDecorator = (): RequestDecorator =>
   request =>
     (key, input) => {
-      const prefix = `${key.name} ${key.type}`
+      const prefix = `${key.name} ${key[requestTypeSymbol]}`
       return benchLog(() => using(logger.addToLoggingContext({ request: prefix }), async () => {
         logger.log(`${prefix} input`, input)
         const result = await request(key, input)
@@ -20,7 +21,7 @@ const uowDecorator = configureDependencies({ unitOfWork: UOWKey },
   ({ unitOfWork }): RequestDecorator =>
     request =>
       (key, input) => {
-        if (key.type !== "COMMAND" && key.type !== "INTEGRATIONEVENT") {
+        if (key[requestTypeSymbol] !== "COMMAND" && key[requestTypeSymbol] !== "INTEGRATIONEVENT") {
           return request(key, input)
         }
 

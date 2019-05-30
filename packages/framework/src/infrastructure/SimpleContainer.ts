@@ -344,6 +344,9 @@ export class DependencyScope implements Disposable {
   }
 }
 
+export const injectSymbol = Symbol("$$inject")
+export const requestTypeSymbol = Symbol("$$type")
+
 export function generateKey<T>(name: string): Key<T> {
   const f = () => { throw new Error(`${name} not implemented function`) }
   if (name) { setFunctionName(f, name) }
@@ -362,17 +365,17 @@ export const inject = (...dependencyConstructors: any[]): ClassDecorator => {
   dependencyConstructors.forEach(dependencyConstructor => assert.isNotNull({ dependencyConstructor }))
   // NOTE: Must have a {..} scope here or the Decorators exhibit weird behaviors..
   return (target: any) => {
-    target.$$inject = dependencyConstructors
+    target[injectSymbol] = dependencyConstructors
   }
 }
 
 export const paramInject = (dependencyConstructor: any): ParameterDecorator => {
   assert.isNotNull({ dependencyConstructor })
   return (target: any, _: string | symbol, parameterIndex: number) => {
-    if (!target.$$inject) {
-      target.$$inject = []
+    if (!target[injectSymbol]) {
+      target[injectSymbol] = []
     }
-    target.$$inject[parameterIndex] = dependencyConstructor
+    target[injectSymbol][parameterIndex] = dependencyConstructor
   }
 }
 
@@ -381,8 +384,8 @@ export const autoinject = (target: any) => {
   metadata.forEach(dependencyConstructor => assert.isNotNull({ dependencyConstructor }))
 
   // merge existing (ie placed by paraminject)
-  if (target.hasOwnProperty("$$inject")) {
-    const existing = target.$$inject
+  if (Object.getOwnPropertySymbols(target).includes(injectSymbol)) {
+    const existing = target[injectSymbol]
     const newInject = [...metadata]
     let i = 0
     for (const dep of existing) {
@@ -391,14 +394,14 @@ export const autoinject = (target: any) => {
       }
       i++
     }
-    target.$$inject = newInject
+    target[injectSymbol] = newInject
   } else {
-    target.$$inject = metadata
+    target[injectSymbol] = metadata
   }
 }
 
-const getDependencyKeys = (constructor: any) => constructor.$$inject as any[] || []
-const getDependencyObjectKeys = <TDependencies>(constructor: any): TDependencies => constructor.$$inject || {}
+const getDependencyKeys = (constructor: any) => constructor[injectSymbol] as any[] || []
+const getDependencyObjectKeys = <TDependencies>(constructor: any): TDependencies => constructor[injectSymbol] || {}
 
 const generateKeyFromFn = <T>(fun: (...args: any[]) => T) => generateKey<T>(fun.name)
 const generateKeyFromC = <T>(C: Constructor<T>) => generateKey<T>(C.name)
@@ -412,7 +415,8 @@ export const factoryOf = <T extends (...args: any[]) => any>(func: T, factory: (
 }
 
 export type WithDependencies<TDependencies, T> = (deps: TDependencies) => T
-export type WithDependenciesConfig<TDependencies, T> = (((deps: TDependencies) => T) & { $$inject: TDependencies })
+export interface InjectedDependencies<TDependencies> { [injectSymbol]: TDependencies }
+export type WithDependenciesConfig<TDependencies, T> = (((deps: TDependencies) => T) & InjectedDependencies<TDependencies>)
 
 export {
   generateKeyFromC,

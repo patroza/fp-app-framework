@@ -5,7 +5,7 @@ import { Constructor, getLogger, setFunctionName, typedKeysOf } from "../../util
 import assert from "../../utils/assert"
 import { UnitOfWork } from "../context.base"
 import { registerDomainEventHandler, registerIntegrationEventHandler } from "../createDependencyNamespace"
-import { generateKey, WithDependencies, WithDependenciesConfig } from "../SimpleContainer"
+import { generateKey, InjectedDependencies, injectSymbol, requestTypeSymbol, WithDependencies, WithDependenciesConfig } from "../SimpleContainer"
 
 const logger = getLogger("registry")
 
@@ -23,7 +23,7 @@ export const configureDependencies = <TDependencies, T>(
   if (keys.length && keys.some(key => !deps[key])) { throw new Error(`Has empty dependencies`) }
   setFunctionName(f, name)
   const anyF: any = f
-  anyF.$$inject = deps
+  anyF[injectSymbol] = deps
   return anyF
 }
 
@@ -37,7 +37,8 @@ type HandlerWithDependencies<TDependencies, TInput, TOutput, TError> = WithDepen
 // tslint:disable-next-line:max-line-length
 export type NamedHandlerWithDependencies<TDependencies, TInput, TOutput, TError> = WithDependencies<TDependencies, NamedRequestHandler<TInput, TOutput, TError>> & HandlerInfo<TDependencies>
 
-interface HandlerInfo<TDependencies> { name: string, type: HandlerType, $$inject: TDependencies }
+interface HandlerTypeInfo { [requestTypeSymbol]: HandlerType }
+type HandlerInfo<TDependencies> = InjectedDependencies<TDependencies> & HandlerTypeInfo
 type HandlerType = "COMMAND" | "QUERY" | "DOMAINEVENT" | "INTEGRATIONEVENT"
 
 // tslint:disable-next-line:max-line-length
@@ -54,12 +55,10 @@ const registerUsecaseHandler = <TDependencies>(deps: TDependencies) =>
     ) => {
       assert(!typedKeysOf(deps).some(x => !deps[x]), "Dependencies must not be null")
 
-      const anyHandler: any = handler
-      anyHandler.type = type
-      anyHandler.$$inject = deps
-      setFunctionName(handler, name)
-
       const newHandler = handler as NamedHandlerWithDependencies<TDependencies, TInput, TOutput, TError>
+      newHandler[requestTypeSymbol] = type
+      newHandler[injectSymbol] = deps
+      setFunctionName(handler, name)
 
       // const r = [newHandler, deps, { name, type }] as const
       // dependencyMap.set(handler, r)
