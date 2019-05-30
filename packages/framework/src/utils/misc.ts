@@ -43,10 +43,20 @@ const createLazy = <T>(creatorFunction: () => T) => {
   }
 }
 
+function immutableObj<T, TDefaults extends Partial<T>>(def?: Partial<T>) {
+  return (current: Omit<T, keyof TDefaults>, updates?: Partial<T>) => {
+    const newObj = { ...def, ...current, ...updates }
+    // TODO: consider
+    // type UpdateableT = T & { update: (current: T, updates?: Partial<T>) => UpdateableT }
+    return newObj as T
+  }
+}
+
 export {
   asWritable,
   createLazy,
   isTruthyFilter,
+  immutableObj,
   noop,
   removeElement,
   setFunctionName,
