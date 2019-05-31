@@ -9,9 +9,9 @@ export default abstract class RouteBuilder<TContext> {
     path: string, requestHandler: NamedHandlerWithDependencies<TDependencies, TInput, TOutput, TError>,
     validator: ValidatorType<TInput, TValidationError>,
     errorHandler?: ErrorHandlerType<TContext, DbError | TError | TValidationError>,
-    halConfig?: HALConfig,
+    responseTransform?: ResponseTransform<TContext, TOutput>,
   ) => {
-    obj.setup.push({ method, path, requestHandler, validator, errorHandler, halConfig })
+    obj.setup.push({ method, path, requestHandler, validator, errorHandler, responseTransform })
     return obj
   }
 
@@ -41,6 +41,8 @@ export default abstract class RouteBuilder<TContext> {
 
 export interface HALConfig { [key: string]: string }
 
+export type ResponseTransform<TContext, TOutput> = (output: TOutput, ctx: TContext) => any
+
 export function writeRouterSchema(routerMap: Map<string, RouteBuilder<any>>) {
   const schema = [...routerMap.entries()].reduce((prev, [path, r]) => {
     prev[path] = r.getJsonSchema().map(([method, p, s2]) => ({ method, subPath: p, fullPath: `${path}${p}`, schema: s2 }))
@@ -59,7 +61,7 @@ interface RegisteredRoute<TContext> {
   requestHandler: NamedHandlerWithDependencies<any, any, any, any>,
   validator: ValidatorType<any, any>,
   errorHandler?: ErrorHandlerType<TContext, DbError | any>,
-  halConfig?: HALConfig,
+  responseTransform?: ResponseTransform<TContext, any>,
 }
 
 type METHODS = "POST" | "GET" | "DELETE" | "PATCH"

@@ -1,4 +1,4 @@
-import { requestType, RouteBuilder } from "@fp-app/framework"
+import { HALConfig, requestType, RouteBuilder, typedKeysOf } from "@fp-app/framework"
 import Koa from "koa"
 import KoaRouter from "koa-router"
 import generateKoaHandler from "./generateKoaHandler"
@@ -12,7 +12,7 @@ export default class KoaRouteBuilder extends RouteBuilder<Koa.Context> {
       router.use(authMiddleware(this.userPass)())
     }
 
-    this.setup.forEach(({ method, path, requestHandler, validator, errorHandler, halConfig }) => {
+    this.setup.forEach(({ method, path, requestHandler, validator, errorHandler, responseTransform }) => {
       router.register(
         path, [method],
         generateKoaHandler(
@@ -20,7 +20,7 @@ export default class KoaRouteBuilder extends RouteBuilder<Koa.Context> {
           requestHandler,
           validator,
           errorHandler,
-          halConfig,
+          responseTransform,
         ),
       )
     })
@@ -35,3 +35,19 @@ export function createRouterFromMap(routerMap: Map<string, RouteBuilder<Koa.Cont
     return prev.use(cur[0], koaRouter.allowedMethods(), koaRouter.routes())
   }, new KoaRouter())
 }
+
+// TODO: Perhaps a transformer would be more flexible.
+export const generateHalLinks = (ctx: Koa.Context, halConfig: HALConfig, data: any) => {
+  const halLinks = typedKeysOf(halConfig).reduce((prev, cur) => {
+    let href = halConfig[cur].replace("./", ctx.path + "/")
+    Object.keys(data).forEach(x => href = href.replace(`:${x}`, data[x]))
+    prev[cur] = { href }
+    return prev
+  }, {} as any)
+  return halLinks
+}
+
+export const extendWithHalLinks = (config: HALConfig) => <TOutput>(output: TOutput, ctx: Koa.Context) => ({
+  ...output,
+  _links: generateHalLinks(ctx, config, output),
+})
