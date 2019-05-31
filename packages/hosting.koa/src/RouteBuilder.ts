@@ -36,6 +36,11 @@ export function createRouterFromMap(routerMap: Map<string, RouteBuilder<Koa.Cont
   }, new KoaRouter())
 }
 
+export const extendWithHalLinks = (config: HALConfig) => <TOutput>(output: TOutput, ctx: Koa.Context) => ({
+  ...output,
+  _links: generateHalLinks(ctx, config, output),
+})
+
 // TODO: Perhaps a transformer would be more flexible.
 export const generateHalLinks = (ctx: Koa.Context, halConfig: HALConfig, data: any) => {
   const halLinks = typedKeysOf(halConfig).reduce((prev, cur) => {
@@ -46,8 +51,3 @@ export const generateHalLinks = (ctx: Koa.Context, halConfig: HALConfig, data: a
   }, {} as any)
   return halLinks
 }
-
-export const extendWithHalLinks = (config: HALConfig) => <TOutput>(output: TOutput, ctx: Koa.Context) => ({
-  ...output,
-  _links: generateHalLinks(ctx, config, output),
-})
