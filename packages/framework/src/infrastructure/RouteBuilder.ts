@@ -6,12 +6,15 @@ import { NamedHandlerWithDependencies, requestType } from "./mediator"
 
 export default abstract class RouteBuilder<TContext> {
   private static register = <TContext>(method: METHODS, obj: RouteBuilder<TContext>) => <TDependencies, TInput, TOutput, TError, TValidationError>(
-    path: string, requestHandler: NamedHandlerWithDependencies<TDependencies, TInput, TOutput, TError>,
-    validator: ValidatorType<TInput, TValidationError>,
-    errorHandler?: ErrorHandlerType<TContext, DbError | TError | TValidationError>,
-    responseTransform?: ResponseTransform<TContext, TOutput>,
+    path: string,
+    requestHandler: NamedHandlerWithDependencies<TDependencies, TInput, TOutput, TError>,
+    configuration: {
+      errorHandler?: ErrorHandlerType<TContext, DbError | TError | TValidationError>,
+      responseTransform?: ResponseTransform<TContext, TOutput>,
+      validator: ValidatorType<TInput, TValidationError>,
+    },
   ) => {
-    obj.setup.push({ method, path, requestHandler, validator, errorHandler, responseTransform })
+    obj.setup.push({ method, path, requestHandler, ...configuration })
     return obj
   }
 
