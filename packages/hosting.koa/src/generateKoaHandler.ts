@@ -27,7 +27,7 @@ export default function generateKoaHandler<I, T, E extends ErrorBase, E2 extends
       result.match(t => {
         if (ctx.method === "POST" && t) {
           ctx.status = 201
-          ctx.body = { id: t, self: `${ctx.path}/${t}` }
+          ctx.body = { id: t, _links: { self: `${ctx.path}/${t}` } }
         } else {
           ctx.body = t
         }
