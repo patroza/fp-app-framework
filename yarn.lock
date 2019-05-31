@@ -3162,9 +3162,9 @@ neo-async@^2.6.0:
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.1.tgz#ac27ada66167fa8849a6addd837f6b189ad2081c"
   integrity sha512-iyam8fBuCUpWeKPGpaNMetEocMt364qkCsfL9JuhjXX6dRnguRVOfk2GZaDpPjcOKiiXCPINZC1GczQ7iTq3Zw==
 
-"neverthrow@https://github.com/patroza/neverthrow.git#17b3e8fc5755aa191c1d6653524f555646fbf8bc":
+"neverthrow@https://github.com/patroza/neverthrow.git#909a1de01bb3760f8e9433648ad783e93e5f289b":
   version "1.0.2"
-  resolved "https://github.com/patroza/neverthrow.git#17b3e8fc5755aa191c1d6653524f555646fbf8bc"
+  resolved "https://github.com/patroza/neverthrow.git#909a1de01bb3760f8e9433648ad783e93e5f289b"
 
 nice-try@^1.0.4:
   version "1.0.5"

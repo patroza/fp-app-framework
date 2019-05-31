@@ -43,10 +43,22 @@ const createLazy = <T>(creatorFunction: () => T) => {
   }
 }
 
+// TODO: don't allow to put more properties in as default, than T
+function immutableObj<T>() {
+  return <TDefaults extends Partial<T>>(def?: TDefaults) =>
+    (current: Omit<T, keyof TDefaults> & Partial<T>, updates?: Partial<T>) => {
+      const newObj = { ...def, ...current, ...updates }
+      // TODO: consider
+      // type UpdateableT = T & { update: (current: T, updates?: Partial<T>) => UpdateableT }
+      return newObj as T
+    }
+}
+
 export {
   asWritable,
   createLazy,
   isTruthyFilter,
+  immutableObj,
   noop,
   removeElement,
   setFunctionName,

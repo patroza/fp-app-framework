@@ -2,8 +2,8 @@ import Koa from "koa"
 
 import {
   CombinedValidationError, ConnectionError, CouldNotAquireDbLockError, DbError, defaultErrorPassthrough, ErrorBase,
-  ErrorHandlerType, FieldValidationError, ForbiddenError, InvalidStateError, logger, NamedHandlerWithDependencies, OptimisticLockError,
-  RecordNotFound, requestType, ValidationError,
+  ErrorHandlerType, FieldValidationError, ForbiddenError, InvalidStateError, logger, NamedHandlerWithDependencies,
+  OptimisticLockError, RecordNotFound, requestType, ValidationError,
 } from "@fp-app/framework"
 import { flatMap, Result, startWithVal } from "@fp-app/neverthrow-extensions"
 
@@ -12,6 +12,7 @@ export default function generateKoaHandler<I, T, E extends ErrorBase, E2 extends
   handler: NamedHandlerWithDependencies<any, I, T, E>,
   validate: (i: I) => Result<I, E2>,
   handleErrorOrPassthrough: ErrorHandlerType<Koa.Context, DbError | E | E2> = defaultErrorPassthrough,
+  responseTransform?: <TOutput>(input: T, ctx: Koa.Context) => TOutput,
 ) {
   return async (ctx: Koa.Context) => {
     try {
@@ -24,12 +25,14 @@ export default function generateKoaHandler<I, T, E extends ErrorBase, E2 extends
           flatMap(validate),
           flatMap(validatedInput => request(handler, validatedInput)),
         )
-      result.match(t => {
-        if (ctx.method === "POST" && t) {
-          ctx.status = 201
-          ctx.body = { id: t, self: `${ctx.path}/${t}` }
+      result.match(output => {
+        if (responseTransform) {
+          ctx.body = responseTransform(output, ctx)
         } else {
-          ctx.body = t
+          ctx.body = output
+        }
+        if (ctx.method === "POST" && output) {
+          ctx.status = 201
         }
       },
         err => handleErrorOrPassthrough(ctx)(err) ? handleDefaultError(ctx)(err) : undefined,
