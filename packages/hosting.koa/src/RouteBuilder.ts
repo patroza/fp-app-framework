@@ -44,7 +44,8 @@ export const extendWithHalLinks = (config: HALConfig) => <TOutput>(output: TOutp
 // TODO: Perhaps a transformer would be more flexible.
 export const generateHalLinks = (ctx: Koa.Context, halConfig: HALConfig, data: any) => {
   const halLinks = typedKeysOf(halConfig).reduce((prev, cur) => {
-    let href = halConfig[cur].replace("./", ctx.path + "/")
+    let href = halConfig[cur]
+    if (href.startsWith(".")) { href = href.replace(".", ctx.URL.pathname) }
     Object.keys(data).forEach(x => href = href.replace(`:${x}`, data[x]))
     prev[cur] = { href }
     return prev
