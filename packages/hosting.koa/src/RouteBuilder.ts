@@ -12,7 +12,7 @@ export default class KoaRouteBuilder extends RouteBuilder<Koa.Context> {
       router.use(authMiddleware(this.userPass)())
     }
 
-    this.setup.forEach(({ method, path, requestHandler, validator, errorHandler }) => {
+    this.setup.forEach(({ method, path, requestHandler, validator, errorHandler, halConfig }) => {
       router.register(
         path, [method],
         generateKoaHandler(
@@ -20,6 +20,7 @@ export default class KoaRouteBuilder extends RouteBuilder<Koa.Context> {
           requestHandler,
           validator,
           errorHandler,
+          halConfig,
         ),
       )
     })
