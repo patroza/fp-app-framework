@@ -5,7 +5,7 @@ import {
 import { err, flatMap, map, mapErr, ok, pipe, PipeFunction, Result, resultTuple, tee, toTup } from "@fp-app/neverthrow-extensions"
 import FutureDate from "../FutureDate"
 import PaxDefinition, { Pax } from "../PaxDefinition"
-import { CreateTrainTripInfo } from "../TrainTrip"
+import TrainTrip, { CreateTrainTripInfo } from "../TrainTrip"
 import { DbContextKey, defaultDependencies, getTripKey } from "./types"
 
 const createCommand = createCommandWithDeps({ db: DbContextKey, getTrip: getTripKey, ...defaultDependencies })
@@ -14,7 +14,7 @@ const createTrainTrip = createCommand<Input, string, CreateError>("createTrainTr
   ({ db, getTrip }) => pipe(
     flatMap(validateCreateTrainTripInfo),
     flatMap(toTup(({ templateId }) => getTrip(templateId))),
-    flatMap(([trip, proposal]) => trip.createTrainTrip(proposal)),
+    map(([trip, proposal]) => TrainTrip.create(proposal, trip)),
     map(tee(db.trainTrips.add)),
     map(trainTrip => trainTrip.id),
   ),

@@ -1,17 +1,20 @@
 import TrainTrip, { Price } from "@/TrainTrip/TrainTrip"
 import { createTravelPlanType, getTemplateType, getTravelPlanType } from "@/TrainTrip/usecases/types"
-import { ApiError, ConnectionError, RecordNotFound, typedKeysOf } from "@fp-app/framework"
-import { err, flatMap, map, ok, PipeFunction, sequenceAsync, startWithVal } from "@fp-app/neverthrow-extensions"
+import { ApiError, ConnectionError, InvalidStateError, RecordNotFound, typedKeysOf } from "@fp-app/framework"
+import { err, flatMap, liftType, map, mapErr, ok, PipeFunction, sequenceAsync, startWithVal } from "@fp-app/neverthrow-extensions"
 import { v4 } from "uuid"
 import { Pax } from "../PaxDefinition"
 import { TravelClassName } from "../TravelClassDefinition"
-import Trip, { TravelClass } from "../Trip"
+import Trip, { TravelClass, TripWithSelectedTravelClass } from "../Trip"
 
 const getTrip = (
   { getTemplate }: { getTemplate: getTemplateType },
-): PipeFunction<string, Trip, ApiError> => templateId =>
+): PipeFunction<string, TripWithSelectedTravelClass, ApiError | InvalidStateError> => templateId =>
     getTemplate(templateId)
-      .pipe(flatMap(toTrip(getTemplate)))
+      .pipe(
+        mapErr(liftType<InvalidStateError | ApiError>()),
+        flatMap(toTrip(getTemplate)),
+      )
 
 const toTrip = (getTemplate: getTemplateType) => (tpl: Template) => {
   const currentTravelClass = tplToTravelClass(tpl)
@@ -22,7 +25,11 @@ const toTrip = (getTemplate: getTemplateType) => (tpl: Template) => {
         .map(slKey => tpl.travelClasses[slKey]!)
         .map(sl => getTemplate(sl.id).pipe(map(tplToTravelClass))),
     ),
-  ).pipe(map(travelClasses => new Trip(travelClasses)))
+  ).pipe(
+    mapErr(liftType<InvalidStateError | ApiError>()),
+    map(travelClasses => new Trip(travelClasses)),
+    flatMap(trip => TripWithSelectedTravelClass.create(trip, currentTravelClass.name)),
+  )
 }
 
 const tplToTravelClass = (tpl: Template) => new TravelClass(tpl.id, getTplLevelName(tpl))

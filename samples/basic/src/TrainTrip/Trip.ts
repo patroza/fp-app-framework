@@ -1,31 +1,27 @@
-import { assert, InvalidStateError, ValidationError } from "@fp-app/framework"
-import { err, liftType, map, mapErr, ok, Result } from "@fp-app/neverthrow-extensions"
-import TrainTrip, { CreateTrainTripInfo, TemplateId } from "./TrainTrip"
+import { assert, InvalidStateError } from "@fp-app/framework"
+import { err, ok, Result } from "@fp-app/neverthrow-extensions"
+import { TemplateId } from "./TrainTrip"
 import { TravelClassName } from "./TravelClassDefinition"
 
 export default class Trip {
-  readonly createdAt = new Date()
+  static create(serviceLevels: TravelClass[]): Result<Trip, InvalidStateError> {
+    if (!serviceLevels.length) { return err(new InvalidStateError("A trip requires at least 1 service level")) }
+    return ok(new Trip(serviceLevels))
+  }
 
   constructor(readonly travelClasses: TravelClass[]) {
     assert(Boolean(travelClasses.length), "A trip must have at least 1 travel class")
   }
-
-  readonly createTrainTrip = ({ templateId, ...rest }: CreateTrainTripInfo) =>
-    TripWithSelectedTravelClass.create(this.travelClasses, this.travelClasses.find(x => x.templateId === templateId)!.name)
-      .pipe(
-        mapErr(liftType<InvalidStateError | ValidationError>()),
-        map(t => TrainTrip.create(rest, t)),
-      )
 }
 
 // tslint:disable-next-line:max-classes-per-file
 export class TripWithSelectedTravelClass {
-  static create(travelClasses: TravelClass[], travelClassName: TravelClassName): Result<TripWithSelectedTravelClass, InvalidStateError> {
-    const selectedTravelClass = travelClasses.find(x => x.name === travelClassName)
+  static create(trip: Trip, travelClassName: TravelClassName): Result<TripWithSelectedTravelClass, InvalidStateError> {
+    const selectedTravelClass = trip.travelClasses.find(x => x.name === travelClassName)
     if (!selectedTravelClass) {
       return err(new InvalidStateError("The service level is not available"))
     }
-    return ok(new TripWithSelectedTravelClass(travelClasses, selectedTravelClass))
+    return ok(new TripWithSelectedTravelClass(trip.travelClasses, selectedTravelClass))
   }
   private constructor(readonly travelClasses: TravelClass[], readonly currentTravelClass: TravelClass) { }
 }
