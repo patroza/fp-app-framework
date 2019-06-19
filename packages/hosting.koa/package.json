@@ -50,9 +50,10 @@
     "tslint": "^5.16.0"
   },
   "scripts": {
+    "prettier": "prettier --write src/**/*.ts",
     "test": "jest",
     "test:compile": "tsc --noEmit",
-    "test:lint": "eslint .",
+    "test:lint": "eslint src/**/*.ts",
     "testsuite": "yarn test:compile && yarn test:lint && yarn test"
   }
 }
