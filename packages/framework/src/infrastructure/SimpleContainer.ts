@@ -11,30 +11,41 @@ export default class SimpleContainer {
   private initializersF = new Map()
   private initializersC = new Map()
   private initializersO = new Map()
-  constructor(private tryGetDependencyScope: () => DependencyScope, private setDependencyScope: (scope: DependencyScope) => void) { }
+  constructor(
+    private tryGetDependencyScope: () => DependencyScope,
+    private setDependencyScope: (scope: DependencyScope) => void,
+  ) {}
 
   getC<T>(key: Constructor<T>): T {
     const instance = this.tryCreateInstance<T>(key)
-    if (!instance) { throw new Error(`could not resolve ${key}`) }
+    if (!instance) {
+      throw new Error(`could not resolve ${key}`)
+    }
     return instance
   }
 
   // tslint:disable-next-line:ban-types
   getF<T extends Function>(key: T) {
     const f = this.tryCreateInstance<T>(key)
-    if (!f) { throw new Error(`could not resolve ${key}`) }
+    if (!f) {
+      throw new Error(`could not resolve ${key}`)
+    }
     return f
   }
 
   getConcrete<TDependencies, T>(key: (deps: TDependencies) => T) {
     const f = this.tryCreateInstance<T>(key)
-    if (!f) { throw new Error(`could not resolve ${key}`) }
+    if (!f) {
+      throw new Error(`could not resolve ${key}`)
+    }
     return f
   }
 
   getO<T>(key: Key<T>) {
     const f = this.tryCreateInstance<T>(key)
-    if (!f) { throw new Error(`could not resolve ${key}`) }
+    if (!f) {
+      throw new Error(`could not resolve ${key}`)
+    }
     return f
   }
 
@@ -79,19 +90,28 @@ export default class SimpleContainer {
     this.registerFactoryF(key, factory, this.getDependencyScope)
   }
 
-  registerScopedF2<TDependencies, T extends (...args: any[]) => any>(key: Key<T>, impl: WithDependenciesConfig<TDependencies, T>) {
+  registerScopedF2<TDependencies, T extends (...args: any[]) => any>(
+    key: Key<T>,
+    impl: WithDependenciesConfig<TDependencies, T>,
+  ) {
     const factory = () => this.createFunctionInstance(impl)
     setFunctionName(factory, impl.name || `f(${key.name}`)
     this.registerFactoryF(key, factory, this.getDependencyScope)
   }
 
-  registerSingletonF2<TDependencies, T extends (...args: any[]) => any>(key: Key<T>, impl: WithDependenciesConfig<TDependencies, T>) {
+  registerSingletonF2<TDependencies, T extends (...args: any[]) => any>(
+    key: Key<T>,
+    impl: WithDependenciesConfig<TDependencies, T>,
+  ) {
     const factory = () => this.createFunctionInstance(impl)
     setFunctionName(factory, impl.name || `f(${key.name}`)
     this.registerSingletonF(key, factory)
   }
 
-  registerSingletonConcrete<TDependencies, T>(key: WithDependenciesConfig<TDependencies, T> | (() => T), factory?: () => T) {
+  registerSingletonConcrete<TDependencies, T>(
+    key: WithDependenciesConfig<TDependencies, T> | (() => T),
+    factory?: () => T,
+  ) {
     if (!factory) {
       factory = () => this.createFunctionInstance(key)
       setFunctionName(factory, key.name)
@@ -101,7 +121,10 @@ export default class SimpleContainer {
     this.registerSingletonF(key, factory as any)
   }
 
-  registerScopedConcrete<TDependencies, T>(key: WithDependenciesConfig<TDependencies, T> | (() => T), factory?: () => T) {
+  registerScopedConcrete<TDependencies, T>(
+    key: WithDependenciesConfig<TDependencies, T> | (() => T),
+    factory?: () => T,
+  ) {
     if (!factory) {
       factory = () => this.createFunctionInstance(key)
       setFunctionName(factory, key.name)
@@ -151,15 +174,21 @@ export default class SimpleContainer {
     this.registerFactoryF(key, () => instance)
   }
 
-  registerInitializerF<T extends (...args: any[]) => any>(key: Key<T> | "global", ...initializers: Array<(f: T, key: Key<T>) => void>) {
+  registerInitializerF<T extends (...args: any[]) => any>(
+    key: Key<T> | "global",
+    ...initializers: ((f: T, key: Key<T>) => void)[]
+  ) {
     this.registerInitializer(this.initializersF, key, initializers)
   }
 
-  registerInitializerC<T = any>(key: Constructor<T> | "global", ...initializers: Array<(instance: T, key: Constructor<T>) => void>) {
+  registerInitializerC<T = any>(
+    key: Constructor<T> | "global",
+    ...initializers: ((instance: T, key: Constructor<T>) => void)[]
+  ) {
     this.registerInitializer(this.initializersC, key, initializers)
   }
 
-  registerInitializerO<T>(key: Key<T> | "global", ...initializers: Array<(instance: T, key: Key<T>) => void>) {
+  registerInitializerO<T>(key: Key<T> | "global", ...initializers: ((instance: T, key: Key<T>) => void)[]) {
     this.registerInitializer(this.initializersO, key, initializers)
   }
 
@@ -182,7 +211,9 @@ export default class SimpleContainer {
 
   private readonly getDependencyScope = () => {
     const scope = this.tryGetDependencyScope()
-    if (!scope) { throw new Error("There is no scope available, did you forget to .createScope()?") }
+    if (!scope) {
+      throw new Error("There is no scope available, did you forget to .createScope()?")
+    }
     return scope
   }
 
@@ -190,7 +221,9 @@ export default class SimpleContainer {
 
   private fixName = (key: any, factory: any) => () => {
     const instance = factory()
-    if (!instance.name) { setFunctionName(instance, factory.name || key.name) }
+    if (!instance.name) {
+      setFunctionName(instance, factory.name || key.name)
+    }
     return instance
   }
 
@@ -212,16 +245,10 @@ export default class SimpleContainer {
   ) {
     factory = this.hookInitializers(initializerMap, key, resolveDecorators(key, factory))
     if (!getScope) {
-      this.factories.set(
-        key,
-        factory,
-      )
+      this.factories.set(key, factory)
       return
     }
-    this.factories.set(
-      key,
-      () => getScope().getOrCreate(key, factory),
-    )
+    this.factories.set(key, () => getScope().getOrCreate(key, factory))
   }
 
   private hookInitializers = (initializerMap: any, key: any, factory: any) => () => {
@@ -246,20 +273,27 @@ export default class SimpleContainer {
     }
   }
 
-  private readonly createFunctionInstance = <TDependencies, T>(h: WithDependenciesConfig<TDependencies, T> | (() => T)) => {
+  private readonly createFunctionInstance = <TDependencies, T>(
+    h: WithDependenciesConfig<TDependencies, T> | (() => T),
+  ) => {
     const deps = getDependencyObjectKeys<TDependencies>(h)
     const resolved = h(this.resolveDependencies(deps))
     // setFunctionName(resolved, h.name)
     return resolved
   }
 
-  private readonly resolveDependencies = <TDependencies>(deps: TDependencies) => Object.keys(deps).reduce((prev, cur) => {
-    const dAny = deps as any
-    const key = dAny[cur]
-    const pAny = prev as any
-    pAny[cur] = this.getF(key)
-    return prev
-  }, {} as TDependencies)
+  private readonly resolveDependencies = <TDependencies>(deps: TDependencies) =>
+    Object.keys(deps).reduce(
+      (prev, cur) => {
+        const dAny = deps as any
+        const key = dAny[cur]
+        const pAny = prev as any
+        pAny[cur] = this.getF(key)
+        return prev
+      },
+      // eslint-disable-next-line @typescript-eslint/no-object-literal-type-assertion
+      {} as TDependencies,
+    )
 
   private tryCreateInstance = <T>(key: any) => {
     const factory = this.factories.get(key)
@@ -273,26 +307,27 @@ export default class SimpleContainer {
     return factory
   }
 
-  private readonly resolveDecoratorsF = <T extends (...args: any[]) => any>(key: T, factory: () => T) =>
-    () => {
-      const decorators = this.decorators.get(key) || []
+  private readonly resolveDecoratorsF = <T extends (...args: any[]) => any>(key: T, factory: () => T) => () => {
+    const decorators = this.decorators.get(key) || []
 
-      if (!decorators.length) { return factory() }
-      let handler = factory()
-      const name = handler.name
-      decorators.forEach((decorator: (inp: T) => T) => {
-        // Be sure not to use `handler` as it can be rebound :-)
-        const currentHandler = handler
-        const anyDecoratedHandler: any = (...args: any[]) => {
-          const decorate = this.getF(decorator)
-          const decoratedHandler = decorate(currentHandler)
-          return decoratedHandler(...args)
-        }
-        handler = anyDecoratedHandler
-      })
-      setFunctionName(handler, `$<${name}>`)
-      return handler
+    if (!decorators.length) {
+      return factory()
     }
+    let handler = factory()
+    const name = handler.name
+    decorators.forEach((decorator: (inp: T) => T) => {
+      // Be sure not to use `handler` as it can be rebound :-)
+      const currentHandler = handler
+      const anyDecoratedHandler: any = (...args: any[]) => {
+        const decorate = this.getF(decorator)
+        const decoratedHandler = decorate(currentHandler)
+        return decoratedHandler(...args)
+      }
+      handler = anyDecoratedHandler
+    })
+    setFunctionName(handler, `$<${name}>`)
+    return handler
+  }
 
   // public registerTransient<T>(key: string, factory: () => T) {
   //   this.factories.set(key, factory)
@@ -329,7 +364,9 @@ export class DependencyScope implements Disposable {
   instances: Map<any, any> = new Map()
 
   getOrCreate<T>(key: any, instanceCreator: () => T) {
-    if (this.instances.has(key)) { return this.instances.get(key) }
+    if (this.instances.has(key)) {
+      return this.instances.get(key)
+    }
     const instance = instanceCreator()
     this.instances.set(key, instance)
     return instance
@@ -348,12 +385,16 @@ export const injectSymbol = Symbol("$$inject")
 export const requestTypeSymbol = Symbol("$$type")
 
 export function generateKey<T>(name: string): Key<T> {
-  const f = () => { throw new Error(`${name} not implemented function`) }
-  if (name) { setFunctionName(f, name) }
+  const f = () => {
+    throw new Error(`${name} not implemented function`)
+  }
+  if (name) {
+    setFunctionName(f, name)
+  }
   return f as any
 }
 
-export type Key<T> = T & { name: string; }
+export type Key<T> = T & { name: string }
 
 /**
  * Registers the specified dependencyConstructors as the dependencies for the targeted class.
@@ -400,7 +441,7 @@ export const autoinject = (target: any) => {
   }
 }
 
-const getDependencyKeys = (constructor: any) => constructor[injectSymbol] as any[] || []
+const getDependencyKeys = (constructor: any) => (constructor[injectSymbol] as any[]) || []
 const getDependencyObjectKeys = <TDependencies>(constructor: any): TDependencies => constructor[injectSymbol] || {}
 
 const generateKeyFromFn = <T>(fun: (...args: any[]) => T) => generateKey<T>(fun.name)
@@ -415,10 +456,10 @@ export const factoryOf = <T extends (...args: any[]) => any>(func: T, factory: (
 }
 
 export type WithDependencies<TDependencies, T> = (deps: TDependencies) => T
-export interface InjectedDependencies<TDependencies> { [injectSymbol]: TDependencies }
-export type WithDependenciesConfig<TDependencies, T> = (((deps: TDependencies) => T) & InjectedDependencies<TDependencies>)
-
-export {
-  generateKeyFromC,
-  generateKeyFromFn,
+export interface InjectedDependencies<TDependencies> {
+  [injectSymbol]: TDependencies
 }
+export type WithDependenciesConfig<TDependencies, T> = ((deps: TDependencies) => T) &
+  InjectedDependencies<TDependencies>
+
+export { generateKeyFromC, generateKeyFromFn }

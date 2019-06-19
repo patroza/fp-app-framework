@@ -10,16 +10,13 @@ import { autoinject } from "./SimpleContainer"
 export default abstract class ContextBase implements Disposable {
   private disposed = false
 
-  constructor(private readonly eventHandler: DomainEventHandler) { }
+  constructor(private readonly eventHandler: DomainEventHandler) {}
 
   readonly save = (): Promise<Result<void, DbError | Error>> => {
     if (this.disposed) {
       throw new Error("The context is already disposed")
     }
-    return this.eventHandler.commitAndPostEvents(
-      () => this.getAndClearEvents(),
-      () => this.saveImpl(),
-    )
+    return this.eventHandler.commitAndPostEvents(() => this.getAndClearEvents(), () => this.saveImpl())
   }
 
   dispose() {

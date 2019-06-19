@@ -11,9 +11,11 @@ export default class DomainEventHandler {
 
   constructor(
     private readonly publish: publishType,
-    private readonly getIntegrationHandlers: (evt: Event) => Array<EventHandlerWithDependencies<any, any, any, any>> | undefined,
+    private readonly getIntegrationHandlers: (
+      evt: Event,
+    ) => EventHandlerWithDependencies<any, any, any, any>[] | undefined,
     private readonly executeIntegrationEvents: typeof executePostCommitHandlersKey,
-  ) { }
+  ) {}
 
   // Note: Eventhandlers in this case have unbound errors..
   async commitAndPostEvents<T, TErr>(
@@ -25,7 +27,7 @@ export default class DomainEventHandler {
     // 3. post-commit: post integration events
 
     this.processedEvents = []
-    const updateEvents = () => this.events = this.events.concat(getAndClearEvents())
+    const updateEvents = () => (this.events = this.events.concat(getAndClearEvents()))
     updateEvents()
     let processedEvents: Event[] = []
     // loop until we have all events captured, event events of events.
@@ -42,31 +44,36 @@ export default class DomainEventHandler {
       updateEvents()
     }
     this.processedEvents = processedEvents
-    return await commit()
-      .pipe(tee(map(this.publishIntegrationEvents)))
+    return await commit().pipe(tee(map(this.publishIntegrationEvents)))
   }
 
   private readonly publishEvents = async (events: Event[]): Promise<Result<void, Error>> => {
     for (const evt of events) {
       const r = await this.publish(evt)
-      if (r.isErr()) { return err(r.error) }
+      if (r.isErr()) {
+        return err(r.error)
+      }
     }
     return success()
   }
 
   private readonly publishIntegrationEvents = () => {
     this.events = []
-    const integrationEventsMap = new Map<any, Array<EventHandlerWithDependencies<any, any, any, any>>>()
+    const integrationEventsMap = new Map<any, EventHandlerWithDependencies<any, any, any, any>[]>()
     for (const evt of this.processedEvents) {
       const integrationEventHandlers = this.getIntegrationHandlers(evt)
-      if (!integrationEventHandlers || !integrationEventHandlers.length) { continue }
+      if (!integrationEventHandlers || !integrationEventHandlers.length) {
+        continue
+      }
       integrationEventsMap.set(evt, integrationEventHandlers)
     }
-    if (integrationEventsMap.size) { this.executeIntegrationEvents(integrationEventsMap) }
+    if (integrationEventsMap.size) {
+      this.executeIntegrationEvents(integrationEventsMap)
+    }
     this.processedEvents = []
   }
 }
 
-export const executePostCommitHandlersKey = generateKey<(eventMap: Map<any, Array<EventHandlerWithDependencies<any, any, any, any>>>) => void>(
-  "executePostCommitHandlers",
-)
+export const executePostCommitHandlersKey = generateKey<
+  (eventMap: Map<any, EventHandlerWithDependencies<any, any, any, any>[]>) => void
+>("executePostCommitHandlers")

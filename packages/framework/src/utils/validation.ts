@@ -18,7 +18,9 @@ const createValidator = <TIn>(schema: any): ValidatorType<TIn, ValidationError> 
 
 export type ValidatorType<TIn, TErr> = ((object: TIn) => Result<TIn, TErr>) & { jsonSchema: string }
 
-const predicate = <T, E extends ValidationError>(pred: (inp: T) => boolean, errMsg: string) => (inp: T): Result<T, E | ValidationError> => {
+const predicate = <T, E extends ValidationError>(pred: (inp: T) => boolean, errMsg: string) => (
+  inp: T,
+): Result<T, E | ValidationError> => {
   if (pred(inp)) {
     return ok(inp)
   }
@@ -30,9 +32,4 @@ const valueEquals = <T>({ value }: { value: T }, otherValue: T, extracter?: (v: 
 const valueEquals2 = <T>({ value }: { value: T }, { value: otherValue }: { value: T }, extracter?: (v: T) => any) =>
   extracter ? extracter(value) === extracter(otherValue) : value === otherValue
 
-export {
-  createValidator,
-  predicate,
-  valueEquals,
-  valueEquals2,
-}
+export { createValidator, predicate, valueEquals, valueEquals2 }
