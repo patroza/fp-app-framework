@@ -7,10 +7,4 @@ const exists = promisify(fs.exists)
 const mkdir = promisify(fs.mkdir)
 const deleteFile = promisify(fs.unlink)
 
-export {
-  readFile,
-  writeFile,
-  exists,
-  mkdir,
-  deleteFile,
-}
+export { readFile, writeFile, exists, mkdir, deleteFile }

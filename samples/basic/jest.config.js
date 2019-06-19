@@ -1,28 +1,18 @@
 module.exports = {
-  "collectCoverage": false,
-  "transform": {
-    "^.+\\.tsx?$": "ts-jest"
+  collectCoverage: false,
+  transform: {
+    "^.+\\.tsx?$": "ts-jest",
   },
-  "moduleNameMapper": {
-    "^@/(.*)$": "<rootDir>/src/$1"
+  moduleNameMapper: {
+    "^@/(.*)$": "<rootDir>/src/$1",
   },
-  "watchPathIgnorePatterns": [
-    "data/*",
-    "router-schema.json"
-  ],
+  watchPathIgnorePatterns: ["data/*", "router-schema.json"],
   globals: {
-    'ts-jest': {
-      diagnostics: false
-    }
+    "ts-jest": {
+      diagnostics: false,
+    },
   },
-  "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-  "testURL": "http://localhost:8110",
-  "moduleFileExtensions": [
-    "ts",
-    "tsx",
-    "js",
-    "jsx",
-    "json",
-    "node"
-  ]
+  testRegex: "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+  testURL: "http://localhost:8110",
+  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
 }

@@ -9,7 +9,7 @@ const isTruthyFilter = <T>(item: T | null | undefined | void): item is T => Bool
 
 const setFunctionName = (fnc: any, name: string) => Object.defineProperty(fnc, "name", { value: name })
 
-export const typedKeysOf = <T>(obj: T) => Object.keys(obj) as Array<keyof T>
+export const typedKeysOf = <T>(obj: T) => Object.keys(obj) as (keyof T)[]
 
 export interface Disposable {
   dispose(): void
@@ -56,13 +56,4 @@ function immutableObj<T>() {
   }
 }
 
-export {
-  asWritable,
-  createLazy,
-  isTruthyFilter,
-  immutableObj,
-  noop,
-  removeElement,
-  setFunctionName,
-  using,
-}
+export { asWritable, createLazy, isTruthyFilter, immutableObj, noop, removeElement, setFunctionName, using }

@@ -5,14 +5,19 @@ import Koa from "koa"
 import auth from "koa-basic-auth"
 import onFinished from "on-finished"
 
-export const saveStartTime: Koa.Middleware = (ctx, next) => { ctx["start-time"] = process.hrtime(); return next() }
+export const saveStartTime: Koa.Middleware = (ctx, next) => {
+  ctx["start-time"] = process.hrtime()
+  return next()
+}
 
-export const setupNamespace = (
-  { setupRequestContext }: {
-    setupRequestContext: <T>(
-      cb: (context: RequestContextBase, bindEmitter: (emitter: EventEmitter) => void) => Promise<T>,
-    ) => Promise<T>,
-  }): Koa.Middleware => (ctx, next) => setupRequestContext((context, bindEmitter) => {
+export const setupNamespace = ({
+  setupRequestContext,
+}: {
+  setupRequestContext: <T>(
+    cb: (context: RequestContextBase, bindEmitter: (emitter: EventEmitter) => void) => Promise<T>,
+  ) => Promise<T>
+}): Koa.Middleware => (ctx, next) =>
+  setupRequestContext((context, bindEmitter) => {
     bindEmitter(ctx.req)
     bindEmitter(ctx.res)
 

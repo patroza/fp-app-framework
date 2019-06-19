@@ -8,20 +8,17 @@ export default class KoaRouteBuilder extends RouteBuilder<Koa.Context> {
   build(request: requestType) {
     const router = new KoaRouter()
     if (this.basicAuthEnabled) {
-      if (!this.userPass) { throw new Error("cannot enable auth without loginPass") }
+      if (!this.userPass) {
+        throw new Error("cannot enable auth without loginPass")
+      }
       router.use(authMiddleware(this.userPass)())
     }
 
     this.setup.forEach(({ method, path, requestHandler, validator, errorHandler, responseTransform }) => {
       router.register(
-        path, [method],
-        generateKoaHandler(
-          request,
-          requestHandler,
-          validator,
-          errorHandler,
-          responseTransform,
-        ),
+        path,
+        [method],
+        generateKoaHandler(request, requestHandler, validator, errorHandler, responseTransform),
       )
     })
 
@@ -43,12 +40,17 @@ export const extendWithHalLinks = (config: HALConfig) => <TOutput>(output: TOutp
 
 // TODO: Perhaps a transformer would be more flexible.
 export const generateHalLinks = (ctx: Koa.Context, halConfig: HALConfig, data: any) => {
-  const halLinks = typedKeysOf(halConfig).reduce((prev, cur) => {
-    let href = halConfig[cur]
-    if (href.startsWith(".")) { href = href.replace(".", ctx.URL.pathname) }
-    Object.keys(data).forEach(x => href = href.replace(`:${x}`, data[x]))
-    prev[cur] = { href }
-    return prev
-  }, {} as any)
+  const halLinks = typedKeysOf(halConfig).reduce(
+    (prev, cur) => {
+      let href = halConfig[cur]
+      if (href.startsWith(".")) {
+        href = href.replace(".", ctx.URL.pathname)
+      }
+      Object.keys(data).forEach(x => (href = href.replace(`:${x}`, data[x])))
+      prev[cur] = { href }
+      return prev
+    },
+    {} as any,
+  )
   return halLinks
 }

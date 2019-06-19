@@ -20,8 +20,12 @@ export const toVoid = toValue<void>(void 0)
 
 // TODO: Have to double check these as it may fail in the error case,
 // as it wont return a Promise then :/
-export function flatMap<T, E, TMap, EMap extends E>(map: PipeFunction<T, TMap, EMap>): (result: Result<T, E>) => Promise<Result<TMap, EMap | E>>
-export function flatMap<T, E, TMap, EMap extends E>(map: (ina: T) => Result<TMap, EMap>): (result: Result<T, E>) => Result<TMap, EMap | E>
+export function flatMap<T, E, TMap, EMap extends E>(
+  map: PipeFunction<T, TMap, EMap>,
+): (result: Result<T, E>) => Promise<Result<TMap, EMap | E>>
+export function flatMap<T, E, TMap, EMap extends E>(
+  map: (ina: T) => Result<TMap, EMap>,
+): (result: Result<T, E>) => Result<TMap, EMap | E>
 // export function flatMap<T, TNew, E>(map: (ina: T) => Result<TNew, E>): (result: Result<T, E>) => Promise<Result<TNew, E>>;
 // export function flatMap<T, TNew, E>(map: (ina: T) => Result<TNew, E>): (result: Promise<Result<T, E>>) => Promise<Result<TNew, E>>;
 export function flatMap(mapF: any) {
@@ -64,7 +68,9 @@ export function map(mapF: any) {
     // }
     if (result.isOk()) {
       const r = mapF(result.value)
-      if (Promise.resolve(r) === r) { return r.then(ok) }
+      if (Promise.resolve(r) === r) {
+        return r.then(ok)
+      }
       return ok(r)
     } else {
       // Not a promise :/
@@ -77,21 +83,29 @@ export function biMap<T, E, TNew, ENew>(
   map: (ina: T) => Promise<TNew>,
   mapErr: (ina: E) => Promise<ENew>,
 ): (result: Result<T, E>) => Promise<Result<TNew, ENew>>
-export function biMap<T, E, TNew, ENew>(map: (ina: T) => TNew, mapErr: (ina: E) => ENew): (result: Result<T, E>) => Result<TNew, ENew>
+export function biMap<T, E, TNew, ENew>(
+  map: (ina: T) => TNew,
+  mapErr: (ina: E) => ENew,
+): (result: Result<T, E>) => Result<TNew, ENew>
 export function biMap(mapF: any, mapErrF: any) {
   return (result: Result<any, any>) => {
     if (result.isOk()) {
       const r = mapF(result.value)
-      if (Promise.resolve(r) === r) { return r.then(ok) }
+      if (Promise.resolve(r) === r) {
+        return r.then(ok)
+      }
       return ok(r)
     } else {
       const r = mapErrF(result.error)
-      if (Promise.resolve(r) === r) { return r.then(err) }
+      if (Promise.resolve(r) === r) {
+        return r.then(err)
+      }
       return err(r)
     }
   }
 }
 
+// TODO: Should come with flatMap already wrapped aroun it
 export function flatTee<T, T2 extends T, TDontCare, E>(f: PipeFunction<T2, TDontCare, E>): PipeFunction<T, T, E>
 export function flatTee<T, T2 extends T, TDontCare, E>(f: PipeFunction2<T2, TDontCare, E>): (input: T) => Result<T, E>
 export function flatTee(f: any) {
@@ -105,6 +119,7 @@ export function flatTee(f: any) {
   }
 }
 
+// TODO: Should come with map already wrapped aroun it
 export function tee<T, T2 extends T, TDontCare, E>(f: (x: T2) => Promise<TDontCare>): (input: T) => Promise<T>
 export function tee<T, T2 extends T, TDontCare, E>(f: (x: T2) => TDontCare): (input: T) => T
 export function tee(f: any) {
@@ -117,11 +132,15 @@ export function tee(f: any) {
     }
   }
 }
-const intTee = (r: any, input: any) => r.isOk() ? ok(input) : err(r.error)
+const intTee = (r: any, input: any) => (r.isOk() ? ok(input) : err(r.error))
 
 // Easily pass input -> (input -> output) -> [input, output]
-export function toTup<TInput, TInput2 extends TInput, T, EMap>(f: (x: TInput2) => Promise<Result<T, EMap>>): <E>(input: TInput) => Promise<Result<readonly [T, TInput], E>>
-export function toTup<TInput, TInput2 extends TInput, T, EMap>(f: (x: TInput2) => Result<T, EMap>): <E>(input: TInput) => Result<readonly [T, TInput], E>
+export function toTup<TInput, TInput2 extends TInput, T, EMap>(
+  f: (x: TInput2) => Promise<Result<T, EMap>>,
+): <E>(input: TInput) => Promise<Result<readonly [T, TInput], E>>
+export function toTup<TInput, TInput2 extends TInput, T, EMap>(
+  f: (x: TInput2) => Result<T, EMap>,
+): <E>(input: TInput) => Result<readonly [T, TInput], E>
 export function toTup(f: any) {
   return (input: any) => {
     const r = f(input)
@@ -132,10 +151,12 @@ export function toTup(f: any) {
     }
   }
 }
-const intToTup = (r: any, input: any) => r.isOk() ? ok([r.value, input]) : err(r.error)
+const intToTup = (r: any, input: any) => (r.isOk() ? ok([r.value, input]) : err(r.error))
 
 // export function ifErrorflatMap<T, TNew, E>(defaultVal: (e: E) => Promise<Result<TNew, E>>): (result: Result<T, E>) => Promise<Result<TNew, E>>;
-export function ifErrorflatMap<T, TNew, E>(defaultVal: (e: E) => Result<TNew, E>): (result: Result<T, E>) => Result<TNew, E>
+export function ifErrorflatMap<T, TNew, E>(
+  defaultVal: (e: E) => Result<TNew, E>,
+): (result: Result<T, E>) => Result<TNew, E>
 export function ifErrorflatMap(defaultVal: any) {
   return (result: Result<any, any>) => {
     if (result.isOk()) {
@@ -150,7 +171,9 @@ export function ifErrorflatMap(defaultVal: any) {
 export function ifError<T, E, TNew>(defaultVal: (e: E) => TNew): (result: Result<T, E>) => Result<TNew, E>
 export function ifError(defaultVal: any) {
   return (result: any) => {
-    if (result.isOk()) { return result }
+    if (result.isOk()) {
+      return result
+    }
     return ok(defaultVal(result.error))
   }
 }
@@ -161,25 +184,38 @@ export const toTuple = <T2>(value: T2) => <T>(v1: T) => [value, v1] as const
 export const joinError = <T>(result: Result<T, string[]>) => result.mapErr(x => x.join("\n"))
 
 export function resultTuple<T, T2, E>(r1: Result<T, E>, r2: Result<T2, E>): Result<readonly [T, T2], E[]>
-export function resultTuple<T, T2, T3, E>(r1: Result<T, E>, r2: Result<T2, E>, r3: Result<T3, E>): Result<readonly [T, T2, T3], E[]>
-export function resultTuple<T, T2, T3, T4, E>(r1: Result<T, E>, r2: Result<T2, E>, r3: Result<T3, E>, r4: Result<T4, E>): Result<readonly [T, T2, T3, T4], E[]>
+export function resultTuple<T, T2, T3, E>(
+  r1: Result<T, E>,
+  r2: Result<T2, E>,
+  r3: Result<T3, E>,
+): Result<readonly [T, T2, T3], E[]>
+export function resultTuple<T, T2, T3, T4, E>(
+  r1: Result<T, E>,
+  r2: Result<T2, E>,
+  r3: Result<T3, E>,
+  r4: Result<T4, E>,
+): Result<readonly [T, T2, T3, T4], E[]>
 export function resultTuple<T, T2, T3, T4, T5, E>(
-  r1: Result<T, E>, r2: Result<T2, E>, r3: Result<T3, E>, r4: Result<T4, E>, r5: Result<T5, E>,
+  r1: Result<T, E>,
+  r2: Result<T2, E>,
+  r3: Result<T3, E>,
+  r4: Result<T4, E>,
+  r5: Result<T5, E>,
 ): Result<readonly [T, T2, T3, T4, T5], E[]>
-export function resultTuple(...results: Array<Result<any, any>>) {
+export function resultTuple(...results: Result<any, any>[]) {
   const errors = results.filter(isErr).map(x => x.error)
   if (errors.length) {
     return err(errors)
   }
-  const successes = (results as Array<Ok<any, any>>).map(x => x.value) as readonly any[]
+  const successes = (results as Ok<any, any>[]).map(x => x.value) as readonly any[]
   return ok(successes)
 }
 
-export const sequence = <T, E>(results: Array<Result<T, E>>): Result<T[], E> => {
+export const sequence = <T, E>(results: Result<T, E>[]): Result<T[], E> => {
   return resultAll(results).pipe(mapErr(flattenErrors))
 }
 
-export const resultAll = <T, E>(results: Array<Result<T, E>>): Result<T[], E[]> => {
+export const resultAll = <T, E>(results: Result<T, E>[]): Result<T[], E[]> => {
   const errors = results.filter(isErr).map(x => x.error)
   if (errors.length) {
     return err(errors)
@@ -191,11 +227,11 @@ export const resultAll = <T, E>(results: Array<Result<T, E>>): Result<T[], E[]> 
 export const isErr = <T, TErr>(x: Result<T, TErr>): x is Err<T, TErr> => x.isErr()
 export const isOk = <T, TErr>(x: Result<T, TErr>): x is Ok<T, TErr> => x.isOk()
 
-export const sequenceAsync = async <T, E>(results: Array<Promise<Result<T, E>>>) => {
+export const sequenceAsync = async <T, E>(results: Promise<Result<T, E>>[]) => {
   return sequence(await Promise.all(results))
 }
 
-export const resultAllAsync = async <T, E>(results: Array<Promise<Result<T, E>>>) => {
+export const resultAllAsync = async <T, E>(results: Promise<Result<T, E>>[]) => {
   return resultAll(await Promise.all(results))
 }
 
@@ -231,7 +267,10 @@ export const createResult = <TErrorOutput = string, TInput = any, TOutput = any>
   return ok(resultCreator(input))
 }
 
-export const applyIfNotUndefined = <T, TOutput>(input: T | undefined, f: (input: T) => TOutput): TOutput | undefined => {
+export const applyIfNotUndefined = <T, TOutput>(
+  input: T | undefined,
+  f: (input: T) => TOutput,
+): TOutput | undefined => {
   if (input === undefined) {
     return undefined
   }
@@ -267,7 +306,7 @@ export const liftType = <T>() => <TInput extends T>(e: TInput) => e as T
 export const anyTrue = <TErr = any>(...mappers: any[]): Result<boolean, TErr> => {
   let hasChanged = false
 
-  const mapHasChanged = map(a => a ? hasChanged = true : null) as any
+  const mapHasChanged = map(a => (a ? (hasChanged = true) : null)) as any
   const items = mappers.map(_ => mapHasChanged)
   const execution = flatten(zip(mappers, items))
 
@@ -293,7 +332,7 @@ export const startWithVal = <T>(value: T) => <TErr>() => Promise.resolve(startWi
 // export const startWithVal2 = startWithVal()
 export const startWithVal2 = <T>(value: T) => startWithVal(value)()
 
-type ResultOrPromiseResult<T, E> = (Result<T, E> | Promise<Result<T, E>>)
+type ResultOrPromiseResult<T, E> = Result<T, E> | Promise<Result<T, E>>
 type ResultFunction<T, T2, E> = (r: Result<T, E>) => ResultOrPromiseResult<T2, E>
 
 export type PipeFunction<TInput, TOutput, TErr> = (input: TInput) => Promise<Result<TOutput, TErr>>
@@ -303,11 +342,36 @@ export type PipeFunction2N<TOutput, TErr> = () => Result<TOutput, TErr>
 
 // tslint:disable:max-line-length
 export function pipe<T, T2, E>(op1: ResultFunction<T, T2, E>): (input: T) => Promise<Result<T2, E>>
-export function pipe<T, T2, T3, E>(op1: ResultFunction<T, T2, E>, op2: ResultFunction<T2, T3, E>): (input: T) => Promise<Result<T3, E>>
-export function pipe<T, T2, T3, T4, E>(op1: ResultFunction<T, T2, E>, op2: ResultFunction<T2, T3, E>, op3: ResultFunction<T3, T4, E>): (input: T) => Promise<Result<T4, E>>
-export function pipe<T, T2, T3, T4, T5, E>(op1: ResultFunction<T, T2, E>, op2: ResultFunction<T2, T3, E>, op3: ResultFunction<T3, T4, E>, op4: ResultFunction<T4, T5, E>): (input: T) => Promise<Result<T5, E>>
-export function pipe<T, T2, T3, T4, T5, T6, E>(op1: ResultFunction<T, T2, E>, op2: ResultFunction<T2, T3, E>, op3: ResultFunction<T3, T4, E>, op4: ResultFunction<T4, T5, E>, op5: ResultFunction<T5, T6, E>): (input: T) => Promise<Result<T6, E>>
-export function pipe<T, T2, T3, T4, T5, T6, T7, E>(op1: ResultFunction<T, T2, E>, op2: ResultFunction<T2, T3, E>, op3: ResultFunction<T3, T4, E>, op4: ResultFunction<T4, T5, E>, op5: ResultFunction<T5, T6, E>, op6: ResultFunction<T6, T7, E>): (input: T) => Promise<Result<T7, E>>
+export function pipe<T, T2, T3, E>(
+  op1: ResultFunction<T, T2, E>,
+  op2: ResultFunction<T2, T3, E>,
+): (input: T) => Promise<Result<T3, E>>
+export function pipe<T, T2, T3, T4, E>(
+  op1: ResultFunction<T, T2, E>,
+  op2: ResultFunction<T2, T3, E>,
+  op3: ResultFunction<T3, T4, E>,
+): (input: T) => Promise<Result<T4, E>>
+export function pipe<T, T2, T3, T4, T5, E>(
+  op1: ResultFunction<T, T2, E>,
+  op2: ResultFunction<T2, T3, E>,
+  op3: ResultFunction<T3, T4, E>,
+  op4: ResultFunction<T4, T5, E>,
+): (input: T) => Promise<Result<T5, E>>
+export function pipe<T, T2, T3, T4, T5, T6, E>(
+  op1: ResultFunction<T, T2, E>,
+  op2: ResultFunction<T2, T3, E>,
+  op3: ResultFunction<T3, T4, E>,
+  op4: ResultFunction<T4, T5, E>,
+  op5: ResultFunction<T5, T6, E>,
+): (input: T) => Promise<Result<T6, E>>
+export function pipe<T, T2, T3, T4, T5, T6, T7, E>(
+  op1: ResultFunction<T, T2, E>,
+  op2: ResultFunction<T2, T3, E>,
+  op3: ResultFunction<T3, T4, E>,
+  op4: ResultFunction<T4, T5, E>,
+  op5: ResultFunction<T5, T6, E>,
+  op6: ResultFunction<T6, T7, E>,
+): (input: T) => Promise<Result<T7, E>>
 export function pipe(...pipes: any[]) {
   return (input: any) => {
     const a: any = startWithVal2(input)
@@ -316,8 +380,13 @@ export function pipe(...pipes: any[]) {
 }
 
 // the problem with this is that it cannot match the second (or nth) return type :/
-export function pipe2<TErr>(): <T, T2, E>(op1: (r: Result<T, TErr>) => Result<T2, E>) => (input: T) => Promise<Result<T2, E>>
-export function pipe2<TErr>(): <T, T2, T3, E>(op1: (r: Result<T, TErr>) => Result<T2, E>, op2: (r: Result<T2, E>) => Result<T3, E>) => (input: T) => Promise<Result<T3, E>>
+export function pipe2<TErr>(): <T, T2, E>(
+  op1: (r: Result<T, TErr>) => Result<T2, E>,
+) => (input: T) => Promise<Result<T2, E>>
+export function pipe2<TErr>(): <T, T2, T3, E>(
+  op1: (r: Result<T, TErr>) => Result<T2, E>,
+  op2: (r: Result<T2, E>) => Result<T3, E>,
+) => (input: T) => Promise<Result<T3, E>>
 export function pipe2(...pipes: any[]) {
   // additional scope because thats what the interface says
   return () => {
@@ -335,8 +404,12 @@ export type AnyResult<T = any, TErr = any> = Result<T, TErr>
 // from previous statements, the less important their output becomes..
 // Alternatively we can always create two variations :)
 // tslint:disable:max-line-length
-export function toFlatTup<TInput, TInputB, TInput2 extends readonly [TInput, TInputB], T, EMap>(f: (x: TInput2) => Promise<Result<T, EMap>>): <E>(input: readonly [TInput, TInputB]) => Promise<Result<readonly [T, TInput, TInputB], E>>
-export function toFlatTup<TInput, TInputB, TInput2 extends readonly [TInput, TInputB], T, EMap>(f: (x: TInput2) => Result<T, EMap>): <E>(input: readonly [TInput, TInputB]) => Result<readonly [T, TInput, TInputB], E>
+export function toFlatTup<TInput, TInputB, TInput2 extends readonly [TInput, TInputB], T, EMap>(
+  f: (x: TInput2) => Promise<Result<T, EMap>>,
+): <E>(input: readonly [TInput, TInputB]) => Promise<Result<readonly [T, TInput, TInputB], E>>
+export function toFlatTup<TInput, TInputB, TInput2 extends readonly [TInput, TInputB], T, EMap>(
+  f: (x: TInput2) => Result<T, EMap>,
+): <E>(input: readonly [TInput, TInputB]) => Result<readonly [T, TInput, TInputB], E>
 export function toFlatTup(f: any) {
   return (input: any) => {
     const r = f(input)
@@ -347,7 +420,7 @@ export function toFlatTup(f: any) {
     }
   }
 }
-const intToFlatTup = (r: any, input: any) => r.isOk() ? ok([r.value, input[0], input[1]] as const) : err(r.error)
+const intToFlatTup = (r: any, input: any) => (r.isOk() ? ok([r.value, input[0], input[1]] as const) : err(r.error))
 
 export function toMagicTup<T1, T2, T3>(input: readonly [[T1, T2], T3]): readonly [T1, T2, T3]
 export function toMagicTup([tup1, el]: any) {
@@ -362,39 +435,74 @@ export function apply<A, B>(a: A, f: (a: A) => B): B {
 // Stabl at simplify working with resultTuple
 // tslint:disable:max-line-length
 // Doesn't work
-export function resultTuple2<TInput, T, T2, E>(r1: (input: TInput) => Result<T, E>, r2: (input: TInput) => Result<T2, E>): (input: TInput) => Result<readonly [T, T2], E[]>
-export function resultTuple2<TInput, T, T2, T3, E>(r1: (input: TInput) => Result<T, E>, r2: (input: TInput) => Result<T2, E>, r3: (input: TInput) => Result<T3, E>): (input: TInput) => Result<readonly [T, T2, T3], E[]>
-export function resultTuple2<TInput, T, T2, T3, T4, E>(r1: (input: TInput) => Result<T, E>, r2: (input: TInput) => Result<T2, E>, r3: (input: TInput) => Result<T3, E>, r4: (input: TInput) => Result<T4, E>): (input: TInput) => Result<readonly [T, T2, T3, T4], E[]>
+export function resultTuple2<TInput, T, T2, E>(
+  r1: (input: TInput) => Result<T, E>,
+  r2: (input: TInput) => Result<T2, E>,
+): (input: TInput) => Result<readonly [T, T2], E[]>
+export function resultTuple2<TInput, T, T2, T3, E>(
+  r1: (input: TInput) => Result<T, E>,
+  r2: (input: TInput) => Result<T2, E>,
+  r3: (input: TInput) => Result<T3, E>,
+): (input: TInput) => Result<readonly [T, T2, T3], E[]>
+export function resultTuple2<TInput, T, T2, T3, T4, E>(
+  r1: (input: TInput) => Result<T, E>,
+  r2: (input: TInput) => Result<T2, E>,
+  r3: (input: TInput) => Result<T3, E>,
+  r4: (input: TInput) => Result<T4, E>,
+): (input: TInput) => Result<readonly [T, T2, T3, T4], E[]>
 export function resultTuple2<TInput, T, T2, T3, T4, T5, E>(
-  r1: (input: TInput) => Result<T, E>, r2: (input: TInput) => Result<T2, E>, r3: (input: TInput) => Result<T3, E>, r4: (input: TInput) => Result<T4, E>, r5: (input: TInput) => Result<T5, E>,
+  r1: (input: TInput) => Result<T, E>,
+  r2: (input: TInput) => Result<T2, E>,
+  r3: (input: TInput) => Result<T3, E>,
+  r4: (input: TInput) => Result<T4, E>,
+  r5: (input: TInput) => Result<T5, E>,
 ): (input: TInput) => Result<readonly [T, T2, T3, T4, T5], E[]>
-export function resultTuple2(...resultFNs: Array<(input: any) => Result<any, any>>) {
+export function resultTuple2(...resultFNs: ((input: any) => Result<any, any>)[]) {
   return (input: any) => {
     const results = resultFNs.map(x => x(input))
     const errors = results.filter(isErr).map(x => x.error)
     if (errors.length) {
       return err(errors)
     }
-    const successes = (results as Array<Ok<any, any>>).map(x => x.value) as readonly any[]
+    const successes = (results as Ok<any, any>[]).map(x => x.value) as readonly any[]
     return ok(successes)
   }
 }
 
 // not so cool?
-export function resultTuple3<TInput, T, T2, E>(input: TInput, r1: (input: TInput) => Result<T, E>, r2: (input: TInput) => Result<T2, E>): Result<readonly [T, T2], E[]>
-export function resultTuple3<TInput, T, T2, T3, E>(input: TInput, r1: (input: TInput) => Result<T, E>, r2: (input: TInput) => Result<T2, E>, r3: (input: TInput) => Result<T3, E>): Result<readonly [T, T2, T3], E[]>
-export function resultTuple3<TInput, T, T2, T3, T4, E>(input: TInput, r1: (input: TInput) => Result<T, E>, r2: (input: TInput) => Result<T2, E>, r3: (input: TInput) => Result<T3, E>, r4: (input: TInput) => Result<T4, E>): Result<readonly [T, T2, T3, T4], E[]>
+export function resultTuple3<TInput, T, T2, E>(
+  input: TInput,
+  r1: (input: TInput) => Result<T, E>,
+  r2: (input: TInput) => Result<T2, E>,
+): Result<readonly [T, T2], E[]>
+export function resultTuple3<TInput, T, T2, T3, E>(
+  input: TInput,
+  r1: (input: TInput) => Result<T, E>,
+  r2: (input: TInput) => Result<T2, E>,
+  r3: (input: TInput) => Result<T3, E>,
+): Result<readonly [T, T2, T3], E[]>
+export function resultTuple3<TInput, T, T2, T3, T4, E>(
+  input: TInput,
+  r1: (input: TInput) => Result<T, E>,
+  r2: (input: TInput) => Result<T2, E>,
+  r3: (input: TInput) => Result<T3, E>,
+  r4: (input: TInput) => Result<T4, E>,
+): Result<readonly [T, T2, T3, T4], E[]>
 export function resultTuple3<TInput, T, T2, T3, T4, T5, E>(
   input: TInput,
-  r1: (input: TInput) => Result<T, E>, r2: (input: TInput) => Result<T2, E>, r3: (input: TInput) => Result<T3, E>, r4: (input: TInput) => Result<T4, E>, r5: (input: TInput) => Result<T5, E>,
+  r1: (input: TInput) => Result<T, E>,
+  r2: (input: TInput) => Result<T2, E>,
+  r3: (input: TInput) => Result<T3, E>,
+  r4: (input: TInput) => Result<T4, E>,
+  r5: (input: TInput) => Result<T5, E>,
 ): Result<readonly [T, T2, T3, T4, T5], E[]>
-export function resultTuple3(input: any, ...resultFNs: Array<(input: any) => Result<any, any>>) {
+export function resultTuple3(input: any, ...resultFNs: ((input: any) => Result<any, any>)[]) {
   const results = resultFNs.map(x => x(input))
   const errors = results.filter(isErr).map(x => x.error)
   if (errors.length) {
     return err(errors)
   }
-  const successes = (results as Array<Ok<any, any>>).map(x => x.value) as readonly any[]
+  const successes = (results as Ok<any, any>[]).map(x => x.value) as readonly any[]
   return ok(successes)
 }
 

@@ -1,4 +1,12 @@
-import { createDependencyNamespace, factoryOf, Key, logger, resolveEventKey, UnitOfWork, UOWKey } from "@fp-app/framework"
+import {
+  createDependencyNamespace,
+  factoryOf,
+  Key,
+  logger,
+  resolveEventKey,
+  UnitOfWork,
+  UOWKey,
+} from "@fp-app/framework"
 import { exists, mkdir } from "@fp-app/io.diskdb"
 import chalk from "chalk"
 import resolveEvent from "./resolveIntegrationEvent"
@@ -7,7 +15,13 @@ import { getPricingFake, getTemplateFake, getTrip, sendCloudSyncFake } from "./T
 import DiskDBContext from "./TrainTrip/infrastructure/TrainTripContext.disk"
 import TrainTripPublisherInMemory from "./TrainTrip/infrastructure/trainTripPublisher.inMemory"
 import TrainTripReadContext, { trainTripReadContextKey } from "./TrainTrip/infrastructure/TrainTripReadContext.disk"
-import { DbContextKey, getTripKey, RequestContextKey, sendCloudSyncKey, TrainTripPublisherKey } from "./TrainTrip/usecases/types"
+import {
+  DbContextKey,
+  getTripKey,
+  RequestContextKey,
+  sendCloudSyncKey,
+  TrainTripPublisherKey,
+} from "./TrainTrip/usecases/types"
 
 const createRoot = () => {
   const {
@@ -18,41 +32,32 @@ const createRoot = () => {
 
     publishInNewContext,
     request,
-  } = createDependencyNamespace(
-    namespace,
-    RequestContextKey,
-  )
+  } = createDependencyNamespace(namespace, RequestContextKey)
 
   container.registerScopedC2(DbContextKey, DiskDBContext)
-  container.registerPassthrough(UOWKey, DbContextKey as any as Key<UnitOfWork>)
+  container.registerPassthrough(UOWKey, (DbContextKey as any) as Key<UnitOfWork>)
 
   container.registerSingletonC2(TrainTripPublisherKey, TrainTripPublisherInMemory)
   container.registerSingletonC2(trainTripReadContextKey, TrainTripReadContext)
   container.registerSingletonF(sendCloudSyncKey, factoryOf(sendCloudSyncFake, f => f({ cloudUrl: "" })))
-  container.registerSingletonF(
-    getTripKey,
-    () => {
-      const { getTrip: getTripF } = createInventoryClient({ templateApiUrl: "http://localhost:8110" })
-      return getTripF
-    },
-  )
+  container.registerSingletonF(getTripKey, () => {
+    const { getTrip: getTripF } = createInventoryClient({ templateApiUrl: "http://localhost:8110" })
+    return getTripF
+  })
 
   container.registerSingletonF(resolveEventKey, () => resolveEvent())
 
   // Prevent stack-overflow; as logger depends on requestcontext
   // tslint:disable-next-line:no-console
-  const consoleOrLogger = (key: any) => key !== RequestContextKey ? logger : console
-  container.registerInitializerF(
-    "global",
-    (i, key) => consoleOrLogger(key).debug(chalk.magenta(`Created function of ${key.name} (${i.name})`)),
+  const consoleOrLogger = (key: any) => (key !== RequestContextKey ? logger : console)
+  container.registerInitializerF("global", (i, key) =>
+    consoleOrLogger(key).debug(chalk.magenta(`Created function of ${key.name} (${i.name})`)),
   )
-  container.registerInitializerC(
-    "global",
-    (i, key) => consoleOrLogger(key).debug(chalk.magenta(`Created instance of ${key.name} (${i.constructor.name})`)),
+  container.registerInitializerC("global", (i, key) =>
+    consoleOrLogger(key).debug(chalk.magenta(`Created instance of ${key.name} (${i.constructor.name})`)),
   )
-  container.registerInitializerO(
-    "global",
-    (i, key) => consoleOrLogger(key).debug(chalk.magenta(`Created object of ${key.name} (${i.constructor.name})`)),
+  container.registerInitializerO("global", (i, key) =>
+    consoleOrLogger(key).debug(chalk.magenta(`Created object of ${key.name} (${i.constructor.name})`)),
   )
 
   return {
@@ -67,7 +72,9 @@ const createRoot = () => {
 }
 
 const initialize = async () => {
-  if (!await exists("./data")) { await mkdir("./data") }
+  if (!(await exists("./data"))) {
+    await mkdir("./data")
+  }
 }
 
 const namespace = "train-trip-service"

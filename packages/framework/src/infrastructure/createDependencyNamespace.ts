@@ -9,7 +9,14 @@ import DomainEventHandler, { executePostCommitHandlersKey } from "./domainEventH
 import executePostCommitHandlers from "./executePostCommitHandlers"
 import {
   getRegisteredRequestAndEventHandlers,
-  publish, request, RequestContextBase, requestInNewScopeKey, requestInNewScopeType, requestKey, requestType, resolveEventKey,
+  publish,
+  request,
+  RequestContextBase,
+  requestInNewScopeKey,
+  requestInNewScopeType,
+  requestKey,
+  requestType,
+  resolveEventKey,
 } from "./mediator"
 import { processReceivedEvent } from "./pubsub"
 import SimpleContainer, { DependencyScope, factoryOf, Key } from "./SimpleContainer"
@@ -22,7 +29,9 @@ export default function createDependencyNamespace(namespace: string, requestScop
   const setDependencyScope = (scope: DependencyScope) => getNamespace(namespace).set(dependencyScopeKey, scope)
   const hasDependencyScope = () => getDependencyScope() != null
 
-  interface LoggingScope { items: Array<{}> }
+  interface LoggingScope {
+    items: {}[]
+  }
 
   const container = new SimpleContainer(getDependencyScope, setDependencyScope)
 
@@ -41,11 +50,15 @@ export default function createDependencyNamespace(namespace: string, requestScop
     const timestamp = format(datetime, "YYYY-MM-DD HH:mm:ss")
     const scope = getLoggingScope()
     const items = scope && scope.items.reduce((prev, cur) => ({ ...prev, ...cur }), {} as any)
-    const id = context ? (context.correllationId === context.id
-      ? context.id
-      : `${context.id} (${context.correllationId})`)
+    const id = context
+      ? context.correllationId === context.id
+        ? context.id
+        : `${context.id} (${context.correllationId})`
       : "root context"
-    return fnc(`${chalk.green(timestamp)} ${chalk.blue(`[${id}]`)}`, ...args.concat(items && Object.keys(items).length ? [items] : []))
+    return fnc(
+      `${chalk.green(timestamp)} ${chalk.blue(`[${id}]`)}`,
+      ...args.concat(items && Object.keys(items).length ? [items] : []),
+    )
   }
 
   const setupChildContext = <T>(cb: () => Promise<T>) =>
@@ -60,29 +73,37 @@ export default function createDependencyNamespace(namespace: string, requestScop
       })
     })
 
-  const setupRequestContext = <T>(cb: (context: RequestContextBase, bindEmitter: (typeof ns)["bindEmitter"]) => Promise<T>) =>
-    ns.runPromise(() => using(container.createScope(), () => {
-      getNamespace(namespace).set(loggingScopeKey, { items: [] })
-      logger.debug(chalk.magenta("Created request context"))
-      return cb(
-        container.getO(requestScopeKey),
-        (emitter: EventEmitter) => ns.bindEmitter(emitter),
-      )
-    },
-    ))
+  const setupRequestContext = <T>(
+    cb: (context: RequestContextBase, bindEmitter: (typeof ns)["bindEmitter"]) => Promise<T>,
+  ) =>
+    ns.runPromise(() =>
+      using(container.createScope(), () => {
+        getNamespace(namespace).set(loggingScopeKey, { items: [] })
+        logger.debug(chalk.magenta("Created request context"))
+        return cb(container.getO(requestScopeKey), (emitter: EventEmitter) => ns.bindEmitter(emitter))
+      }),
+    )
 
-  const publishDomainEventHandler = publish(evt => (domainHandlerMap.get(evt.constructor) || []).map(x => container.getF(x as any)))
+  const publishDomainEventHandler = publish(evt =>
+    (domainHandlerMap.get(evt.constructor) || []).map(x => container.getF(x as any)),
+  )
   const getIntegrationEventHandlers = (evt: Event) => integrationHandlerMap.get(evt.constructor)
-  const publishIntegrationEventHandler = publish(evt => (integrationHandlerMap.get(evt.constructor) || []).map(x => container.getF(x)))
+  const publishIntegrationEventHandler = publish(evt =>
+    (integrationHandlerMap.get(evt.constructor) || []).map(x => container.getF(x)),
+  )
   container.registerScopedC(
     DomainEventHandler,
-    () => new DomainEventHandler(
-      publishDomainEventHandler,
-      getIntegrationEventHandlers,
-      container.getF(executePostCommitHandlersKey),
-    ),
+    () =>
+      new DomainEventHandler(
+        publishDomainEventHandler,
+        getIntegrationEventHandlers,
+        container.getF(executePostCommitHandlersKey),
+      ),
   )
-  container.registerScopedO(requestScopeKey, () => { const id = generateShortUuid(); return { id, correllationId: id } })
+  container.registerScopedO(requestScopeKey, () => {
+    const id = generateShortUuid()
+    return { id, correllationId: id }
+  })
   getRegisteredRequestAndEventHandlers().forEach(h => container.registerScopedConcrete(h))
 
   container.registerScopedConcrete(uowDecorator)
@@ -94,15 +115,16 @@ export default function createDependencyNamespace(namespace: string, requestScop
     factoryOf(executePostCommitHandlers, i => i({ executeIntegrationEvent: container.getF(requestInNewScopeKey) })),
   )
 
-  const publishInNewContext = (evt: string, requestId: string) => setupRequestContext(context => {
-    const correllationId = requestId || context.id
-    Object.assign(context, { correllationId })
+  const publishInNewContext = (evt: string, requestId: string) =>
+    setupRequestContext(context => {
+      const correllationId = requestId || context.id
+      Object.assign(context, { correllationId })
 
-    return processReceivedEvent({
-      publish: publishIntegrationEventHandler,
-      resolveEvent: container.getF(resolveEventKey),
-    })(evt)
-  })
+      return processReceivedEvent({
+        publish: publishIntegrationEventHandler,
+        resolveEvent: container.getF(resolveEventKey),
+      })(evt)
+    })
 
   const requestInNewContext: requestInNewScopeType = (key: any, evt: any) =>
     setupChildContext(() => container.getF(requestKey)(key, evt))

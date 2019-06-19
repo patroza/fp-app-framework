@@ -1,9 +1,22 @@
 import Koa from "koa"
 
 import {
-  CombinedValidationError, ConnectionError, CouldNotAquireDbLockError, DbError, defaultErrorPassthrough, ErrorBase,
-  ErrorHandlerType, FieldValidationError, ForbiddenError, InvalidStateError, logger, NamedHandlerWithDependencies,
-  OptimisticLockError, RecordNotFound, requestType, ValidationError,
+  CombinedValidationError,
+  ConnectionError,
+  CouldNotAquireDbLockError,
+  DbError,
+  defaultErrorPassthrough,
+  ErrorBase,
+  ErrorHandlerType,
+  FieldValidationError,
+  ForbiddenError,
+  InvalidStateError,
+  logger,
+  NamedHandlerWithDependencies,
+  OptimisticLockError,
+  RecordNotFound,
+  requestType,
+  ValidationError,
 } from "@fp-app/framework"
 import { flatMap, Result, startWithVal } from "@fp-app/neverthrow-extensions"
 
@@ -20,22 +33,22 @@ export default function generateKoaHandler<I, T, E extends ErrorBase, E2 extends
 
       // DbError, because request handler is enhanced with it (decorator)
       // E2 because the validator enhances it.
-      const result = await startWithVal(input)<DbError | E | E2>()
-        .pipe(
-          flatMap(validate),
-          flatMap(validatedInput => request(handler, validatedInput)),
-        )
-      result.match(output => {
-        if (responseTransform) {
-          ctx.body = responseTransform(output, ctx)
-        } else {
-          ctx.body = output
-        }
-        if (ctx.method === "POST" && output) {
-          ctx.status = 201
-        }
-      },
-        err => handleErrorOrPassthrough(ctx)(err) ? handleDefaultError(ctx)(err) : undefined,
+      const result = await startWithVal(input)<DbError | E | E2>().pipe(
+        flatMap(validate),
+        flatMap(validatedInput => request(handler, validatedInput)),
+      )
+      result.match(
+        output => {
+          if (responseTransform) {
+            ctx.body = responseTransform(output, ctx)
+          } else {
+            ctx.body = output
+          }
+          if (ctx.method === "POST" && output) {
+            ctx.status = 201
+          }
+        },
+        err => (handleErrorOrPassthrough(ctx)(err) ? handleDefaultError(ctx)(err) : undefined),
       )
     } catch (err) {
       logger.error(err)
@@ -72,7 +85,9 @@ const handleDefaultError = (ctx: Koa.Context) => (err: ErrorBase) => {
     ctx.status = 400
   } else if (err instanceof FieldValidationError) {
     ctx.body = {
-      fields: { [err.fieldName]: err.error instanceof CombinedValidationError ? combineErrors(err.error.errors) : err.message },
+      fields: {
+        [err.fieldName]: err.error instanceof CombinedValidationError ? combineErrors(err.error.errors) : err.message,
+      },
       message,
     }
     ctx.status = 400
@@ -97,13 +112,14 @@ const handleDefaultError = (ctx: Koa.Context) => (err: ErrorBase) => {
   }
 }
 
-const combineErrors = (ers: any[]) => ers.reduce((prev: any, cur) => {
-  if (cur instanceof FieldValidationError) {
-    if (cur.error instanceof CombinedValidationError) {
-      prev[cur.fieldName] = combineErrors(cur.error.errors)
-    } else {
-      prev[cur.fieldName] = cur.message
+const combineErrors = (ers: any[]) =>
+  ers.reduce((prev: any, cur) => {
+    if (cur instanceof FieldValidationError) {
+      if (cur.error instanceof CombinedValidationError) {
+        prev[cur.fieldName] = combineErrors(cur.error.errors)
+      } else {
+        prev[cur.fieldName] = cur.message
+      }
     }
-  }
-  return prev
-}, {})
+    return prev
+  }, {})

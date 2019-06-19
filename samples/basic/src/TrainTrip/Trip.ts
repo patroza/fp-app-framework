@@ -5,7 +5,9 @@ import { TravelClassName } from "./TravelClassDefinition"
 
 export default class Trip {
   static create(serviceLevels: TravelClass[]): Result<Trip, InvalidStateError> {
-    if (!serviceLevels.length) { return err(new InvalidStateError("A trip requires at least 1 service level")) }
+    if (!serviceLevels.length) {
+      return err(new InvalidStateError("A trip requires at least 1 service level"))
+    }
     return ok(new Trip(serviceLevels))
   }
 
@@ -23,11 +25,11 @@ export class TripWithSelectedTravelClass {
     }
     return ok(new TripWithSelectedTravelClass(trip.travelClasses, selectedTravelClass))
   }
-  private constructor(readonly travelClasses: TravelClass[], readonly currentTravelClass: TravelClass) { }
+  private constructor(readonly travelClasses: TravelClass[], readonly currentTravelClass: TravelClass) {}
 }
 // tslint:disable-next-line:max-classes-per-file
 export class TravelClass {
   readonly createdAt = new Date()
 
-  constructor(public templateId: TemplateId, public name: TravelClassName) { }
+  constructor(public templateId: TemplateId, public name: TravelClassName) {}
 }

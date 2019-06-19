@@ -11,7 +11,7 @@ export default class FutureDate {
     }
     return ok(new FutureDate(date))
   }
-  private constructor(readonly value: Date) { }
+  private constructor(readonly value: Date) {}
 }
 
 const isInFuture = (date: Date) => date > new Date()

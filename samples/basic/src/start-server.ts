@@ -1,5 +1,10 @@
 import { logger, setLogger } from "@fp-app/framework"
-import { handleAuthenticationFailedMiddleware, logRequestTime, saveStartTime, setupNamespace } from "@fp-app/hosting.koa"
+import {
+  handleAuthenticationFailedMiddleware,
+  logRequestTime,
+  saveStartTime,
+  setupNamespace,
+} from "@fp-app/hosting.koa"
 import Koa from "koa"
 import bodyParser from "koa-bodyparser"
 import { PORT } from "./config"
@@ -13,7 +18,7 @@ const startServer = async () => {
 
   const rootRouter = createRootRouter(request)
 
-  setLogger(({
+  setLogger({
     addToLoggingContext,
     // tslint:disable-next-line:no-console
     debug: bindLogger(console.debug),
@@ -23,7 +28,7 @@ const startServer = async () => {
     log: bindLogger(console.log),
     // tslint:disable-next-line:no-console
     warn: bindLogger(console.warn),
-  }))
+  })
 
   const app = new Koa()
     .use(saveStartTime)
@@ -37,5 +42,4 @@ const startServer = async () => {
   return app.listen(PORT, () => logger.log("server listening on 3535"))
 }
 
-startServer()
-  .catch(logger.error)
+startServer().catch(logger.error)
