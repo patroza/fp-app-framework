@@ -1,7 +1,24 @@
 import {
-  ConnectionError, CouldNotAquireDbLockError, DbError, Event, OptimisticLockError, RecordContext, RecordNotFound,
+  ConnectionError,
+  CouldNotAquireDbLockError,
+  DbError,
+  Event,
+  OptimisticLockError,
+  RecordContext,
+  RecordNotFound,
 } from "@fp-app/framework"
-import { err, flatMap, liftType, map, mapErr, ok, PipeFunctionN, Result, startWithVal, success } from "@fp-app/neverthrow-extensions"
+import {
+  err,
+  flatMap,
+  liftType,
+  map,
+  mapErr,
+  ok,
+  PipeFunctionN,
+  Result,
+  startWithVal,
+  success,
+} from "@fp-app/neverthrow-extensions"
 import { lock } from "proper-lockfile"
 import { deleteFile, exists, readFile, writeFile } from "./utils"
 
@@ -14,7 +31,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
     private readonly type: string,
     private readonly serializer: (record: T) => string,
     private readonly deserializer: (serialized: string) => T,
-  ) { }
+  ) {}
 
   readonly add = (record: T) => {
     this.cache.set(record.id, { version: 0, data: record })
@@ -26,36 +43,34 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
 
   readonly load = async (id: string): Promise<Result<T, DbError>> => {
     const cachedRecord = this.cache.get(id)
-    if (cachedRecord) { return ok(cachedRecord.data) }
-    return await tryReadFromDb(this.type, id)
-      .pipe(
-        map(serializedStr => JSON.parse(serializedStr) as SerializedDBRecord),
-        map(({ data, version }) => ({ data: this.deserializer(data), version })),
-        map(({ version, data }) => {
-          this.cache.set(id, { version, data })
-          return data
-        }),
-      )
+    if (cachedRecord) {
+      return ok(cachedRecord.data)
+    }
+    return await tryReadFromDb(this.type, id).pipe(
+      map(serializedStr => JSON.parse(serializedStr) as SerializedDBRecord),
+      map(({ data, version }) => ({ data: this.deserializer(data), version })),
+      map(({ version, data }) => {
+        this.cache.set(id, { version, data })
+        return data
+      }),
+    )
   }
 
   // Internal
   readonly intGetAndClearEvents = () => {
     const items = [...this.cache.values()].map(x => x.data).concat(this.removals)
-    return items.reduce(
-      (prev, cur) => prev.concat(cur.intGetAndClearEvents()),
-      [] as Event[],
-    )
+    return items.reduce((prev, cur) => prev.concat(cur.intGetAndClearEvents()), [] as Event[])
   }
 
   readonly intSave = (
     forEachSave?: (item: T) => Promise<Result<void, DbError>>,
     forEachDelete?: (item: T) => Promise<Result<void, DbError>>,
   ): Promise<Result<void, DbError>> =>
-    this.handleDeletions(forEachDelete).pipe(
-      flatMap(() => this.handleInsertionsAndUpdates(forEachSave)),
-    )
+    this.handleDeletions(forEachDelete).pipe(flatMap(() => this.handleInsertionsAndUpdates(forEachSave)))
 
-  private readonly handleDeletions = async (forEachDelete?: (item: T) => Promise<Result<void, DbError>>): Promise<Result<void, DbError>> => {
+  private readonly handleDeletions = async (
+    forEachDelete?: (item: T) => Promise<Result<void, DbError>>,
+  ): Promise<Result<void, DbError>> => {
     for (const e of this.removals) {
       const r = await this.deleteRecord(e)
       if (r.isErr()) {
@@ -72,7 +87,9 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
     return success()
   }
 
-  private readonly handleInsertionsAndUpdates = async (forEachSave?: (item: T) => Promise<Result<void, DbError>>): Promise<Result<void, DbError>> => {
+  private readonly handleInsertionsAndUpdates = async (
+    forEachSave?: (item: T) => Promise<Result<void, DbError>>,
+  ): Promise<Result<void, DbError>> => {
     for (const e of this.cache.entries()) {
       const r = await this.saveRecord(e[1].data)
       if (r.isErr()) {
@@ -86,7 +103,6 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
       }
     }
     return success()
-
   }
 
   private readonly saveRecord = async (record: T): Promise<Result<void, DbError>> => {
@@ -99,15 +115,18 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
 
     return await lockRecordOnDisk(this.type, record.id, () =>
       tryReadFromDb(this.type, record.id).pipe(
-        flatMap(async (storedSerialized): Promise<Result<void, DbError>> => {
-          const { version } = JSON.parse(storedSerialized) as SerializedDBRecord
-          if (version !== cachedRecord.version) {
-            return err(new OptimisticLockError(this.type, record.id))
-          }
-          await this.actualSave(record, version)
-          return success()
-        }),
-      ))
+        flatMap(
+          async (storedSerialized): Promise<Result<void, DbError>> => {
+            const { version } = JSON.parse(storedSerialized) as SerializedDBRecord
+            if (version !== cachedRecord.version) {
+              return err(new OptimisticLockError(this.type, record.id))
+            }
+            await this.actualSave(record, version)
+            return success()
+          },
+        ),
+      ),
+    )
   }
 
   private readonly deleteRecord = (record: T): Promise<Result<void, DbError>> =>
@@ -124,22 +143,30 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
   }
 }
 
-interface DBRecord { id: string, intGetAndClearEvents: () => Event[] }
-interface SerializedDBRecord { version: number, data: string }
-interface CachedRecord<T> { version: number, data: T }
+interface DBRecord {
+  id: string
+  intGetAndClearEvents: () => Event[]
+}
+interface SerializedDBRecord {
+  version: number
+  data: string
+}
+interface CachedRecord<T> {
+  version: number
+  data: T
+}
 
 const lockRecordOnDisk = <T>(type: string, id: string, cb: PipeFunctionN<T, DbError>) =>
-  tryLock(type, id)
-    .pipe(
-      mapErr(liftType<DbError>()),
-      flatMap(async release => {
-        try {
-          return await cb()
-        } finally {
-          await release()
-        }
-      }),
-    )
+  tryLock(type, id).pipe(
+    mapErr(liftType<DbError>()),
+    flatMap(async release => {
+      try {
+        return await cb()
+      } finally {
+        await release()
+      }
+    }),
+  )
 
 const tryLock = async (type: string, id: string): Promise<Result<() => Promise<void>, CouldNotAquireDbLockError>> => {
   try {
@@ -152,7 +179,9 @@ const tryLock = async (type: string, id: string): Promise<Result<() => Promise<v
 const tryReadFromDb = async (type: string, id: string): Promise<Result<string, DbError>> => {
   try {
     const filePath = getFilename(type, id)
-    if (!await exists(filePath)) { return err(new RecordNotFound(type, id)) }
+    if (!(await exists(filePath))) {
+      return err(new RecordNotFound(type, id))
+    }
     return ok(await readFile(filePath, { encoding: "utf-8" }))
   } catch (err) {
     return err(new ConnectionError(err))

@@ -17,13 +17,17 @@ const readReadContextEntry = async <T>(type: string, id: string) => {
 }
 
 export default class ReadContext<T> {
-  constructor(readonly type: string) { this.type = `read-${type}` }
+  constructor(readonly type: string) {
+    this.type = `read-${type}`
+  }
 
   readonly create = (id: string, value: T) => createOrUpdateReadContextEntry(this.type, id, value)
   readonly delete = (id: string) => deleteReadContextEntry(this.type, id)
   readonly read = async (id: string): Promise<Result<T, RecordNotFound>> => {
     const filePath = getFilename(this.type, id)
-    if (!await exists(filePath)) { return err(new RecordNotFound(this.type, id)) }
+    if (!(await exists(filePath))) {
+      return err(new RecordNotFound(this.type, id))
+    }
     const r = await readReadContextEntry<T>(this.type, id)
     return ok(r)
   }
