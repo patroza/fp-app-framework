@@ -92,6 +92,7 @@ export function biMap(mapF: any, mapErrF: any) {
   }
 }
 
+// TODO: Should come with flatMap already wrapped aroun it
 export function flatTee<T, T2 extends T, TDontCare, E>(f: PipeFunction<T2, TDontCare, E>): PipeFunction<T, T, E>
 export function flatTee<T, T2 extends T, TDontCare, E>(f: PipeFunction2<T2, TDontCare, E>): (input: T) => Result<T, E>
 export function flatTee(f: any) {
@@ -105,6 +106,7 @@ export function flatTee(f: any) {
   }
 }
 
+// TODO: Should come with map already wrapped aroun it
 export function tee<T, T2 extends T, TDontCare, E>(f: (x: T2) => Promise<TDontCare>): (input: T) => Promise<T>
 export function tee<T, T2 extends T, TDontCare, E>(f: (x: T2) => TDontCare): (input: T) => T
 export function tee(f: any) {

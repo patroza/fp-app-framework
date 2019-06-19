@@ -37,8 +37,14 @@
     "@types/on-finished": "^2.3.1",
     "@types/proper-lockfile": "^4.1.0",
     "@types/uuid": "^3.4.4",
+    "@typescript-eslint/eslint-plugin": "^1.10.2",
+    "@typescript-eslint/parser": "^1.10.2",
+    "eslint": "^5.16.0",
+    "eslint-config-prettier": "^5.0.0",
+    "eslint-plugin-prettier": "^3.1.0",
     "jest": "^24.8.0",
     "nodemon": "^1.19.0",
+    "prettier": "^1.18.2",
     "ts-jest": "^24.0.2",
     "ts-node": "^8.1.0",
     "tslint": "^5.16.0"
@@ -46,7 +52,7 @@
   "scripts": {
     "test": "jest",
     "test:compile": "tsc --noEmit",
-    "test:lint": "tslint --project .",
+    "test:lint": "eslint .",
     "testsuite": "yarn test:compile && yarn test:lint && yarn test"
   }
 }
