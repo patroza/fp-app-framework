@@ -1,9 +1,27 @@
 // tslint:disable:max-classes-per-file
 
-import { Entity, ForbiddenError, generateUuid, InvalidStateError, ValidationError, valueEquals } from "@fp-app/framework"
+import {
+  Entity,
+  ForbiddenError,
+  generateUuid,
+  InvalidStateError,
+  ValidationError,
+  valueEquals,
+} from "@fp-app/framework"
 import Event from "@fp-app/framework/src/event"
 import {
-  anyTrue, applyIfNotUndefined, err, flatMap, liftType, map, mapErr, mapStatic, ok, Result, success, valueOrUndefined,
+  anyTrue,
+  applyIfNotUndefined,
+  err,
+  flatMap,
+  liftType,
+  map,
+  mapErr,
+  mapStatic,
+  ok,
+  Result,
+  success,
+  valueOrUndefined,
 } from "@fp-app/neverthrow-extensions"
 import isEqual from "lodash/fp/isEqual"
 import FutureDate from "./FutureDate"
@@ -13,12 +31,11 @@ import Trip, { TravelClass, TripWithSelectedTravelClass } from "./Trip"
 
 export default class TrainTrip extends Entity {
   /** the primary way to create a new TrainTrip */
-  static create(
-    { startDate, pax }: { startDate: FutureDate, pax: PaxDefinition },
-    trip: TripWithSelectedTravelClass,
-  ) {
+  static create({ startDate, pax }: { startDate: FutureDate; pax: PaxDefinition }, trip: TripWithSelectedTravelClass) {
     const travelClassConfiguration = trip.travelClasses.map(x => new TravelClassConfiguration(x))
-    const currentTravelClassConfiguration = travelClassConfiguration.find(x => x.travelClass.name === trip.currentTravelClass.name)!
+    const currentTravelClassConfiguration = travelClassConfiguration.find(
+      x => x.travelClass.name === trip.currentTravelClass.name,
+    )!
 
     // TODO: not trip.
     const t = new TrainTrip(
@@ -36,7 +53,9 @@ export default class TrainTrip extends Entity {
   readonly createdAt = new Date()
   readonly opportunityId?: string
   readonly lockedAt?: Date
-  get isLocked() { return Boolean(this.lockedAt) }
+  get isLocked() {
+    return Boolean(this.lockedAt)
+  }
 
   /** use TrainTrip.create() instead */
   constructor(
@@ -45,10 +64,12 @@ export default class TrainTrip extends Entity {
     readonly startDate: Date,
     readonly travelClassConfiguration: TravelClassConfiguration[] = [],
     readonly currentTravelClassConfiguration: TravelClassConfiguration,
-    rest?: Partial<Omit<
-      { -readonly [key in keyof TrainTrip]: TrainTrip[key] },
-      "id" | "pax" | "startDate" | "travelClassConfiguration" | "currentTravelClassConfiguration" | "trip"
-    >>,
+    rest?: Partial<
+      Omit<
+        { -readonly [key in keyof TrainTrip]: TrainTrip[key] },
+        "id" | "pax" | "startDate" | "travelClassConfiguration" | "currentTravelClassConfiguration" | "trip"
+      >
+    >,
     // rest?: Partial<{ -readonly [key in keyof TrainTrip]: TrainTrip[key] }>,
   ) {
     super(id)
@@ -56,13 +77,12 @@ export default class TrainTrip extends Entity {
   }
 
   proposeChanges(state: StateProposition) {
-    return this.confirmUserChangeAllowed()
-      .pipe(
-        mapStatic(state),
-        mapErr(liftType<ValidationError | ForbiddenError | InvalidStateError>()),
-        flatMap(this.applyDefinedChanges),
-        map(this.createChangeEvents),
-      )
+    return this.confirmUserChangeAllowed().pipe(
+      mapStatic(state),
+      mapErr(liftType<ValidationError | ForbiddenError | InvalidStateError>()),
+      flatMap(this.applyDefinedChanges),
+      map(this.createChangeEvents),
+    )
   }
 
   lock() {
@@ -79,8 +99,8 @@ export default class TrainTrip extends Entity {
     // This will clear all configurations upon trip update
     // TODO: Investigate a resolution mechanism to update existing configurations, depends on business case ;-)
     this.w.travelClassConfiguration = trip.travelClasses.map(x => new TravelClassConfiguration(x))
-    const currentTravelClassConfiguration = (
-      this.travelClassConfiguration.find(x => this.currentTravelClassConfiguration.travelClass.name === x.travelClass.name)
+    const currentTravelClassConfiguration = this.travelClassConfiguration.find(
+      x => this.currentTravelClassConfiguration.travelClass.name === x.travelClass.name,
     )
     this.w.currentTravelClassConfiguration = currentTravelClassConfiguration || this.travelClassConfiguration[0]!
   }
@@ -93,31 +113,28 @@ export default class TrainTrip extends Entity {
   ////////////
   //// Separate sample; not used other than testing
   async changeStartDate(startDate: FutureDate) {
-    return this.confirmUserChangeAllowed()
-      .pipe(
-        mapStatic(startDate),
-        map(this.intChangeStartDate),
-        map(this.createChangeEvents),
-      )
+    return this.confirmUserChangeAllowed().pipe(
+      mapStatic(startDate),
+      map(this.intChangeStartDate),
+      map(this.createChangeEvents),
+    )
   }
 
   async changePax(pax: PaxDefinition) {
-    return this.confirmUserChangeAllowed()
-      .pipe(
-        mapStatic(pax),
-        map(this.intChangePax),
-        map(this.createChangeEvents),
-      )
+    return this.confirmUserChangeAllowed().pipe(
+      mapStatic(pax),
+      map(this.intChangePax),
+      map(this.createChangeEvents),
+    )
   }
 
   async changeTravelClass(travelClass: TravelClassDefinition) {
-    return this.confirmUserChangeAllowed()
-      .pipe(
-        mapStatic(travelClass),
-        mapErr(liftType<ForbiddenError | InvalidStateError>()),
-        flatMap(this.intChangeTravelClass),
-        map(this.createChangeEvents),
-      )
+    return this.confirmUserChangeAllowed().pipe(
+      mapStatic(travelClass),
+      mapErr(liftType<ForbiddenError | InvalidStateError>()),
+      flatMap(this.intChangeTravelClass),
+      map(this.createChangeEvents),
+    )
   }
   //// End Separate sample; not used other than testing
   ////////////
@@ -130,7 +147,9 @@ export default class TrainTrip extends Entity {
     )
 
   private readonly intChangeStartDate = (startDate: FutureDate) => {
-    if (valueEquals(startDate, this.startDate, v => v.toISOString())) { return false }
+    if (valueEquals(startDate, this.startDate, v => v.toISOString())) {
+      return false
+    }
 
     this.w.startDate = startDate.value
     // TODO: other business logic
@@ -139,7 +158,9 @@ export default class TrainTrip extends Entity {
   }
 
   private readonly intChangePax = (pax: PaxDefinition) => {
-    if (isEqual(this.pax, pax)) { return false }
+    if (isEqual(this.pax, pax)) {
+      return false
+    }
 
     this.w.pax = pax
     // TODO: other business logic
@@ -149,8 +170,12 @@ export default class TrainTrip extends Entity {
 
   private readonly intChangeTravelClass = (travelClass: TravelClassDefinition): Result<boolean, InvalidStateError> => {
     const slc = this.travelClassConfiguration.find(x => x.travelClass.name === travelClass.value)
-    if (!slc) { return err(new InvalidStateError(`${travelClass.value} not available currently`)) }
-    if (this.currentTravelClassConfiguration === slc) { return ok(false) }
+    if (!slc) {
+      return err(new InvalidStateError(`${travelClass.value} not available currently`))
+    }
+    if (this.currentTravelClassConfiguration === slc) {
+      return ok(false)
+    }
     this.w.currentTravelClassConfiguration = slc
     return ok(true)
   }
@@ -164,7 +189,9 @@ export default class TrainTrip extends Entity {
 
   private readonly createChangeEvents = (changed: boolean) => {
     this.registerDomainEvent(new UserInputReceived(this.id))
-    if (changed) { this.registerDomainEvent(new TrainTripStateChanged(this.id)) }
+    if (changed) {
+      this.registerDomainEvent(new TrainTripStateChanged(this.id))
+    }
   }
 }
 
@@ -172,7 +199,7 @@ export class TravelClassConfiguration {
   readonly priceLastUpdated?: Date
   readonly price!: Price
 
-  constructor(readonly travelClass: TravelClass) { }
+  constructor(readonly travelClass: TravelClass) {}
 }
 
 /*
@@ -187,15 +214,21 @@ export class TrainTripCreated extends Event {
 }
 
 export class UserInputReceived extends Event {
-  constructor(readonly trainTripId: TrainTripId) { super() }
+  constructor(readonly trainTripId: TrainTripId) {
+    super()
+  }
 }
 
 export class TrainTripStateChanged extends Event {
-  constructor(readonly trainTripId: TrainTripId) { super() }
+  constructor(readonly trainTripId: TrainTripId) {
+    super()
+  }
 }
 
 export class TrainTripDeleted extends Event {
-  constructor(readonly trainTripId: TrainTripId) { super() }
+  constructor(readonly trainTripId: TrainTripId) {
+    super()
+  }
 }
 
 export interface StateProposition {

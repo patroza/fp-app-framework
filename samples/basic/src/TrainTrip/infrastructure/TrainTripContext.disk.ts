@@ -63,7 +63,7 @@ function deserializeDbTrainTrip(serializedTrainTrip: string) {
   // and we recreate proper object graph for properties that have behaviors
   // TODO: use type information or configuration, probably a library ;-)
 
-  const travelClassConfigurations = travelClassConfiguration.map(x => mapTravelClassConfigurationDTO(x))
+  const travelClassConfigurations = travelClassConfiguration.map(mapTravelClassConfigurationDTO)
   const trainTrip = new TrainTrip(
     id,
     new (PaxDefinition as any)(paxInput.value),

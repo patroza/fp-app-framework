@@ -9,7 +9,7 @@ export default class TravelClassDefinition {
     return ok(new TravelClassDefinition(travelClassName))
   }
 
-  private constructor(readonly value: string) { }
+  private constructor(readonly value: string) {}
 }
 
 const validtravelClasses = ["second", "first", "business"]
