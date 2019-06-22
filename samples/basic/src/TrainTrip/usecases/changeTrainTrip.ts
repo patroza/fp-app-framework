@@ -66,14 +66,14 @@ const validateStateProposition: PipeFunction<StateProposition, ValidatedStatePro
         ok(rest),
       ),
       mapErr(combineValidationErrors),
+      map(([travelClass, startDate, pax, rest]) => ({
+        ...rest,
+        pax,
+        startDate,
+        travelClass,
+      })),
     ),
   ),
-  map(([travelClass, startDate, pax, rest]) => ({
-    ...rest,
-    pax,
-    startDate,
-    travelClass,
-  })),
 )
 
 type ChangeTrainTripError = ForbiddenError | InvalidStateError | ValidationError | DbError

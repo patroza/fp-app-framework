@@ -47,11 +47,29 @@ export interface Input {
 
 const validateCreateTrainTripInfo: PipeFunction<Input, CreateTrainTripInfo, ValidationError> = pipe(
   flatMap(({ pax, startDate, templateId }) =>
-    resultTuple(
-      PaxDefinition.create(pax).pipe(mapErr(toFieldError("pax"))),
-      FutureDate.create(startDate).pipe(mapErr(toFieldError("startDate"))),
-      validateString(templateId).pipe(mapErr(toFieldError("templateId"))),
-    ).pipe(mapErr(combineValidationErrors)),
+    pipe(
+      resultTuple(
+        pipe(
+          PaxDefinition.create(pax),
+          mapErr(toFieldError("pax")),
+        ),
+        pipe(
+          FutureDate.create(startDate),
+          mapErr(toFieldError("startDate")),
+        ),
+        pipe(
+          validateString(templateId),
+          mapErr(toFieldError("templateId")),
+        ),
+      ),
+      mapErr(combineValidationErrors),
+
+      map(([pax, startDate, templateId]) => ({
+        pax,
+        startDate,
+        templateId,
+      })),
+    ),
   ),
 
   // Alt 1
@@ -72,12 +90,6 @@ const validateCreateTrainTripInfo: PipeFunction<Input, CreateTrainTripInfo, Vali
   //   ({templateId}) => validateString(templateId).pipe(mapErr(toFieldError('templateId'))),
   // )),
   // mapErr(combineValidationErrors),
-
-  map(([pax, startDate, templateId]) => ({
-    pax,
-    startDate,
-    templateId,
-  })),
 )
 
 // TODO

@@ -34,7 +34,7 @@ export function flatMap(mapF: any) {
   return (result: any) => {
     // if (Promise.resolve(result) === result) {
     //   return result.then((r: any) => {
-    //     if (r.isOk()) {
+    //     if (r._tag === "Right") {
     //       return map(r.value)
     //     } else {
     //       // Not a Promise :/
@@ -42,7 +42,7 @@ export function flatMap(mapF: any) {
     //     }
     //   })
     // }
-    if (result.isOk()) {
+    if (result._tag === "Right") {
       return mapF(result.value)
     } else {
       // Not a Promise :/
@@ -104,7 +104,7 @@ export function tee(f: any) {
     }
   }
 }
-const intTee = (r: any, input: any) => (r.isOk() ? ok(input) : err(r.error))
+const intTee = (r: any, input: any) => (r._tag === "Right" ? ok(input) : err(r.error))
 
 // Easily pass input -> (input -> output) -> [input, output]
 export function toTup<TInput, TInput2 extends TInput, T, EMap>(
@@ -123,7 +123,7 @@ export function toTup(f: any) {
     }
   }
 }
-const intToTup = (r: any, input: any) => (r.isOk() ? ok([r.value, input]) : err(r.error))
+const intToTup = (r: any, input: any) => (r._tag === "Right" ? ok([r.value, input]) : err(r.error))
 
 // export function ifErrorflatMap<T, TNew, E>(defaultVal: (e: E) => Promise<Result<TNew, E>>): (result: Result<T, E>) => Promise<Result<TNew, E>>;
 export function ifErrorflatMap<T, TNew, E>(
@@ -143,7 +143,7 @@ export function ifErrorflatMap(defaultVal: any) {
 export function ifError<T, E, TNew>(defaultVal: (e: E) => TNew): (result: Result<T, E>) => Result<TNew, E>
 export function ifError(defaultVal: any) {
   return (result: any) => {
-    if (result.isOk()) {
+    if (result._tag === "Right") {
       return result
     }
     return ok(defaultVal(result.error))
@@ -337,7 +337,8 @@ export function toFlatTup(f: any) {
     }
   }
 }
-const intToFlatTup = (r: any, input: any) => (r.isOk() ? ok([r.value, input[0], input[1]] as const) : err(r.error))
+const intToFlatTup = (r: any, input: any) =>
+  r._tag === "Right" ? ok([r.value, input[0], input[1]] as const) : err(r.error)
 
 export function toMagicTup<T1, T2, T3>(input: readonly [[T1, T2], T3]): readonly [T1, T2, T3]
 export function toMagicTup([tup1, el]: any) {
