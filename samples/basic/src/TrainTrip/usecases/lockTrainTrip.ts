@@ -4,13 +4,16 @@ import { DbContextKey, defaultDependencies } from "./types"
 
 const createCommand = createCommandWithDeps({ db: DbContextKey, ...defaultDependencies })
 
-const lockTrainTrip = createCommand<Input, void, LockTrainTripError>("lockTrainTrip",
-  ({ db }) => pipe(
+const lockTrainTrip = createCommand<Input, void, LockTrainTripError>("lockTrainTrip", ({ db }) =>
+  pipe(
     map(({ trainTripId }) => trainTripId),
     flatMap(db.trainTrips.load),
     map(trainTrip => trainTrip.lock()),
-  ))
+  ),
+)
 
 export default lockTrainTrip
-export interface Input { trainTripId: string }
+export interface Input {
+  trainTripId: string
+}
 type LockTrainTripError = DbError

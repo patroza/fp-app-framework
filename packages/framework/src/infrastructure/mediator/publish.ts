@@ -5,22 +5,30 @@ import { getLogger } from "../../utils"
 
 const logger = getLogger("publish")
 
-const publish = (getMany: <TInput extends Event>(evt: TInput) => Array<PipeFunction<TInput, DomainEventReturnType, Error>>): publishType =>
-  async <TInput extends Event>(evt: TInput) => {
-    const hndl = getMany(evt)
-    logger.log(`Publishing Domain event: ${evt.constructor.name} (${hndl ? hndl.length : 0} handlers)`, JSON.stringify(evt))
+const publish = (
+  getMany: <TInput extends Event>(evt: TInput) => PipeFunction<TInput, DomainEventReturnType, Error>[],
+): publishType => async <TInput extends Event>(evt: TInput) => {
+  const hndl = getMany(evt)
+  logger.log(
+    `Publishing Domain event: ${evt.constructor.name} (${hndl ? hndl.length : 0} handlers)`,
+    JSON.stringify(evt),
+  )
 
-    if (!hndl) { return success() }
-
-    for (const evtHandler of hndl) {
-      logger.log(`Handling ${evtHandler.name}`)
-      const r = await evtHandler(evt)
-      if (r.isErr()) { return err(r.error) }
-    }
-
-    logger.log(`Published event: ${evt.constructor.name}`)
+  if (!hndl) {
     return success()
   }
+
+  for (const evtHandler of hndl) {
+    logger.log(`Handling ${evtHandler.name}`)
+    const r = await evtHandler(evt)
+    if (r.isErr()) {
+      return err(r.error)
+    }
+  }
+
+  logger.log(`Published event: ${evt.constructor.name}`)
+  return success()
+}
 
 export default publish
 
@@ -29,6 +37,6 @@ export type publishType = <TInput extends Event>(evt: TInput) => Promise<Result<
 
 export type DomainEventReturnType = void | IntegrationEventReturnType
 export interface IntegrationEventReturnType {
-  consistency?: "eventual" | "strict",
+  consistency?: "eventual" | "strict"
   handler: PipeFunctionN<void, Error>
 }

@@ -1,5 +1,13 @@
 import TrainTrip, { Price } from "@/TrainTrip/TrainTrip"
-import { ApiError, ConnectionError, generateKey, generateKeyFromFn, RecordContext, RequestContextBase, UnitOfWork } from "@fp-app/framework"
+import {
+  ApiError,
+  ConnectionError,
+  generateKey,
+  generateKeyFromFn,
+  RecordContext,
+  RequestContextBase,
+  UnitOfWork,
+} from "@fp-app/framework"
 import { PipeFunction, Result } from "@fp-app/neverthrow-extensions"
 import { TrainTripPublisher } from "../eventhandlers"
 import { getTrip, sendCloudSyncFake, Template, TravelPlan } from "../infrastructure/api"
@@ -9,17 +17,25 @@ export const getTripKey = generateKeyFromFn(getTrip)
 export const sendCloudSyncKey = generateKey<ReturnType<typeof sendCloudSyncFake>>("sendCloudSync")
 export type getTravelPlanType = PipeFunction<string, TravelPlan, ApiError>
 export type getTemplateType = PipeFunction<string, Template, ApiError>
-export type getPricingType = (templateId: string, pax: PaxDefinition, startDate: Date) => Promise<Result<{ price: Price }, ApiError>>
-export type createTravelPlanType = (templateId: string, info: { pax: PaxDefinition, startDate: Date }) => Promise<Result<string, ConnectionError>>
+export type getPricingType = (
+  templateId: string,
+  pax: PaxDefinition,
+  startDate: Date,
+) => Promise<Result<{ price: Price }, ApiError>>
+export type createTravelPlanType = (
+  templateId: string,
+  info: { pax: PaxDefinition; startDate: Date },
+) => Promise<Result<string, ConnectionError>>
 
 // tslint:disable-next-line:no-empty-interface
-export interface ReadonlyContext { }
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ReadonlyContext {}
 
 export interface ReadonlyTrainTripContext extends ReadonlyContext {
   trainTrips: RecordContext<TrainTrip>
 }
 
-export interface TrainTripContext extends ReadonlyTrainTripContext, UnitOfWork { }
+export interface TrainTripContext extends ReadonlyTrainTripContext, UnitOfWork {}
 
 // tslint:disable-next-line:no-empty-interface
 export type RequestContext = RequestContextBase & { [key: string]: any }

@@ -1,6 +1,12 @@
 import { TrainTripCreated, TrainTripId, TrainTripStateChanged, UserInputReceived } from "@/TrainTrip/TrainTrip"
 import { DbContextKey, defaultDependencies, getTripKey, TrainTripPublisherKey } from "@/TrainTrip/usecases/types"
-import { createDomainEventHandlerWithDeps, createIntegrationEventHandlerWithDeps, curryRequest, DbError, requestKey } from "@fp-app/framework"
+import {
+  createDomainEventHandlerWithDeps,
+  createIntegrationEventHandlerWithDeps,
+  curryRequest,
+  DbError,
+  requestKey,
+} from "@fp-app/framework"
 import { flatMap, map, pipe, toTup } from "@fp-app/neverthrow-extensions"
 import lockTrainTrip from "../usecases/lockTrainTrip"
 import { CustomerRequestedChanges } from "./integration.events"
@@ -21,45 +27,51 @@ import { CustomerRequestedChanges } from "./integration.events"
 // Below implementations violate this principal, at the time of writing ;-)
 // (trainTripPublisher is passed in as part of the domain event handler, and used by the integration event handler)
 
-const createIntegrationEventHandler = createIntegrationEventHandlerWithDeps({ trainTripPublisher: TrainTripPublisherKey, ...defaultDependencies })
+const createIntegrationEventHandler = createIntegrationEventHandlerWithDeps({
+  trainTripPublisher: TrainTripPublisherKey,
+  ...defaultDependencies,
+})
 
 createIntegrationEventHandler<TrainTripCreated, void, any>(
-  /* on */ TrainTripCreated, "ScheduleCloudSync",
-  ({ trainTripPublisher }) => pipe(
-    map(({ trainTripId }) => trainTripPublisher.register(trainTripId)),
-  ),
+  /* on */ TrainTripCreated,
+  "ScheduleCloudSync",
+  ({ trainTripPublisher }) => pipe(map(({ trainTripId }) => trainTripPublisher.register(trainTripId))),
 )
 
 createIntegrationEventHandler<TrainTripStateChanged, void, any>(
-  /* on */ TrainTripStateChanged, "EitherDebounceOrScheduleCloudSync",
-  ({ trainTripPublisher }) => pipe(
-    map(({ trainTripId }) => trainTripPublisher.register(trainTripId)),
-  ),
+  /* on */ TrainTripStateChanged,
+  "EitherDebounceOrScheduleCloudSync",
+  ({ trainTripPublisher }) => pipe(map(({ trainTripId }) => trainTripPublisher.register(trainTripId))),
 )
 
 const createDomainEventHandler = createDomainEventHandlerWithDeps({ db: DbContextKey, getTrip: getTripKey })
 
 createDomainEventHandler<TrainTripStateChanged, void, DbError>(
-  /* on */ TrainTripStateChanged, "RefreshTripInfo",
-  ({ db, getTrip }) => pipe(
-    flatMap(({ trainTripId }) => db.trainTrips.load(trainTripId)),
-    flatMap(toTup(trainTrip => getTrip(trainTrip.currentTravelClassConfiguration.travelClass.templateId))),
-    map(([trip, trainTrip]) => trainTrip.updateTrip(trip)),
-  ),
+  /* on */ TrainTripStateChanged,
+  "RefreshTripInfo",
+  ({ db, getTrip }) =>
+    pipe(
+      flatMap(({ trainTripId }) => db.trainTrips.load(trainTripId)),
+      flatMap(toTup(trainTrip => getTrip(trainTrip.currentTravelClassConfiguration.travelClass.templateId))),
+      map(([trip, trainTrip]) => trainTrip.updateTrip(trip)),
+    ),
 )
 
 createIntegrationEventHandler<UserInputReceived, void, any>(
-  /* on */ UserInputReceived, "DebouncePendingCloudSync",
-  ({ trainTripPublisher }) => pipe(
-    map(({ trainTripId }) => trainTripPublisher.registerIfPending(trainTripId)),
-  ),
+  /* on */ UserInputReceived,
+  "DebouncePendingCloudSync",
+  ({ trainTripPublisher }) => pipe(map(({ trainTripId }) => trainTripPublisher.registerIfPending(trainTripId))),
 )
 
 // const createIntegrationCommandEventHandler = createIntegrationEventHandlerWithDeps({ db: DbContextKey, ...defaultDependencies })
-const createIntegrationCommandEventHandler = createIntegrationEventHandlerWithDeps({ request: requestKey, ...defaultDependencies })
+const createIntegrationCommandEventHandler = createIntegrationEventHandlerWithDeps({
+  request: requestKey,
+  ...defaultDependencies,
+})
 
 createIntegrationCommandEventHandler<CustomerRequestedChanges, void, DbError>(
-  /* on */ CustomerRequestedChanges, "LockTrainTrip",
+  /* on */ CustomerRequestedChanges,
+  "LockTrainTrip",
   curryRequest(lockTrainTrip),
 )
 

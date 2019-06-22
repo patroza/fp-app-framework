@@ -10,22 +10,21 @@ export default class TrainTripPublisherInMemory implements TrainTripPublisher {
   // function/class.
   private readonly logger = getLogger(this.constructor.name)
 
-  constructor(
-    @paramInject(requestInNewScopeKey) private readonly request: requestInNewScopeType,
-  ) { }
+  constructor(@paramInject(requestInNewScopeKey) private readonly request: requestInNewScopeType) {}
 
   registerIfPending = async (trainTripId: TrainTripId) => {
-    if (!this.trainTripIsPending(trainTripId)) { return }
+    if (!this.trainTripIsPending(trainTripId)) {
+      return
+    }
     return await this.register(trainTripId)
   }
 
   register = async (trainTripId: TrainTripId) => {
     const current = this.map.get(trainTripId)
-    if (current) { clearTimeout(current) }
-    this.map.set(
-      trainTripId,
-      setTimeout(() => this.tryPublishTrainTrip(trainTripId), CLOUD_PUBLISH_DELAY),
-    )
+    if (current) {
+      clearTimeout(current)
+    }
+    this.map.set(trainTripId, setTimeout(() => this.tryPublishTrainTrip(trainTripId), CLOUD_PUBLISH_DELAY))
   }
 
   private tryPublishTrainTrip = async (trainTripId: string) => {
@@ -45,9 +44,13 @@ export default class TrainTripPublisherInMemory implements TrainTripPublisher {
     }
   }
 
-  private trainTripIsPending(trainTripID: TrainTripId) { return this.map.has(trainTripID) }
+  private trainTripIsPending(trainTripID: TrainTripId) {
+    return this.map.has(trainTripID)
+  }
 }
 
-export interface IntegrationEventCommands { registerCloud: typeof registerCloud }
+export interface IntegrationEventCommands {
+  registerCloud: typeof registerCloud
+}
 
 const CLOUD_PUBLISH_DELAY = 10 * 1000

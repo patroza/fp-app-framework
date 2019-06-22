@@ -12,7 +12,7 @@
   "scripts": {
     "test": "jest",
     "test:compile": "tsc --noEmit",
-    "test:lint": "eslint src/**/*.ts",
+    "test:lint": "eslint \"src/**/*.ts\"",
     "testsuite": "yarn test:compile && yarn test:lint && yarn test"
   }
 }

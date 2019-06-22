@@ -16,18 +16,27 @@ import TrainTripReadContext from "./TrainTripReadContext.disk"
 // tslint:disable-next-line:max-classes-per-file
 @autoinject
 export default class DiskDBContext extends ContextBase implements TrainTripContext {
+  get trainTrips() {
+    return this.trainTripsi as RecordContext<TrainTrip>
+  }
 
-  get trainTrips() { return this.trainTripsi as RecordContext<TrainTrip> }
-
-  private readonly trainTripsi = new DiskRecordContext<TrainTrip>("trainTrip", serializeTrainTrip, deserializeDbTrainTrip)
+  private readonly trainTripsi = new DiskRecordContext<TrainTrip>(
+    "trainTrip",
+    serializeTrainTrip,
+    deserializeDbTrainTrip,
+  )
   constructor(
     private readonly readContext: TrainTripReadContext,
     eventHandler: DomainEventHandler,
     // test sample
     // @paramInject(sendCloudSyncKey) sendCloudSync: typeof sendCloudSyncKey,
-  ) { super(eventHandler) }
+  ) {
+    super(eventHandler)
+  }
 
-  protected getAndClearEvents(): Event[] { return this.trainTripsi.intGetAndClearEvents() }
+  protected getAndClearEvents(): Event[] {
+    return this.trainTripsi.intGetAndClearEvents()
+  }
   protected saveImpl(): Promise<Result<void, DbError>> {
     return this.trainTripsi.intSave(
       async i => ok(await this.readContext.create(i.id, TrainTripToView(i))),
@@ -37,7 +46,13 @@ export default class DiskDBContext extends ContextBase implements TrainTripConte
 }
 
 const TrainTripToView = ({
-  isLocked, createdAt, id, pax, currentTravelClassConfiguration, startDate, travelClassConfiguration,
+  isLocked,
+  createdAt,
+  id,
+  pax,
+  currentTravelClassConfiguration,
+  startDate,
+  travelClassConfiguration,
 }: TrainTrip): TrainTripView => {
   return {
     id,
@@ -56,7 +71,13 @@ const serializeTrainTrip = ({ events, ...rest }: any) => stringify(rest)
 
 function deserializeDbTrainTrip(serializedTrainTrip: string) {
   const {
-    id, createdAt, currentTravelClassConfiguration, lockedAt, startDate, pax: paxInput, travelClassConfiguration,
+    id,
+    createdAt,
+    currentTravelClassConfiguration,
+    lockedAt,
+    startDate,
+    pax: paxInput,
+    travelClassConfiguration,
     ...rest
   } = parse(serializedTrainTrip) as TrainTripDTO
   // what do we do? we restore all properties that are just property bags
@@ -94,14 +115,14 @@ const mapTravelClassDTO = ({ createdAt, templateId, name }: TravelClassDTO): Tra
 
 interface TrainTripDTO {
   createdAt: string
-  currentTravelClassConfiguration: TravelClassConfigurationDTO,
-  id: string,
-  trip: TripDTO,
+  currentTravelClassConfiguration: TravelClassConfigurationDTO
+  id: string
+  trip: TripDTO
   startDate: string
   lockedAt?: string
   pax: {
-    value: Pax,
-  },
+    value: Pax
+  }
   travelClassConfiguration: TravelClassConfigurationDTO[]
 }
 interface TravelClassConfigurationDTO {

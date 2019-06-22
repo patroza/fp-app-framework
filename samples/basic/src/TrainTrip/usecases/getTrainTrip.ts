@@ -13,15 +13,17 @@ import { defaultDependencies } from "./types"
 
 const createQuery = createQueryWithDeps({ readCtx: trainTripReadContextKey, ...defaultDependencies })
 
-const getTrainTrip = createQuery<Input, TrainTripView, DbError>("getTrainTrip",
-  ({ readCtx }) => pipe(
+const getTrainTrip = createQuery<Input, TrainTripView, DbError>("getTrainTrip", ({ readCtx }) =>
+  pipe(
     map(({ trainTripId }) => trainTripId),
     flatMap(readCtx.read),
   ),
 )
 
 export default getTrainTrip
-export interface Input { trainTripId: string }
+export interface Input {
+  trainTripId: string
+}
 
 export interface TrainTripView {
   id: string
@@ -31,6 +33,6 @@ export interface TrainTripView {
 
   pax: Pax
   travelClass: TravelClassName
-  travelClasses: Array<{ templateId: string, name: TravelClassName }>
+  travelClasses: { templateId: string; name: TravelClassName }[]
   startDate: Date
 }

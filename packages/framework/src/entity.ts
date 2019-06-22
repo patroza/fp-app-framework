@@ -9,7 +9,9 @@ export default abstract class Entity {
     // doesn't work if assigned as property :/
     Object.defineProperty(this, "w", { value: this })
   }
-  protected get w() { return this as Writeable<this> }
+  protected get w() {
+    return this as Writeable<this>
+  }
 
   readonly intGetAndClearEvents = () => {
     const events = this.events

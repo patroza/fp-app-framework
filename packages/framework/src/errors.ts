@@ -4,13 +4,10 @@ const combineValidationErrors = <E extends ValidationError>(errors: E[]) => new 
 
 const toFieldError = (fieldName: string) => (err: ValidationError) => new FieldValidationError(fieldName, err)
 
-export {
-  combineValidationErrors,
-  toFieldError,
-}
+export { combineValidationErrors, toFieldError }
 
 export abstract class ErrorBase {
-  constructor(readonly message: string) { }
+  constructor(readonly message: string) {}
 
   toString() {
     return `${this.constructor.name}\n${this.message}`
@@ -30,7 +27,9 @@ export class ForbiddenError extends ErrorBase {
 }
 
 export class FieldValidationError extends ValidationError {
-  constructor(readonly fieldName: string, readonly error: ValidationError | ErrorBase) { super(error.message) }
+  constructor(readonly fieldName: string, readonly error: ValidationError | ErrorBase) {
+    super(error.message)
+  }
 
   toString() {
     return `${this.fieldName}: ${this.message}`
