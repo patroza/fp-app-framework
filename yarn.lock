@@ -1875,6 +1875,11 @@ form-data@~2.3.2:
     combined-stream "^1.0.6"
     mime-types "^2.1.12"
 
+fp-ts@2.0.0-rc.7:
+  version "2.0.0-rc.7"
+  resolved "https://registry.yarnpkg.com/fp-ts/-/fp-ts-2.0.0-rc.7.tgz#19149496b75b9d8fa2bd9348918e802c347dac48"
+  integrity sha512-IqlDzoGfePseUvSjEv0vMe0rx4lSMTtvGn0bw8NkqIDWXFq1cqfq7uBvCz2v4/HCcoSE4YLBXpKZBC0vIdMGdw==
+
 fragment-cache@^0.2.1:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/fragment-cache/-/fragment-cache-0.2.1.tgz#4290fad27f13e89be7f33799c6bc5a0abfff0d19"
