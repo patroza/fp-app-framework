@@ -1,3 +1,5 @@
+// export * from "fp-ts/lib/Either"
+
 import { mapLeft, map, Either, left, right, either, Right, Left } from "fp-ts/lib/Either"
 import { pipe } from "fp-ts/lib/pipeable"
 
@@ -6,6 +8,8 @@ export type Result<TSuccess, TError> = Either<TError, TSuccess>
 export const err = <TSuccess = never, TError = never>(e: TError): Result<TSuccess, TError> => left<TError, TSuccess>(e)
 export const ok = <TSuccess = never, TError = never>(a: TSuccess): Result<TSuccess, TError> =>
   right<TError, TSuccess>(a)
+export type Ok<TSuccess> = Right<TSuccess>
+export type Err<TErr> = Left<TErr>
 export { map, pipe }
 export const mapErr = mapLeft
 

@@ -1,4 +1,4 @@
-import { err, ok, Result } from "@fp-app/neverthrow-extensions"
+import { err, ok, Result } from "@fp-app/fp-ts-extensions"
 import Joi from "@hapi/joi"
 import { CombinedValidationError, FieldValidationError, ValidationError } from "../errors"
 export { Joi }

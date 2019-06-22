@@ -13,7 +13,7 @@ import {
   PipeFunction,
   sequenceAsync,
   startWithVal,
-} from "@fp-app/neverthrow-extensions"
+} from "@fp-app/fp-ts-extensions"
 import { v4 } from "uuid"
 import { Pax } from "../PaxDefinition"
 import { TravelClassName } from "../TravelClassDefinition"

@@ -1,4 +1,4 @@
-import { PipeFunction, PipeFunctionN, Result } from "@fp-app/neverthrow-extensions"
+import { PipeFunction, PipeFunctionN, Result } from "@fp-app/fp-ts-extensions"
 import Event from "../event"
 import { Disposable } from "../utils"
 import DomainEventHandler from "./domainEventHandler"

@@ -19,7 +19,7 @@ import {
   toFlatTup,
   toTup,
   valueOrUndefined,
-} from "@fp-app/neverthrow-extensions"
+} from "@fp-app/fp-ts-extensions"
 import FutureDate from "../FutureDate"
 import PaxDefinition, { Pax } from "../PaxDefinition"
 import TravelClassDefinition from "../TravelClassDefinition"
@@ -49,12 +49,24 @@ export interface StateProposition {
 
 const validateStateProposition: PipeFunction<StateProposition, ValidatedStateProposition, ValidationError> = pipe(
   flatMap(({ travelClass, pax, startDate, ...rest }) =>
-    resultTuple(
-      valueOrUndefined(travelClass, TravelClassDefinition.create).pipe(mapErr(toFieldError("travelClass"))),
-      valueOrUndefined(startDate, FutureDate.create).pipe(mapErr(toFieldError("startDate"))),
-      valueOrUndefined(pax, PaxDefinition.create).pipe(mapErr(toFieldError("pax"))),
-      ok(rest),
-    ).pipe(mapErr(combineValidationErrors)),
+    pipe(
+      resultTuple(
+        pipe(
+          valueOrUndefined(travelClass, TravelClassDefinition.create),
+          mapErr(toFieldError("travelClass")),
+        ),
+        pipe(
+          valueOrUndefined(startDate, FutureDate.create),
+          mapErr(toFieldError("startDate")),
+        ),
+        pipe(
+          valueOrUndefined(pax, PaxDefinition.create),
+          mapErr(toFieldError("pax")),
+        ),
+        ok(rest),
+      ),
+      mapErr(combineValidationErrors),
+    ),
   ),
   map(([travelClass, startDate, pax, rest]) => ({
     ...rest,

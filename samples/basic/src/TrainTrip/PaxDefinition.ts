@@ -1,9 +1,10 @@
 import { createValidator, Joi, predicate, typedKeysOf, ValidationError } from "@fp-app/framework"
-import { flatMap, map, Result } from "@fp-app/neverthrow-extensions"
+import { flatMap, map, Result, pipe } from "@fp-app/fp-ts-extensions"
 
 export default class PaxDefinition {
   static create(pax: Pax): Result<PaxDefinition, ValidationError> {
-    return validate(pax).pipe(
+    return pipe(
+      validate(pax),
       flatMap(predicate(p => typedKeysOf(p).some(k => p[k] > 0), "pax requires at least 1 person")),
       flatMap(
         predicate(p => typedKeysOf(p).reduce((prev, cur) => (prev += p[cur]), 0) <= 6, "pax must be 6 or less people"),

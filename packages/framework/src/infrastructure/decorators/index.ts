@@ -1,4 +1,4 @@
-import { flatMap, flatTee, liftType, mapErr, Result } from "@fp-app/neverthrow-extensions"
+import { flatMap, flatTee, liftType, mapErr, Result } from "@fp-app/fp-ts-extensions"
 import { benchLog, logger, using } from "../../utils"
 import { DbError } from "../errors"
 import { configureDependencies, NamedRequestHandler, UOWKey } from "../mediator"

@@ -20,7 +20,7 @@ import {
   resultTuple,
   tee,
   toTup,
-} from "@fp-app/neverthrow-extensions"
+} from "@fp-app/fp-ts-extensions"
 import FutureDate from "../FutureDate"
 import PaxDefinition, { Pax } from "../PaxDefinition"
 import TrainTrip, { CreateTrainTripInfo } from "../TrainTrip"

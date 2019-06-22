@@ -1,4 +1,4 @@
-import { err, map, Result, success, tee } from "@fp-app/neverthrow-extensions"
+import { err, map, Result, success, tee } from "@fp-app/fp-ts-extensions"
 import Event from "../event"
 import { EventHandlerWithDependencies } from "./mediator"
 import { publishType } from "./mediator/publish"
@@ -37,9 +37,9 @@ export default class DomainEventHandler {
       this.events = []
       processedEvents = processedEvents.concat(events)
       const r = await this.publishEvents(events)
-      if (r.isErr()) {
+      if (r._tag === "Left") {
         this.events = processedEvents
-        return err(r.error)
+        return err(r.left)
       }
       updateEvents()
     }
@@ -50,8 +50,8 @@ export default class DomainEventHandler {
   private readonly publishEvents = async (events: Event[]): Promise<Result<void, Error>> => {
     for (const evt of events) {
       const r = await this.publish(evt)
-      if (r.isErr()) {
-        return err(r.error)
+      if (r._tag === "Left") {
+        return err(r.left)
       }
     }
     return success()

@@ -18,7 +18,7 @@ import {
   Result,
   startWithVal,
   success,
-} from "@fp-app/neverthrow-extensions"
+} from "@fp-app/fp-ts-extensions"
 import { lock } from "proper-lockfile"
 import { deleteFile, exists, readFile, writeFile } from "./utils"
 
@@ -73,12 +73,12 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
   ): Promise<Result<void, DbError>> => {
     for (const e of this.removals) {
       const r = await this.deleteRecord(e)
-      if (r.isErr()) {
+      if (r._tag === "Left") {
         return r
       }
       if (forEachDelete) {
         const rEs = await forEachDelete(e)
-        if (rEs.isErr()) {
+        if (rEs._tag === "Left") {
           return rEs
         }
       }
@@ -92,12 +92,12 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
   ): Promise<Result<void, DbError>> => {
     for (const e of this.cache.entries()) {
       const r = await this.saveRecord(e[1].data)
-      if (r.isErr()) {
+      if (r._tag === "Left") {
         return r
       }
       if (forEachSave) {
         const rEs = await forEachSave(e[1].data)
-        if (rEs.isErr()) {
+        if (rEs._tag === "Left") {
           return rEs
         }
       }

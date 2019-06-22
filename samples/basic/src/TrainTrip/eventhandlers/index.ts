@@ -7,7 +7,7 @@ import {
   DbError,
   requestKey,
 } from "@fp-app/framework"
-import { flatMap, map, pipe, toTup } from "@fp-app/neverthrow-extensions"
+import { flatMap, map, pipe, toTup } from "@fp-app/fp-ts-extensions"
 import lockTrainTrip from "../usecases/lockTrainTrip"
 import { CustomerRequestedChanges } from "./integration.events"
 

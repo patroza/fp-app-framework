@@ -22,7 +22,8 @@ import {
   Result,
   success,
   valueOrUndefined,
-} from "@fp-app/neverthrow-extensions"
+  pipe,
+} from "@fp-app/fp-ts-extensions"
 import isEqual from "lodash/fp/isEqual"
 import FutureDate from "./FutureDate"
 import PaxDefinition from "./PaxDefinition"
@@ -77,7 +78,8 @@ export default class TrainTrip extends Entity {
   }
 
   proposeChanges(state: StateProposition) {
-    return this.confirmUserChangeAllowed().pipe(
+    return pipe(
+      this.confirmUserChangeAllowed(),
       mapStatic(state),
       mapErr(liftType<ValidationError | ForbiddenError | InvalidStateError>()),
       flatMap(this.applyDefinedChanges),
@@ -113,7 +115,8 @@ export default class TrainTrip extends Entity {
   ////////////
   //// Separate sample; not used other than testing
   async changeStartDate(startDate: FutureDate) {
-    return this.confirmUserChangeAllowed().pipe(
+    return pipe(
+      this.confirmUserChangeAllowed(),
       mapStatic(startDate),
       map(this.intChangeStartDate),
       map(this.createChangeEvents),
@@ -121,7 +124,8 @@ export default class TrainTrip extends Entity {
   }
 
   async changePax(pax: PaxDefinition) {
-    return this.confirmUserChangeAllowed().pipe(
+    return pipe(
+      this.confirmUserChangeAllowed(),
       mapStatic(pax),
       map(this.intChangePax),
       map(this.createChangeEvents),
@@ -129,7 +133,8 @@ export default class TrainTrip extends Entity {
   }
 
   async changeTravelClass(travelClass: TravelClassDefinition) {
-    return this.confirmUserChangeAllowed().pipe(
+    return pipe(
+      this.confirmUserChangeAllowed(),
       mapStatic(travelClass),
       mapErr(liftType<ForbiddenError | InvalidStateError>()),
       flatMap(this.intChangeTravelClass),

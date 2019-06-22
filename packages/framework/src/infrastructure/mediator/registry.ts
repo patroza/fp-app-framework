@@ -1,4 +1,4 @@
-import { PipeFunction, Result } from "@fp-app/neverthrow-extensions"
+import { PipeFunction, Result } from "@fp-app/fp-ts-extensions"
 import chalk from "chalk"
 import Event from "../../event"
 import { Constructor, getLogger, setFunctionName, typedKeysOf } from "../../utils"

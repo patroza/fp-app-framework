@@ -18,7 +18,8 @@ import {
   requestType,
   ValidationError,
 } from "@fp-app/framework"
-import { flatMap, Result, startWithVal } from "@fp-app/neverthrow-extensions"
+import { flatMap, Result, startWithVal, pipe } from "@fp-app/fp-ts-extensions"
+import { fold } from "fp-ts/lib/Either"
 
 export default function generateKoaHandler<I, T, E extends ErrorBase, E2 extends ValidationError>(
   request: requestType,
@@ -37,18 +38,22 @@ export default function generateKoaHandler<I, T, E extends ErrorBase, E2 extends
         flatMap(validate),
         flatMap(validatedInput => request(handler, validatedInput)),
       )
-      result.match(
-        output => {
-          if (responseTransform) {
-            ctx.body = responseTransform(output, ctx)
-          } else {
-            ctx.body = output
-          }
-          if (ctx.method === "POST" && output) {
-            ctx.status = 201
-          }
-        },
-        err => (handleErrorOrPassthrough(ctx)(err) ? handleDefaultError(ctx)(err) : undefined),
+      pipe(
+        result,
+        fold(
+          err => (handleErrorOrPassthrough(ctx)(err) ? handleDefaultError(ctx)(err) : undefined),
+
+          output => {
+            if (responseTransform) {
+              ctx.body = responseTransform(output, ctx)
+            } else {
+              ctx.body = output
+            }
+            if (ctx.method === "POST" && output) {
+              ctx.status = 201
+            }
+          },
+        ),
       )
     } catch (err) {
       logger.error(err)

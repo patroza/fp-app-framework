@@ -1,5 +1,5 @@
 import { createCommandWithDeps, DbError } from "@fp-app/framework"
-import { flatMap, map, pipe, toTup } from "@fp-app/neverthrow-extensions"
+import { flatMap, map, pipe, toTup } from "@fp-app/fp-ts-extensions"
 import { DbContextKey, defaultDependencies, sendCloudSyncKey } from "./types"
 
 const createCommand = createCommandWithDeps({

@@ -7,7 +7,7 @@ import {
   RecordNotFound,
   ValidationError,
 } from "@fp-app/framework"
-import { flatMap, pipe, toFlatTup, toTup } from "@fp-app/neverthrow-extensions"
+import { flatMap, pipe, toFlatTup, toTup } from "@fp-app/fp-ts-extensions"
 import FutureDate from "../FutureDate"
 import TravelClassDefinition, { TravelClassName } from "../TravelClassDefinition"
 import { DbContextKey, defaultDependencies } from "./types"

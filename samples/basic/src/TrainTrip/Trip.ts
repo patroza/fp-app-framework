@@ -1,5 +1,5 @@
 import { assert, InvalidStateError } from "@fp-app/framework"
-import { err, ok, Result } from "@fp-app/neverthrow-extensions"
+import { err, ok, Result } from "@fp-app/fp-ts-extensions"
 import { TemplateId } from "./TrainTrip"
 import { TravelClassName } from "./TravelClassDefinition"
 

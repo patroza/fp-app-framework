@@ -15,3 +15,13 @@ export default class FutureDate {
 }
 
 const isInFuture = (date: Date) => date > new Date()
+
+// // https://dev.to/gcanti/getting-started-with-fp-ts-either-vs-validation-5eja
+// const a = pipe(
+//   FutureDate.create("2019-12-12"),
+//   mapErr(toFieldError("startDate")),
+// )
+
+// const applicativeValidation = getApplicative(getArraySemigroup<string>())
+
+// // const tup = sequenceT(a)

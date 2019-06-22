@@ -5,7 +5,7 @@
 // to make sure accidental `any` casts are catched.
 
 import { createQueryWithDeps, DbError } from "@fp-app/framework"
-import { flatMap, map, pipe } from "@fp-app/neverthrow-extensions"
+import { flatMap, map, pipe } from "@fp-app/fp-ts-extensions"
 import { trainTripReadContextKey } from "../infrastructure/TrainTripReadContext.disk"
 import { Pax } from "../PaxDefinition"
 import { TravelClassName } from "../TravelClassDefinition"

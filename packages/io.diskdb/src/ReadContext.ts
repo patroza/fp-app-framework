@@ -1,5 +1,5 @@
 import { RecordNotFound } from "@fp-app/framework"
-import { err, ok, Result } from "@fp-app/neverthrow-extensions"
+import { err, ok, Result } from "@fp-app/fp-ts-extensions"
 import { getFilename } from "./RecordContext"
 import { deleteFile, exists, readFile, writeFile } from "./utils"
 
