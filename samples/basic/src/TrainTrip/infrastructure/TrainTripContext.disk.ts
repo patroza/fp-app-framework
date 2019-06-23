@@ -39,21 +39,14 @@ export default class DiskDBContext extends ContextBase implements TrainTripConte
   }
   protected saveImpl(): AsyncResult<void, DbError> {
     return this.trainTripsi.intSave(
-      async i => ok(await this.readContext.create(i.id, TrainTripToView(i))),
-      async i => ok(await this.readContext.delete(i.id)),
+      i => async () => ok(await this.readContext.create(i.id, TrainTripToView(i))),
+      i => async () => ok(await this.readContext.delete(i.id)),
     )
   }
 }
 
-const TrainTripToView = ({
-  isLocked,
-  createdAt,
-  id,
-  pax,
-  currentTravelClassConfiguration,
-  startDate,
-  travelClassConfiguration,
-}: TrainTrip): TrainTripView => {
+const TrainTripToView = (trip: TrainTrip): TrainTripView => {
+  const { isLocked, createdAt, id, pax, currentTravelClassConfiguration, startDate, travelClassConfiguration } = trip
   return {
     id,
 

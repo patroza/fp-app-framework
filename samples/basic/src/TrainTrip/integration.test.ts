@@ -82,9 +82,7 @@ describe("usecases", () => {
     it("works", () =>
       createRootAndBind(async () => {
         const r = root.request(getTrainTrip, { trainTripId })
-        console.log(root.request, r, typeof r)
         const result = await r()
-        console.log(result)
 
         expect(result._tag).toBe("Right")
         // We don't want to leak accidentally domain objects

@@ -1,4 +1,4 @@
-import { err, map, Result, success, tee, compose } from "@fp-app/fp-ts-extensions"
+import { err, map, Result, success, tee, compose, AsyncResult, TE, E } from "@fp-app/fp-ts-extensions"
 import Event from "../event"
 import { EventHandlerWithDependencies } from "./mediator"
 import { publishType } from "./mediator/publish"
@@ -18,46 +18,54 @@ export default class DomainEventHandler {
   ) {}
 
   // Note: Eventhandlers in this case have unbound errors..
-  async commitAndPostEvents<T, TErr>(
+  commitAndPostEvents<T, TErr>(
     getAndClearEvents: () => Event[],
     commit: () => AsyncResult<T, TErr>,
   ): AsyncResult<T, TErr | Error> {
-    // 1. pre-commit: post domain events
-    // 2. commit!
-    // 3. post-commit: post integration events
+    return async () => {
+      // 1. pre-commit: post domain events
+      // 2. commit!
+      // 3. post-commit: post integration events
 
-    this.processedEvents = []
-    const updateEvents = () => (this.events = this.events.concat(getAndClearEvents()))
-    updateEvents()
-    let processedEvents: Event[] = []
-    // loop until we have all events captured, event events of events.
-    // lets hope we don't get stuck in stackoverflow ;-)
-    while (this.events.length) {
-      const events = this.events
-      this.events = []
-      processedEvents = processedEvents.concat(events)
-      const r = await this.publishEvents(events)
-      if (r._tag === "Left") {
-        this.events = processedEvents
-        return err(r.left)
-      }
+      this.processedEvents = []
+      const updateEvents = () => (this.events = this.events.concat(getAndClearEvents()))
       updateEvents()
+      let processedEvents: Event[] = []
+      // loop until we have all events captured, event events of events.
+      // lets hope we don't get stuck in stackoverflow ;-)
+      while (this.events.length) {
+        const events = this.events
+        this.events = []
+        processedEvents = processedEvents.concat(events)
+        const r = await this.publishEvents(events)()
+        if (r._tag === "Left") {
+          this.events = processedEvents
+          return err(r.left)
+        }
+        updateEvents()
+      }
+      this.processedEvents = processedEvents
+      return compose(
+        await commit()(),
+        // tee(map(this.publishIntegrationEvents)),
+        E.map(x => {
+          this.publishIntegrationEvents()
+          return x
+        }),
+      )
     }
-    this.processedEvents = processedEvents
-    return compose(
-      await commit(),
-      tee(map(this.publishIntegrationEvents)),
-    )
   }
 
-  private readonly publishEvents = async (events: Event[]): AsyncResult<void, Error> => {
-    for (const evt of events) {
-      const r = await this.publish(evt)
-      if (r._tag === "Left") {
-        return err(r.left)
+  private readonly publishEvents = (events: Event[]): AsyncResult<void, Error> => {
+    return async () => {
+      for (const evt of events) {
+        const r = await this.publish(evt)()
+        if (r._tag === "Left") {
+          return err(r.left)
+        }
       }
+      return success()
     }
-    return success()
   }
 
   private readonly publishIntegrationEvents = () => {

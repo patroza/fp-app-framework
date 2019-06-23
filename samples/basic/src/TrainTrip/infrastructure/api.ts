@@ -47,7 +47,6 @@ const toTrip = (getTemplate: getTemplateType) => (tpl: Template) => {
         ),
     ),
   )
-  console.log(seq, typeof seq) // , typeof seq().then(x => console.log(x))
   return compose(
     seq,
     // mapErr(liftType<InvalidStateError | ApiError>()),

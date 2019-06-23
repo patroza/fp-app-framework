@@ -21,9 +21,7 @@ const loggingDecorator = (): RequestDecorator => request => (key, input) => {
       () =>
         using(logger.addToLoggingContext({ request: prefix }), async () => {
           logger.log(`${prefix} input`, input)
-          console.log("$$$ hmm1", request)
           const r = request(key, input)
-          console.log("$$$ hmm", r)
           const result = await r()
           logger.log(`${prefix} result`, result)
           return result
@@ -43,7 +41,13 @@ const uowDecorator = configureDependencies(
     return compose(
       request(key, input),
       TE.mapLeft(liftType<any | DbError>()),
-      TE.chain(flatTee(unitOfWork.save)),
+      // TODO: flatTee
+      TE.chain(x =>
+        compose(
+          unitOfWork.save(),
+          TE.map(() => x),
+        ),
+      ),
     )
   },
 )

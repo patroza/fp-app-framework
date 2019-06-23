@@ -7,7 +7,7 @@ const logger = getLogger("publish")
 
 const publish = (
   getMany: <TInput extends Event>(evt: TInput) => PipeFunction<TInput, DomainEventReturnType, Error>[],
-): publishType => async <TInput extends Event>(evt: TInput) => {
+): publishType => <TInput extends Event>(evt: TInput) => async () => {
   const hndl = getMany(evt)
   logger.log(
     `Publishing Domain event: ${evt.constructor.name} (${hndl ? hndl.length : 0} handlers)`,
@@ -20,7 +20,7 @@ const publish = (
 
   for (const evtHandler of hndl) {
     logger.log(`Handling ${evtHandler.name}`)
-    const r = await evtHandler(evt)
+    const r = await evtHandler(evt)()
     if (r._tag === "Left") {
       return err(r.left)
     }

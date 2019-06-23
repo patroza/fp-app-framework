@@ -108,7 +108,7 @@ export default function createDependencyNamespace(namespace: string, requestScop
 
   container.registerScopedConcrete(uowDecorator)
   container.registerSingletonConcrete(loggingDecorator)
-  // container.registerDecorator(requestKey, uowDecorator, loggingDecorator)
+  container.registerDecorator(requestKey, uowDecorator, loggingDecorator)
 
   container.registerSingletonF(
     executePostCommitHandlersKey,
