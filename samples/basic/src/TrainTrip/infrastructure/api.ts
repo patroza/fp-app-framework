@@ -14,6 +14,7 @@ import {
   sequenceAsync,
   startWithVal,
   compose,
+  TE,
 } from "@fp-app/fp-ts-extensions"
 import { v4 } from "uuid"
 import { Pax } from "../PaxDefinition"
@@ -33,23 +34,26 @@ const getTrip = ({
 
 const toTrip = (getTemplate: getTemplateType) => (tpl: Template) => {
   const currentTravelClass = tplToTravelClass(tpl)
-  return compose(
-    sequenceAsync(
-      [startWithVal(currentTravelClass)<ApiError>()].concat(
-        typedKeysOf(tpl.travelClasses)
-          .filter(x => x !== currentTravelClass.name)
-          .map(slKey => tpl.travelClasses[slKey]!)
-          .map(sl =>
-            compose(
-              getTemplate(sl.id),
-              map(tplToTravelClass),
-            ),
+  const seq = sequenceAsync(
+    [startWithVal(currentTravelClass)<ApiError>()].concat(
+      typedKeysOf(tpl.travelClasses)
+        .filter(x => x !== currentTravelClass.name)
+        .map(slKey => tpl.travelClasses[slKey]!)
+        .map(sl =>
+          compose(
+            getTemplate(sl.id),
+            map(tplToTravelClass),
           ),
-      ),
+        ),
     ),
-    mapErr(liftType<InvalidStateError | ApiError>()),
+  )
+  console.log(seq, typeof seq) // , typeof seq().then(x => console.log(x))
+  return compose(
+    seq,
+    // mapErr(liftType<InvalidStateError | ApiError>()),
+    // TODO: should be chain Trip.create
     map(travelClasses => new Trip(travelClasses)),
-    flatMap(trip => TripWithSelectedTravelClass.create(trip, currentTravelClass.name)),
+    flatMap(trip => async () => TripWithSelectedTravelClass.create(trip, currentTravelClass.name)),
   )
 }
 
@@ -60,7 +64,7 @@ const getTplLevelName = (tpl: Template) =>
 
 // Typescript support for partial application is not really great, so we try currying instead for now
 // https://stackoverflow.com/questions/50400120/using-typescript-for-partial-application
-const getTemplateFake = ({  }: { templateApiUrl: string }): getTemplateType => async templateId => {
+const getTemplateFake = ({  }: { templateApiUrl: string }): getTemplateType => templateId => async () => {
   const tpl = mockedTemplates()[templateId] as Template | undefined
   if (!tpl) {
     return err(new RecordNotFound("Template", templateId))

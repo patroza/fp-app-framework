@@ -2,7 +2,6 @@ import { NamedHandlerWithDependencies, NamedRequestHandler, requestType } from "
 
 const request = (get: getRequestType): requestType => (requestHandler, input) => {
   const handler = get(requestHandler)
-  console.log("``", requestHandler, handler, get)
   return handler(input)
 }
 

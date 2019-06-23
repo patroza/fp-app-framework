@@ -13,20 +13,23 @@ import { benchLog, logger, using } from "../../utils"
 import { DbError } from "../errors"
 import { configureDependencies, NamedRequestHandler, UOWKey } from "../mediator"
 import { requestTypeSymbol } from "../SimpleContainer"
-import { mapLeft } from "fp-ts/lib/IOEither"
 
 const loggingDecorator = (): RequestDecorator => request => (key, input) => {
   const prefix = `${key.name} ${key[requestTypeSymbol]}`
-  return benchLog(
-    () =>
-      using(logger.addToLoggingContext({ request: prefix }), async () => {
-        logger.log(`${prefix} input`, input)
-        const result = await request(key, input)
-        logger.log(`${prefix} result`, result)
-        return result
-      }),
-    prefix,
-  )
+  return () =>
+    benchLog(
+      () =>
+        using(logger.addToLoggingContext({ request: prefix }), async () => {
+          logger.log(`${prefix} input`, input)
+          console.log("$$$ hmm1", request)
+          const r = request(key, input)
+          console.log("$$$ hmm", r)
+          const result = await r()
+          logger.log(`${prefix} result`, result)
+          return result
+        }),
+      prefix,
+    )
 }
 
 const uowDecorator = configureDependencies(
@@ -40,7 +43,7 @@ const uowDecorator = configureDependencies(
     return compose(
       request(key, input),
       TE.mapLeft(liftType<any | DbError>()),
-      flatMap(flatTee(unitOfWork.save)),
+      TE.chain(flatTee(unitOfWork.save)),
     )
   },
 )

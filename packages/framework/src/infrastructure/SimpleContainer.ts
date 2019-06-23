@@ -200,6 +200,7 @@ export default class SimpleContainer {
   private createNewInstance<T>(constructor: Constructor<T>) {
     const keys = getDependencyKeys(constructor)
     let instance
+    // console.log("$$$ constructor", constructor)
     if (keys) {
       instance = new constructor(...keys.map(x => this.getO(x)))
     } else {
@@ -321,6 +322,7 @@ export default class SimpleContainer {
       const anyDecoratedHandler: any = (...args: any[]) => {
         const decorate = this.getF(decorator)
         const decoratedHandler = decorate(currentHandler)
+        console.log("$$$ decor", { decorate, currentHandler, decoratedHandler, args })
         return decoratedHandler(...args)
       }
       handler = anyDecoratedHandler

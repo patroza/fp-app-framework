@@ -23,7 +23,7 @@ export default class ReadContext<T> {
 
   readonly create = (id: string, value: T) => createOrUpdateReadContextEntry(this.type, id, value)
   readonly delete = (id: string) => deleteReadContextEntry(this.type, id)
-  readonly read = async (id: string): AsyncResult<T, RecordNotFound> => {
+  readonly read = (id: string): AsyncResult<T, RecordNotFound> => async () => {
     const filePath = getFilename(this.type, id)
     if (!(await exists(filePath))) {
       return err(new RecordNotFound(this.type, id))

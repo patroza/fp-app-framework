@@ -11,7 +11,7 @@ import {
   RecordNotFound,
   setLogger,
 } from "@fp-app/framework"
-import { Err, Ok, Result } from "@fp-app/fp-ts-extensions"
+import { Err, Ok, Result, TE, T, compose } from "@fp-app/fp-ts-extensions"
 import createRoot from "../root"
 import changeTrainTrip, { StateProposition } from "./usecases/changeTrainTrip"
 import createTrainTrip from "./usecases/createTrainTrip"
@@ -52,7 +52,7 @@ beforeEach(() =>
       pax: { adults: 2, children: 0, babies: 0, infants: 0, teenagers: 0 },
       startDate: "2020-01-01",
       templateId,
-    })
+    })()
 
     trainTripId = unsafeUnwrap(result)
     expect(executePostCommitHandlersMock).toBeCalledTimes(1)
@@ -75,10 +75,16 @@ const unsafeUnwrapErr = <A, E>(e: Result<A, E>) => {
 }
 
 describe("usecases", () => {
+  describe("create", () => {
+    it("works", () => {})
+  })
   describe("get", () => {
     it("works", () =>
       createRootAndBind(async () => {
-        const result = await root.request(getTrainTrip, { trainTripId })
+        const r = root.request(getTrainTrip, { trainTripId })
+        console.log(root.request, r, typeof r)
+        const result = await r()
+        console.log(result)
 
         expect(result._tag).toBe("Right")
         // We don't want to leak accidentally domain objects
@@ -109,8 +115,8 @@ describe("usecases", () => {
           travelClass: "first",
         }
 
-        const result = await root.request(changeTrainTrip, { trainTripId, ...state })
-        const newTrainTripResult = await root.request(getTrainTrip, { trainTripId })
+        const result = await root.request(changeTrainTrip, { trainTripId, ...state })()
+        const newTrainTripResult = await root.request(getTrainTrip, { trainTripId })()
 
         expect(result._tag).toBe("Right")
         expect(newTrainTripResult._tag).toBe("Right")
@@ -128,8 +134,7 @@ describe("usecases", () => {
       createRootAndBind(async () => {
         const state: StateProposition = { travelClass: "business" }
 
-        const r = await root.request(changeTrainTrip, { trainTripId, ...state })
-
+        const r = await root.request(changeTrainTrip, { trainTripId, ...state })()
         expect(r._tag === "Left").toBe(true)
         const error = unsafeUnwrapErr(r)
         expect(error).toBeInstanceOf(InvalidStateError)
@@ -141,7 +146,7 @@ describe("usecases", () => {
       createRootAndBind(async () => {
         const state: StateProposition = { travelClass: "bogus", pax: { children: 0 } as any, startDate: "2000-01-01" }
 
-        const r = await root.request(changeTrainTrip, { trainTripId, ...state })
+        const r = await root.request(changeTrainTrip, { trainTripId, ...state })()
 
         expect(r._tag === "Left").toBe(true)
         const error = unsafeUnwrapErr(r)
@@ -159,7 +164,7 @@ describe("usecases", () => {
 
         const result = await root.request(lockTrainTrip, { trainTripId })
 
-        const newTrainTripResult = await root.request(getTrainTrip, { trainTripId })
+        const newTrainTripResult = await root.request(getTrainTrip, { trainTripId })()
         expect(result._tag).toBe("Right")
         // We don't want to leak accidentally domain objects
         expect(unsafeUnwrap(result)).toBe(void 0)
@@ -175,7 +180,7 @@ describe("usecases", () => {
       createRootAndBind(async () => {
         const currentTrainTripResult = await root.request(getTrainTrip, { trainTripId })
 
-        const result = await root.request(deleteTrainTrip, { trainTripId })
+        const result = await root.request(deleteTrainTrip, { trainTripId })()
 
         const newTrainTripResult = await root.request(getTrainTrip, { trainTripId })
         expect(result._tag).toBe("Right")
@@ -192,7 +197,7 @@ describe("usecases", () => {
   describe("register Cloud", () => {
     it("works", () =>
       createRootAndBind(async () => {
-        const result = await root.request(registerCloud, { trainTripId })
+        const result = await root.request(registerCloud, { trainTripId })()
 
         expect(result._tag).toBe("Right")
         expect(unsafeUnwrap(result)).toBe(void 0)
@@ -211,7 +216,7 @@ describe("integration events", () => {
         }
         await root.publishInNewContext(JSON.stringify(p), generateShortUuid())
 
-        const newTrainTripResult = await root.request(getTrainTrip, { trainTripId })
+        const newTrainTripResult = await root.request(getTrainTrip, { trainTripId })()
         expect(unsafeUnwrap(newTrainTripResult).allowUserModification).toBe(false)
       }))
   })
