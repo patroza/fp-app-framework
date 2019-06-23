@@ -8,9 +8,11 @@ const deleteTrainTrip = createCommand<Input, void, DeleteTrainTripError>("delete
   pipe(
     map(({ trainTripId }) => trainTripId),
     flatMap(db.trainTrips.load),
-    // TODO: this should normally be on a different object.
-    map(tee(x => x.delete())),
-    map(db.trainTrips.remove),
+    map(x => {
+      // TODO: this should normally be on a different object.
+      x.delete()
+      return db.trainTrips.remove(x)
+    }),
   ),
 )
 

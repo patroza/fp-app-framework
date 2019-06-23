@@ -130,13 +130,13 @@ describe("usecases", () => {
 
     it("errors on non existent travel class", () =>
       createRootAndBind(async () => {
-        const state: StateProposition = { travelClass: "business" }
+        const state: StateProposition = { travelClass: "doesntexist" }
 
         const r = await root.request(changeTrainTrip, { trainTripId, ...state })()
         expect(r._tag === "Left").toBe(true)
         const error = unsafeUnwrapErr(r)
-        expect(error).toBeInstanceOf(InvalidStateError)
-        expect(error.message).toBe("business not available currently")
+        expect(error).toBeInstanceOf(CombinedValidationError)
+        expect(error.message).toBe("travelClass: doesntexist is not a valid travel class name")
         expect(executePostCommitHandlersMock).toBeCalledTimes(0)
       }))
 
@@ -156,11 +156,11 @@ describe("usecases", () => {
   })
 
   describe("able to lock the TrainTrip", () => {
-    it("changes state accordingly", () =>
+    it("locks traintrip accordingly", () =>
       createRootAndBind(async () => {
-        const currentTrainTripResult = await root.request(getTrainTrip, { trainTripId })
+        const currentTrainTripResult = await root.request(getTrainTrip, { trainTripId })()
 
-        const result = await root.request(lockTrainTrip, { trainTripId })
+        const result = await root.request(lockTrainTrip, { trainTripId })()
 
         const newTrainTripResult = await root.request(getTrainTrip, { trainTripId })()
         expect(result._tag).toBe("Right")
@@ -176,11 +176,11 @@ describe("usecases", () => {
   describe("able to delete the TrainTrip", () => {
     it("deletes accordingly", () =>
       createRootAndBind(async () => {
-        const currentTrainTripResult = await root.request(getTrainTrip, { trainTripId })
+        const currentTrainTripResult = await root.request(getTrainTrip, { trainTripId })()
 
         const result = await root.request(deleteTrainTrip, { trainTripId })()
 
-        const newTrainTripResult = await root.request(getTrainTrip, { trainTripId })
+        const newTrainTripResult = await root.request(getTrainTrip, { trainTripId })()
         expect(result._tag).toBe("Right")
         // We don't want to leak accidentally domain objects
         expect(unsafeUnwrap(result)).toBe(void 0)
@@ -196,7 +196,6 @@ describe("usecases", () => {
     it("works", () =>
       createRootAndBind(async () => {
         const result = await root.request(registerCloud, { trainTripId })()
-
         expect(result._tag).toBe("Right")
         expect(unsafeUnwrap(result)).toBe(void 0)
         expect(executePostCommitHandlersMock).toBeCalledTimes(0)

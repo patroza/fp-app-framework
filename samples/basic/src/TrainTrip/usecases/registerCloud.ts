@@ -1,5 +1,5 @@
 import { createCommandWithDeps, DbError } from "@fp-app/framework"
-import { flatMap, map, pipe, toTup } from "@fp-app/fp-ts-extensions"
+import { flatMap, map, pipe, toTup, compose } from "@fp-app/fp-ts-extensions"
 import { DbContextKey, defaultDependencies, sendCloudSyncKey } from "./types"
 
 const createCommand = createCommandWithDeps({
@@ -12,8 +12,12 @@ const registerCloud = createCommand<Input, void, DbError>("registerCloud", ({ db
   pipe(
     map(({ trainTripId }) => trainTripId),
     flatMap(db.trainTrips.load),
-    flatMap(toTup(sendCloudSync)),
-    map(([opportunityId, trainTrip]) => trainTrip.assignOpportunity(opportunityId)),
+    flatMap(trainTrip =>
+      compose(
+        sendCloudSync(trainTrip),
+        map(opportunityId => trainTrip.assignOpportunity(opportunityId)),
+      ),
+    ),
   ),
 )
 

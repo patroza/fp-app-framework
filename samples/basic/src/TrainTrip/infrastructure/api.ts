@@ -94,11 +94,11 @@ const getFakePriceFromTemplate = (_: any) => ({ price: { amount: 100, currency: 
 
 const createTravelPlanFake = ({  }: { travelPlanApiUrl: string }): createTravelPlanType => async () => ok(v4())
 
-const sendCloudSyncFake = ({  }: { cloudUrl: string }): PipeFunction<TrainTrip, string, ConnectionError> => async () =>
-  ok(v4())
+const sendCloudSyncFake = ({  }: { cloudUrl: string }): PipeFunction<TrainTrip, string, ConnectionError> => () =>
+  TE.right<ConnectionError, string>(v4())
 
-const getTravelPlanFake = ({  }: { travelPlanApiUrl: string }): getTravelPlanType => async travelPlanId =>
-  ok({ id: travelPlanId } as TravelPlan)
+const getTravelPlanFake = ({  }: { travelPlanApiUrl: string }): getTravelPlanType => travelPlanId =>
+  TE.right({ id: travelPlanId } as TravelPlan)
 
 export { createTravelPlanFake, getPricingFake, getTemplateFake, getTrip, sendCloudSyncFake, getTravelPlanFake }
 

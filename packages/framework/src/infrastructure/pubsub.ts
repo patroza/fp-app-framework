@@ -13,7 +13,8 @@ const processReceivedEvent = ({
   if (!event) {
     return
   }
-  await publish(event)
+  // TODO: process the result
+  return await publish(event)()
 }
 
 export interface EventDTO {

@@ -203,10 +203,10 @@ export const valueOrUndefined = <TInput, TOutput, TErrorOutput>(
   return resultCreator(input)
 }
 
-export const asyncValueOrUndefined = async <TInput, TOutput, TErrorOutput>(
+export const asyncValueOrUndefined = <TInput, TOutput, TErrorOutput>(
   input: TInput | undefined,
   resultCreator: PipeFunction<TInput, TOutput, TErrorOutput>,
-): AsyncResult<TOutput | undefined, TErrorOutput> => {
+): AsyncResult<TOutput | undefined, TErrorOutput> => async () => {
   if (input === undefined) {
     return ok(undefined)
   }
@@ -233,10 +233,10 @@ export const applyIfNotUndefined = <T, TOutput>(
   return f(input)
 }
 
-export const asyncCreateResult = async <TErrorOutput = string, TInput = any, TOutput = any>(
+export const asyncCreateResult = <TErrorOutput = string, TInput = any, TOutput = any>(
   input: TInput | undefined,
   resultCreator: (input: TInput) => Promise<TOutput>,
-): AsyncResult<TOutput | undefined, TErrorOutput> => {
+): AsyncResult<TOutput | undefined, TErrorOutput> => async () => {
   if (input === undefined) {
     return ok(undefined)
   }
