@@ -22,6 +22,7 @@ import {
   toTup,
   compose,
   E,
+  TE,
 } from "@fp-app/fp-ts-extensions"
 import FutureDate from "../FutureDate"
 import PaxDefinition, { Pax } from "../PaxDefinition"
@@ -31,19 +32,22 @@ import { DbContextKey, defaultDependencies, getTripKey } from "./types"
 const createCommand = createCommandWithDeps({ db: DbContextKey, getTrip: getTripKey, ...defaultDependencies })
 
 const createTrainTrip = createCommand<Input, string, CreateError>("createTrainTrip", ({ db, getTrip }) =>
-  pipe(
-    flatMap(validateCreateTrainTripInfo),
-    flatMap(proposal =>
-      // TODO: Tuple instead of going in
-      compose(
-        getTrip(proposal.templateId),
-        map(trip => TrainTrip.create(proposal, trip)),
-        map(tee(db.trainTrips.add)),
-        map(trainTrip => trainTrip.id),
+  //  pipe(
+  (input: Input) =>
+    compose(
+      TE.right(input),
+      flatMap(i => TE.fromEither(validateCreateTrainTripInfo(i))),
+      flatMap(proposal =>
+        // TODO: Tuple instead of going in
+        compose(
+          getTrip(proposal.templateId),
+          map(trip => TrainTrip.create(proposal, trip)),
+          map(tee(db.trainTrips.add)),
+          map(trainTrip => trainTrip.id),
+        ),
       ),
+      // TODO tup
     ),
-    // TODO tup
-  ),
 )
 
 export default createTrainTrip
@@ -55,30 +59,25 @@ export interface Input {
 
 // the problem is that the fp-ts pipe doesnt return a data last function, but data first ;-)
 
-const validateCreateTrainTripInfo: PipeFunction<Input, CreateTrainTripInfo, ValidationError> = ({
-  pax,
-  startDate,
-  templateId,
-}) =>
+const validateCreateTrainTripInfo = ({ pax, startDate, templateId }: Input) =>
   compose(
-    async () =>
-      resultTuple(
-        compose(
-          PaxDefinition.create(pax),
-          E.mapLeft(toFieldError("pax")),
-        ),
-        compose(
-          FutureDate.create(startDate),
-          E.mapLeft(toFieldError("startDate")),
-        ),
-        compose(
-          validateString(templateId),
-          E.mapLeft(toFieldError("templateId")),
-        ),
+    resultTuple(
+      compose(
+        PaxDefinition.create(pax),
+        E.mapLeft(toFieldError("pax")),
       ),
-    mapErr(combineValidationErrors),
+      compose(
+        FutureDate.create(startDate),
+        E.mapLeft(toFieldError("startDate")),
+      ),
+      compose(
+        validateString(templateId),
+        E.mapLeft(toFieldError("templateId")),
+      ),
+    ),
+    E.mapLeft(combineValidationErrors),
 
-    map(([pax, startDate, templateId]) => ({
+    E.map(([pax, startDate, templateId]) => ({
       pax,
       startDate,
       templateId,

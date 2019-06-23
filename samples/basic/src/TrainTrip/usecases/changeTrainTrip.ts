@@ -23,6 +23,7 @@ import {
   TEtoTup,
   E,
   TEtoFlatTup,
+  TE,
 } from "@fp-app/fp-ts-extensions"
 import FutureDate from "../FutureDate"
 import PaxDefinition, { Pax } from "../PaxDefinition"
@@ -32,12 +33,14 @@ import { DbContextKey, defaultDependencies } from "./types"
 const createCommand = createCommandWithDeps({ db: DbContextKey, ...defaultDependencies })
 
 const changeTrainTrip = createCommand<Input, void, ChangeTrainTripError>("changeTrainTrip", ({ db }) =>
-  pipe(
-    //flatMap(toTup(validateStateProposition)),
-    flatMap(TEtoTup(validateStateProposition)),
-    flatMap(TEtoFlatTup(([, i]) => db.trainTrips.load(i.trainTripId))),
-    flatMap(([trainTrip, proposal]) => async () => trainTrip.proposeChanges(proposal)),
-  ),
+  //  pipe(
+  (input: Input) =>
+    compose(
+      TE.right<ChangeTrainTripError, Input>(input),
+      flatMap(TEtoTup(i => TE.fromEither(validateStateProposition(i)))),
+      TE.chain(TEtoFlatTup(([, i]) => db.trainTrips.load(i.trainTripId))),
+      TE.chain(([trainTrip, proposal]) => async () => trainTrip.proposeChanges(proposal)),
+    ),
 )
 
 export default changeTrainTrip
@@ -52,31 +55,25 @@ export interface StateProposition {
   travelClass?: string
 }
 
-const validateStateProposition: PipeFunction<StateProposition, ValidatedStateProposition, ValidationError> = ({
-  travelClass,
-  pax,
-  startDate,
-  ...rest
-}) =>
+const validateStateProposition = ({ travelClass, pax, startDate, ...rest }: StateProposition) =>
   compose(
-    async () =>
-      resultTuple(
-        compose(
-          valueOrUndefined(travelClass, TravelClassDefinition.create),
-          E.mapLeft(toFieldError("travelClass")),
-        ),
-        compose(
-          valueOrUndefined(startDate, FutureDate.create),
-          E.mapLeft(toFieldError("startDate")),
-        ),
-        compose(
-          valueOrUndefined(pax, PaxDefinition.create),
-          E.mapLeft(toFieldError("pax")),
-        ),
-        ok(rest),
+    resultTuple(
+      compose(
+        valueOrUndefined(travelClass, TravelClassDefinition.create),
+        E.mapLeft(toFieldError("travelClass")),
       ),
-    mapErr(combineValidationErrors),
-    map(([travelClass, startDate, pax, rest]) => ({
+      compose(
+        valueOrUndefined(startDate, FutureDate.create),
+        E.mapLeft(toFieldError("startDate")),
+      ),
+      compose(
+        valueOrUndefined(pax, PaxDefinition.create),
+        E.mapLeft(toFieldError("pax")),
+      ),
+      ok(rest),
+    ),
+    E.mapLeft(combineValidationErrors),
+    E.map(([travelClass, startDate, pax, rest]) => ({
       ...rest,
       pax,
       startDate,
