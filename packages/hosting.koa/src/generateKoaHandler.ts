@@ -39,10 +39,10 @@ export default function generateKoaHandler<I, T, E extends ErrorBase, E2 extends
         E.right<DbError | E | E2, any>(input),
         E.chain(validate),
       )
-      const result = compose(
+      const result = await compose(
         TE.fromEither(validated),
         TE.chain(validatedInput => request(handler, validatedInput)),
-      )
+      )()
       compose(
         result,
         fold(
