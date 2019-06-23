@@ -20,6 +20,9 @@ import {
   toTup,
   valueOrUndefined,
   compose,
+  TEtoTup,
+  E,
+  TEtoFlatTup,
 } from "@fp-app/fp-ts-extensions"
 import FutureDate from "../FutureDate"
 import PaxDefinition, { Pax } from "../PaxDefinition"
@@ -30,9 +33,10 @@ const createCommand = createCommandWithDeps({ db: DbContextKey, ...defaultDepend
 
 const changeTrainTrip = createCommand<Input, void, ChangeTrainTripError>("changeTrainTrip", ({ db }) =>
   pipe(
-    flatMap(toTup(validateStateProposition)),
-    flatMap(toFlatTup(([, i]) => db.trainTrips.load(i.trainTripId))),
-    flatMap(([trainTrip, proposal]) => trainTrip.proposeChanges(proposal)),
+    //flatMap(toTup(validateStateProposition)),
+    flatMap(TEtoTup(validateStateProposition)),
+    flatMap(TEtoFlatTup(([, i]) => db.trainTrips.load(i.trainTripId))),
+    flatMap(([trainTrip, proposal]) => async () => trainTrip.proposeChanges(proposal)),
   ),
 )
 
@@ -48,33 +52,36 @@ export interface StateProposition {
   travelClass?: string
 }
 
-const validateStateProposition: PipeFunction<StateProposition, ValidatedStateProposition, ValidationError> = pipe(
-  flatMap(({ travelClass, pax, startDate, ...rest }) =>
-    compose(
+const validateStateProposition: PipeFunction<StateProposition, ValidatedStateProposition, ValidationError> = ({
+  travelClass,
+  pax,
+  startDate,
+  ...rest
+}) =>
+  compose(
+    async () =>
       resultTuple(
         compose(
           valueOrUndefined(travelClass, TravelClassDefinition.create),
-          mapErr(toFieldError("travelClass")),
+          E.mapLeft(toFieldError("travelClass")),
         ),
         compose(
           valueOrUndefined(startDate, FutureDate.create),
-          mapErr(toFieldError("startDate")),
+          E.mapLeft(toFieldError("startDate")),
         ),
         compose(
           valueOrUndefined(pax, PaxDefinition.create),
-          mapErr(toFieldError("pax")),
+          E.mapLeft(toFieldError("pax")),
         ),
         ok(rest),
       ),
-      mapErr(combineValidationErrors),
-      map(([travelClass, startDate, pax, rest]) => ({
-        ...rest,
-        pax,
-        startDate,
-        travelClass,
-      })),
-    ),
-  ),
-)
+    mapErr(combineValidationErrors),
+    map(([travelClass, startDate, pax, rest]) => ({
+      ...rest,
+      pax,
+      startDate,
+      travelClass,
+    })),
+  )
 
 type ChangeTrainTripError = ForbiddenError | InvalidStateError | ValidationError | DbError

@@ -13,16 +13,15 @@ import {
   anyTrue,
   applyIfNotUndefined,
   err,
-  flatMap,
   liftType,
-  map,
-  mapErr,
-  mapStatic,
   ok,
   Result,
   success,
   valueOrUndefined,
   pipe,
+  pipeE,
+  E,
+  compose,
 } from "@fp-app/fp-ts-extensions"
 import isEqual from "lodash/fp/isEqual"
 import FutureDate from "./FutureDate"
@@ -78,12 +77,12 @@ export default class TrainTrip extends Entity {
   }
 
   proposeChanges(state: StateProposition) {
-    return pipe(
+    return compose(
       this.confirmUserChangeAllowed(),
-      mapStatic(state),
-      mapErr(liftType<ValidationError | ForbiddenError | InvalidStateError>()),
-      flatMap(this.applyDefinedChanges),
-      map(this.createChangeEvents),
+      E.map(() => state),
+      E.mapLeft(liftType<ValidationError | ForbiddenError | InvalidStateError>()),
+      E.chain(this.applyDefinedChanges),
+      E.map(this.createChangeEvents),
     )
   }
 
@@ -115,30 +114,30 @@ export default class TrainTrip extends Entity {
   ////////////
   //// Separate sample; not used other than testing
   async changeStartDate(startDate: FutureDate) {
-    return pipe(
+    return compose(
       this.confirmUserChangeAllowed(),
-      mapStatic(startDate),
-      map(this.intChangeStartDate),
-      map(this.createChangeEvents),
+      E.map(() => startDate),
+      E.map(this.intChangeStartDate),
+      E.map(this.createChangeEvents),
     )
   }
 
   async changePax(pax: PaxDefinition) {
-    return pipe(
+    return compose(
       this.confirmUserChangeAllowed(),
-      mapStatic(pax),
-      map(this.intChangePax),
-      map(this.createChangeEvents),
+      E.map(() => pax),
+      E.map(this.intChangePax),
+      E.map(this.createChangeEvents),
     )
   }
 
   async changeTravelClass(travelClass: TravelClassDefinition) {
-    return pipe(
+    return compose(
       this.confirmUserChangeAllowed(),
-      mapStatic(travelClass),
-      mapErr(liftType<ForbiddenError | InvalidStateError>()),
-      flatMap(this.intChangeTravelClass),
-      map(this.createChangeEvents),
+      E.map(() => travelClass),
+      E.mapLeft(liftType<ForbiddenError | InvalidStateError>()),
+      E.chain(this.intChangeTravelClass),
+      E.map(this.createChangeEvents),
     )
   }
   //// End Separate sample; not used other than testing
@@ -146,9 +145,9 @@ export default class TrainTrip extends Entity {
 
   private readonly applyDefinedChanges = ({ startDate, pax, travelClass }: StateProposition) =>
     anyTrue<ValidationError | InvalidStateError>(
-      map(() => applyIfNotUndefined(startDate, this.intChangeStartDate)),
-      map(() => applyIfNotUndefined(pax, this.intChangePax)),
-      flatMap(() => valueOrUndefined(travelClass, this.intChangeTravelClass)),
+      E.map(() => applyIfNotUndefined(startDate, this.intChangeStartDate)),
+      E.map(() => applyIfNotUndefined(pax, this.intChangePax)),
+      E.chain(() => valueOrUndefined(travelClass, this.intChangeTravelClass)),
     )
 
   private readonly intChangeStartDate = (startDate: FutureDate) => {

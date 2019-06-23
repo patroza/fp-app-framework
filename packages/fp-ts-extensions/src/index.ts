@@ -24,6 +24,12 @@ const pipe = (...args) => <T>(input: T) =>
     TE.right(input),
     ...args,
   )
+
+export const pipeE = (...args) => <T>(input: T) =>
+  compose(
+    E.right(input),
+    ...args,
+  )
 export { map, compose, pipe }
 export const mapErr = TE.mapLeft
 
@@ -86,6 +92,17 @@ export function toTup(f: any) {
   }
 }
 const intToTup = (r: any, input: any) => (r._tag === "Right" ? ok([r.right, input]) : err(r.left))
+
+// Easily pass input -> (input -> output) -> [input, output]
+export function TEtoTup<TInput, TInput2 extends TInput, T, EMap>(
+  f: (x: TInput2) => AsyncResult<T, EMap>,
+): <E>(input: TInput) => AsyncResult<readonly [T, TInput], E>
+export function TEtoTup(f: any) {
+  return (input: any) => async () => {
+    const r = await f(input)()
+    return intToTup(r, input)
+  }
+}
 
 // export function ifErrorflatMap<T, TNew, E>(defaultVal: (e: E) => AsyncResult<TNew, E>): (result: Result<T, E>) => AsyncResult<TNew, E>;
 export function ifErrorflatMap<T, TNew, E>(
@@ -302,6 +319,16 @@ export function toFlatTup(f: any) {
 }
 const intToFlatTup = (r: any, input: any) =>
   r._tag === "Right" ? ok([r.right, input[0], input[1]] as const) : err(r.left)
+
+export function TEtoFlatTup<TInput, TInputB, TInput2 extends readonly [TInput, TInputB], T, EMap>(
+  f: (x: TInput2) => AsyncResult<T, EMap>,
+): <E>(input: readonly [TInput, TInputB]) => AsyncResult<readonly [T, TInput, TInputB], E>
+export function TEtoFlatTup(f: any) {
+  return (input: any) => async () => {
+    const r = await f(input)()
+    return intToFlatTup(r, input)
+  }
+}
 
 export function toMagicTup<T1, T2, T3>(input: readonly [[T1, T2], T3]): readonly [T1, T2, T3]
 export function toMagicTup([tup1, el]: any) {

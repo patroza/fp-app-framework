@@ -20,6 +20,7 @@ import {
   success,
   compose,
   AsyncResult,
+  E,
 } from "@fp-app/fp-ts-extensions"
 import { lock } from "proper-lockfile"
 import { deleteFile, exists, readFile, writeFile } from "./utils"
@@ -43,16 +44,16 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
     this.removals.push(record)
   }
 
-  readonly load = async (id: string): AsyncResult<T, DbError> => {
+  readonly load = (id: string): AsyncResult<T, DbError> => async () => {
     const cachedRecord = this.cache.get(id)
     if (cachedRecord) {
       return ok(cachedRecord.data)
     }
     return compose(
-      await tryReadFromDb(this.type, id),
-      map(serializedStr => JSON.parse(serializedStr) as SerializedDBRecord),
-      map(({ data, version }) => ({ data: this.deserializer(data), version })),
-      map(({ version, data }) => {
+      await tryReadFromDb(this.type, id)(),
+      E.map(serializedStr => JSON.parse(serializedStr) as SerializedDBRecord),
+      E.map(({ data, version }) => ({ data: this.deserializer(data), version })),
+      E.map(({ version, data }) => {
         this.cache.set(id, { version, data })
         return data
       }),
