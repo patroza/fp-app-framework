@@ -8,25 +8,10 @@ import {
   toFieldError,
   ValidationError,
 } from "@fp-app/framework"
-import {
-  err,
-  flatMap,
-  map,
-  mapErr,
-  ok,
-  pipe,
-  PipeFunction,
-  Result,
-  resultTuple,
-  tee,
-  toTup,
-  compose,
-  E,
-  TE,
-} from "@fp-app/fp-ts-extensions"
+import { err, ok, Result, resultTuple, tee, compose, E, TE } from "@fp-app/fp-ts-extensions"
 import FutureDate from "../FutureDate"
 import PaxDefinition, { Pax } from "../PaxDefinition"
-import TrainTrip, { CreateTrainTripInfo } from "../TrainTrip"
+import TrainTrip from "../TrainTrip"
 import { DbContextKey, defaultDependencies, getTripKey } from "./types"
 
 const createCommand = createCommandWithDeps({ db: DbContextKey, getTrip: getTripKey, ...defaultDependencies })
@@ -36,14 +21,14 @@ const createTrainTrip = createCommand<Input, string, CreateError>("createTrainTr
   (input: Input) =>
     compose(
       TE.right(input),
-      flatMap(i => TE.fromEither(validateCreateTrainTripInfo(i))),
-      flatMap(proposal =>
+      TE.chain(i => TE.fromEither(validateCreateTrainTripInfo(i))),
+      TE.chain(proposal =>
         // TODO: Tuple instead of going in
         compose(
           getTrip(proposal.templateId),
-          map(trip => TrainTrip.create(proposal, trip)),
-          map(tee(db.trainTrips.add)),
-          map(trainTrip => trainTrip.id),
+          TE.map(trip => TrainTrip.create(proposal, trip)),
+          TE.map(tee(db.trainTrips.add)),
+          TE.map(trainTrip => trainTrip.id),
         ),
       ),
       // TODO tup

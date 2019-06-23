@@ -1,4 +1,3 @@
-import { StateProposition as ValidatedStateProposition } from "@/TrainTrip/TrainTrip"
 import {
   combineValidationErrors,
   createCommandWithDeps,
@@ -8,23 +7,7 @@ import {
   toFieldError,
   ValidationError,
 } from "@fp-app/framework"
-import {
-  flatMap,
-  map,
-  mapErr,
-  ok,
-  pipe,
-  PipeFunction,
-  resultTuple,
-  toFlatTup,
-  toTup,
-  valueOrUndefined,
-  compose,
-  TEtoTup,
-  E,
-  TEtoFlatTup,
-  TE,
-} from "@fp-app/fp-ts-extensions"
+import { ok, resultTuple, valueOrUndefined, compose, TEtoTup, E, TEtoFlatTup, TE } from "@fp-app/fp-ts-extensions"
 import FutureDate from "../FutureDate"
 import PaxDefinition, { Pax } from "../PaxDefinition"
 import TravelClassDefinition from "../TravelClassDefinition"
@@ -37,7 +20,7 @@ const changeTrainTrip = createCommand<Input, void, ChangeTrainTripError>("change
   (input: Input) =>
     compose(
       TE.right<ChangeTrainTripError, Input>(input),
-      flatMap(TEtoTup(i => TE.fromEither(validateStateProposition(i)))),
+      TE.chain(TEtoTup(i => TE.fromEither(validateStateProposition(i)))),
       TE.chain(TEtoFlatTup(([, i]) => db.trainTrips.load(i.trainTripId))),
       TE.chain(([trainTrip, proposal]) => async () => trainTrip.proposeChanges(proposal)),
     ),
