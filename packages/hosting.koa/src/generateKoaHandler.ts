@@ -18,7 +18,7 @@ import {
   requestType,
   ValidationError,
 } from "@fp-app/framework"
-import { flatMap, Result, startWithVal, pipe } from "@fp-app/fp-ts-extensions"
+import { flatMap, Result, startWithVal, pipe, compose, TE, E } from "@fp-app/fp-ts-extensions"
 import { fold } from "fp-ts/lib/Either"
 
 export default function generateKoaHandler<I, T, E extends ErrorBase, E2 extends ValidationError>(
@@ -34,11 +34,16 @@ export default function generateKoaHandler<I, T, E extends ErrorBase, E2 extends
 
       // DbError, because request handler is enhanced with it (decorator)
       // E2 because the validator enhances it.
-      const result = await startWithVal(input)<DbError | E | E2>().pipe(
-        flatMap(validate),
-        flatMap(validatedInput => request(handler, validatedInput)),
+      // DbError | E |
+      const validated = compose(
+        E.right<DbError | E | E2, any>(input),
+        E.chain(validate),
       )
-      pipe(
+      const result = compose(
+        TE.fromEither(validated),
+        TE.chain(validatedInput => request(handler, validatedInput)),
+      )
+      compose(
         result,
         fold(
           err => (handleErrorOrPassthrough(ctx)(err) ? handleDefaultError(ctx)(err) : undefined),

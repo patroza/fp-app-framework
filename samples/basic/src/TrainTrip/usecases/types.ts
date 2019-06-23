@@ -8,7 +8,7 @@ import {
   RequestContextBase,
   UnitOfWork,
 } from "@fp-app/framework"
-import { PipeFunction, Result } from "@fp-app/fp-ts-extensions"
+import { PipeFunction, Result, AsyncResult } from "@fp-app/fp-ts-extensions"
 import { TrainTripPublisher } from "../eventhandlers"
 import { getTrip, sendCloudSyncFake, Template, TravelPlan } from "../infrastructure/api"
 import PaxDefinition from "../PaxDefinition"
@@ -21,11 +21,11 @@ export type getPricingType = (
   templateId: string,
   pax: PaxDefinition,
   startDate: Date,
-) => Promise<Result<{ price: Price }, ApiError>>
+) => AsyncResult<{ price: Price }, ApiError>
 export type createTravelPlanType = (
   templateId: string,
   info: { pax: PaxDefinition; startDate: Date },
-) => Promise<Result<string, ConnectionError>>
+) => AsyncResult<string, ConnectionError>
 
 // tslint:disable-next-line:no-empty-interface
 // eslint-disable-next-line @typescript-eslint/no-empty-interface

@@ -1,8 +1,19 @@
-import { flatMap, flatTee, liftType, mapErr, Result } from "@fp-app/fp-ts-extensions"
+import {
+  flatMap,
+  flatTee,
+  liftType,
+  mapErr,
+  Result,
+  taskEither,
+  compose,
+  AsyncResult,
+  TE,
+} from "@fp-app/fp-ts-extensions"
 import { benchLog, logger, using } from "../../utils"
 import { DbError } from "../errors"
 import { configureDependencies, NamedRequestHandler, UOWKey } from "../mediator"
 import { requestTypeSymbol } from "../SimpleContainer"
+import { mapLeft } from "fp-ts/lib/IOEither"
 
 const loggingDecorator = (): RequestDecorator => request => (key, input) => {
   const prefix = `${key.name} ${key[requestTypeSymbol]}`
@@ -26,8 +37,9 @@ const uowDecorator = configureDependencies(
       return request(key, input)
     }
 
-    return request(key, input).pipe(
-      mapErr(liftType<any | DbError>()),
+    return compose(
+      request(key, input),
+      TE.mapLeft(liftType<any | DbError>()),
       flatMap(flatTee(unitOfWork.save)),
     )
   },
@@ -36,5 +48,5 @@ const uowDecorator = configureDependencies(
 export { loggingDecorator, uowDecorator }
 
 type RequestDecorator = <TInput, TOutput, TError>(
-  request: (key: NamedRequestHandler<TInput, TOutput, TError>, input: TInput) => Promise<Result<TOutput, TError>>,
-) => (key: NamedRequestHandler<TInput, TOutput, TError>, input: TInput) => Promise<Result<TOutput, TError>>
+  request: (key: NamedRequestHandler<TInput, TOutput, TError>, input: TInput) => AsyncResult<TOutput, TError>,
+) => (key: NamedRequestHandler<TInput, TOutput, TError>, input: TInput) => AsyncResult<TOutput, TError>

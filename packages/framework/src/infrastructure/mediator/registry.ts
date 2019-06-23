@@ -1,4 +1,4 @@
-import { PipeFunction, Result } from "@fp-app/fp-ts-extensions"
+import { PipeFunction, Result, AsyncResult } from "@fp-app/fp-ts-extensions"
 import chalk from "chalk"
 import Event from "../../event"
 import { Constructor, getLogger, setFunctionName, typedKeysOf } from "../../utils"
@@ -171,12 +171,12 @@ export {
 export type requestType = <TInput, TOutput, TError>(
   requestHandler: NamedHandlerWithDependencies<any, TInput, TOutput, TError>,
   input: TInput,
-) => Promise<Result<TOutput, TError>>
+) => AsyncResult<TOutput, TError>
 
 export type requestInNewScopeType = <TInput, TOutput, TError>(
   requestHandler: NamedHandlerWithDependencies<any, TInput, TOutput, TError>,
   input: TInput,
-) => Promise<Result<TOutput, TError>>
+) => AsyncResult<TOutput, TError>
 
 export type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<TInput, TOutput, TErr> & HandlerInfo<any>
 
@@ -208,6 +208,6 @@ export const requestInNewScopeKey = generateKey<requestInNewScopeType>("requestI
 // tslint:disable-next-line:max-line-length
 // type RequestHandlerDecorator<TInput = any, TOutput = any, TErr = any> = Decorator<NamedRequestHandler<TInput, TOutput, TErr>, PipeFunction<TInput, TOutput, TErr>>
 // type RequestDecorator = <TInput, TOutput, TErr>(
-// handler: NamedRequestHandler<TInput, TOutput, TErr>) => (input: TInput) => Promise<Result<TOutput, TErr>>
+// handler: NamedRequestHandler<TInput, TOutput, TErr>) => (input: TInput) => AsyncResult<TOutput, TErr>
 
 // type Decorator<T, T2 = T> = (inp: T) => T2

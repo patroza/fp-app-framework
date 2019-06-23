@@ -1,4 +1,4 @@
-import { err, map, Result, success, tee } from "@fp-app/fp-ts-extensions"
+import { err, map, Result, success, tee, compose } from "@fp-app/fp-ts-extensions"
 import Event from "../event"
 import { EventHandlerWithDependencies } from "./mediator"
 import { publishType } from "./mediator/publish"
@@ -20,8 +20,8 @@ export default class DomainEventHandler {
   // Note: Eventhandlers in this case have unbound errors..
   async commitAndPostEvents<T, TErr>(
     getAndClearEvents: () => Event[],
-    commit: () => Promise<Result<T, TErr>>,
-  ): Promise<Result<T, TErr | Error>> {
+    commit: () => AsyncResult<T, TErr>,
+  ): AsyncResult<T, TErr | Error> {
     // 1. pre-commit: post domain events
     // 2. commit!
     // 3. post-commit: post integration events
@@ -44,10 +44,13 @@ export default class DomainEventHandler {
       updateEvents()
     }
     this.processedEvents = processedEvents
-    return await commit().pipe(tee(map(this.publishIntegrationEvents)))
+    return compose(
+      await commit(),
+      tee(map(this.publishIntegrationEvents)),
+    )
   }
 
-  private readonly publishEvents = async (events: Event[]): Promise<Result<void, Error>> => {
+  private readonly publishEvents = async (events: Event[]): AsyncResult<void, Error> => {
     for (const evt of events) {
       const r = await this.publish(evt)
       if (r._tag === "Left") {

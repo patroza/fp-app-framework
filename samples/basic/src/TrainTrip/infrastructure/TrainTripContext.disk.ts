@@ -2,7 +2,7 @@ import TrainTrip, { TravelClassConfiguration } from "@/TrainTrip/TrainTrip"
 import { TrainTripContext } from "@/TrainTrip/usecases/types"
 import { autoinject, ContextBase, DbError, DomainEventHandler, Event, RecordContext } from "@fp-app/framework"
 import { DiskRecordContext } from "@fp-app/io.diskdb"
-import { ok, Result } from "@fp-app/fp-ts-extensions"
+import { ok, Result, AsyncResult } from "@fp-app/fp-ts-extensions"
 import { parse, stringify } from "flatted"
 import PaxDefinition, { Pax } from "../PaxDefinition"
 import { TravelClassName } from "../TravelClassDefinition"
@@ -37,7 +37,7 @@ export default class DiskDBContext extends ContextBase implements TrainTripConte
   protected getAndClearEvents(): Event[] {
     return this.trainTripsi.intGetAndClearEvents()
   }
-  protected saveImpl(): Promise<Result<void, DbError>> {
+  protected saveImpl(): AsyncResult<void, DbError> {
     return this.trainTripsi.intSave(
       async i => ok(await this.readContext.create(i.id, TrainTripToView(i))),
       async i => ok(await this.readContext.delete(i.id)),

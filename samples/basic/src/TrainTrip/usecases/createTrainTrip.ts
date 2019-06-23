@@ -20,6 +20,7 @@ import {
   resultTuple,
   tee,
   toTup,
+  compose,
 } from "@fp-app/fp-ts-extensions"
 import FutureDate from "../FutureDate"
 import PaxDefinition, { Pax } from "../PaxDefinition"
@@ -45,19 +46,21 @@ export interface Input {
   startDate: string
 }
 
+// the problem is that the fp-ts pipe doesnt return a data last function, but data first ;-)
+
 const validateCreateTrainTripInfo: PipeFunction<Input, CreateTrainTripInfo, ValidationError> = pipe(
   flatMap(({ pax, startDate, templateId }) =>
-    pipe(
+    compose(
       resultTuple(
-        pipe(
+        compose(
           PaxDefinition.create(pax),
           mapErr(toFieldError("pax")),
         ),
-        pipe(
+        compose(
           FutureDate.create(startDate),
           mapErr(toFieldError("startDate")),
         ),
-        pipe(
+        compose(
           validateString(templateId),
           mapErr(toFieldError("templateId")),
         ),

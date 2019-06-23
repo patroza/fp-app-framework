@@ -1,4 +1,4 @@
-import { PipeFunction, PipeFunctionN, Result } from "@fp-app/fp-ts-extensions"
+import { PipeFunction, PipeFunctionN, Result, AsyncResult } from "@fp-app/fp-ts-extensions"
 import Event from "../event"
 import { Disposable } from "../utils"
 import DomainEventHandler from "./domainEventHandler"
@@ -12,7 +12,7 @@ export default abstract class ContextBase implements Disposable {
 
   constructor(private readonly eventHandler: DomainEventHandler) {}
 
-  readonly save = (): Promise<Result<void, DbError | Error>> => {
+  readonly save = (): AsyncResult<void, DbError | Error> => {
     if (this.disposed) {
       throw new Error("The context is already disposed")
     }
@@ -25,7 +25,7 @@ export default abstract class ContextBase implements Disposable {
 
   protected abstract getAndClearEvents(): Event[]
 
-  protected abstract async saveImpl(): Promise<Result<void, DbError>>
+  protected abstract saveImpl(): AsyncResult<void, DbError>
 }
 
 export interface UnitOfWork extends Disposable {

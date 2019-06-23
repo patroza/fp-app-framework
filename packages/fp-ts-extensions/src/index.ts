@@ -1,19 +1,33 @@
 // export * from "fp-ts/lib/Either"
 
 import { mapLeft, map, Either, left, right, either, Right, Left } from "fp-ts/lib/Either"
-import { pipe } from "fp-ts/lib/pipeable"
+import { pipe as pipeOriginal } from "fp-ts/lib/pipeable"
+
+import * as E from "fp-ts/lib/Either"
+import * as T from "fp-ts/lib/Task"
+import * as TE from "fp-ts/lib/TaskEither"
+
+export { E, T, TE }
 
 export const result = either
+export type AsyncResult<TSuccess, TError> = TaskEither<TError, TSuccess>
 export type Result<TSuccess, TError> = Either<TError, TSuccess>
 export const err = <TSuccess = never, TError = never>(e: TError): Result<TSuccess, TError> => left<TError, TSuccess>(e)
 export const ok = <TSuccess = never, TError = never>(a: TSuccess): Result<TSuccess, TError> =>
   right<TError, TSuccess>(a)
 export type Ok<TSuccess> = Right<TSuccess>
 export type Err<TErr> = Left<TErr>
-export { map, pipe }
+const compose = pipeOriginal
+const pipe = (...args) => <T>(input: T) =>
+  compose(
+    right(input),
+    ...args,
+  )
+export { map, compose, pipe }
 export const mapErr = mapLeft
 
 import { flatten, zip } from "lodash"
+import { TaskEither } from "fp-ts/lib/TaskEither"
 // useful tools for .pipe( continuations
 export const mapStatic = <TCurrent, TNew>(value: TNew) => map<TCurrent, TNew>(toValue(value))
 export const toValue = <TNew>(value: TNew) => () => value
@@ -24,12 +38,12 @@ export const toVoid = toValue<void>(void 0)
 // as it wont return a Promise then :/
 export function flatMap<T, E, TMap, EMap extends E>(
   map: PipeFunction<T, TMap, EMap>,
-): (result: Result<T, E>) => Promise<Result<TMap, EMap | E>>
+): (result: Result<T, E>) => AsyncResult<TMap, EMap | E>
 export function flatMap<T, E, TMap, EMap extends E>(
   map: (ina: T) => Result<TMap, EMap>,
 ): (result: Result<T, E>) => Result<TMap, EMap | E>
-// export function flatMap<T, TNew, E>(map: (ina: T) => Result<TNew, E>): (result: Result<T, E>) => Promise<Result<TNew, E>>;
-// export function flatMap<T, TNew, E>(map: (ina: T) => Result<TNew, E>): (result: Promise<Result<T, E>>) => Promise<Result<TNew, E>>;
+// export function flatMap<T, TNew, E>(map: (ina: T) => Result<TNew, E>): (result: Result<T, E>) => AsyncResult<TNew, E>;
+// export function flatMap<T, TNew, E>(map: (ina: T) => Result<TNew, E>): (result: AsyncResult<T, E>) => AsyncResult<TNew, E>;
 export function flatMap(mapF: any) {
   return (result: any) => {
     // if (Promise.resolve(result) === result) {
@@ -54,7 +68,7 @@ export function flatMap(mapF: any) {
 export function biMap<T, E, TNew, ENew>(
   map: (ina: T) => Promise<TNew>,
   mapErr: (ina: E) => Promise<ENew>,
-): (result: Result<T, E>) => Promise<Result<TNew, ENew>>
+): (result: Result<T, E>) => AsyncResult<TNew, ENew>
 export function biMap<T, E, TNew, ENew>(
   map: (ina: T) => TNew,
   mapErr: (ina: E) => ENew,
@@ -108,8 +122,8 @@ const intTee = (r: any, input: any) => (r._tag === "Right" ? ok(input) : err(r.e
 
 // Easily pass input -> (input -> output) -> [input, output]
 export function toTup<TInput, TInput2 extends TInput, T, EMap>(
-  f: (x: TInput2) => Promise<Result<T, EMap>>,
-): <E>(input: TInput) => Promise<Result<readonly [T, TInput], E>>
+  f: (x: TInput2) => AsyncResult<T, EMap>,
+): <E>(input: TInput) => AsyncResult<readonly [T, TInput], E>
 export function toTup<TInput, TInput2 extends TInput, T, EMap>(
   f: (x: TInput2) => Result<T, EMap>,
 ): <E>(input: TInput) => Result<readonly [T, TInput], E>
@@ -125,7 +139,7 @@ export function toTup(f: any) {
 }
 const intToTup = (r: any, input: any) => (r._tag === "Right" ? ok([r.value, input]) : err(r.error))
 
-// export function ifErrorflatMap<T, TNew, E>(defaultVal: (e: E) => Promise<Result<TNew, E>>): (result: Result<T, E>) => Promise<Result<TNew, E>>;
+// export function ifErrorflatMap<T, TNew, E>(defaultVal: (e: E) => AsyncResult<TNew, E>): (result: Result<T, E>) => AsyncResult<TNew, E>;
 export function ifErrorflatMap<T, TNew, E>(
   defaultVal: (e: E) => Result<TNew, E>,
 ): (result: Result<T, E>) => Result<TNew, E>
@@ -139,7 +153,7 @@ export function ifErrorflatMap(defaultVal: any) {
   }
 }
 
-// export function ifError<T, E, TNew>(defaultVal: (e: E) => Promise<TNew>): (result: Result<T, E>) => Promise<Result<TNew, E>>;
+// export function ifError<T, E, TNew>(defaultVal: (e: E) => Promise<TNew>): (result: Result<T, E>) => AsyncResult<TNew, E>;
 export function ifError<T, E, TNew>(defaultVal: (e: E) => TNew): (result: Result<T, E>) => Result<TNew, E>
 export function ifError(defaultVal: any) {
   return (result: any) => {
@@ -186,7 +200,7 @@ export function resultTuple(...results: Result<any, any>[]) {
 }
 
 export const sequence = <T, E>(results: Result<T, E>[]): Result<T[], E> => {
-  return pipe(
+  return compose(
     resultAll(results),
     mapErr(flattenErrors),
   )
@@ -204,11 +218,11 @@ export const resultAll = <T, E>(results: Result<T, E>[]): Result<T[], E[]> => {
 export const isErr = <T, TErr>(x: Result<T, TErr>): x is Left<TErr> => x._tag === "Left"
 export const isOk = <T, TErr>(x: Result<T, TErr>): x is Right<T> => x._tag === "Right"
 
-export const sequenceAsync = async <T, E>(results: Promise<Result<T, E>>[]) => {
+export const sequenceAsync = async <T, E>(results: AsyncResult<T, E>[]) => {
   return sequence(await Promise.all(results))
 }
 
-export const resultAllAsync = async <T, E>(results: Promise<Result<T, E>>[]) => {
+export const resultAllAsync = async <T, E>(results: AsyncResult<T, E>[]) => {
   return resultAll(await Promise.all(results))
 }
 
@@ -227,7 +241,7 @@ export const valueOrUndefined = <TInput, TOutput, TErrorOutput>(
 export const asyncValueOrUndefined = async <TInput, TOutput, TErrorOutput>(
   input: TInput | undefined,
   resultCreator: PipeFunction<TInput, TOutput, TErrorOutput>,
-): Promise<Result<TOutput | undefined, TErrorOutput>> => {
+): AsyncResult<TOutput | undefined, TErrorOutput> => {
   if (input === undefined) {
     return ok(undefined)
   }
@@ -257,7 +271,7 @@ export const applyIfNotUndefined = <T, TOutput>(
 export const asyncCreateResult = async <TErrorOutput = string, TInput = any, TOutput = any>(
   input: TInput | undefined,
   resultCreator: (input: TInput) => Promise<TOutput>,
-): Promise<Result<TOutput | undefined, TErrorOutput>> => {
+): AsyncResult<TOutput | undefined, TErrorOutput> => {
   if (input === undefined) {
     return ok(undefined)
   }
@@ -288,7 +302,8 @@ export const anyTrue = <TErr = any>(...mappers: any[]): Result<boolean, TErr> =>
   const execution = flatten(zip(mappers, items))
 
   const an = ok<boolean, TErr>(false) as any
-  return an.pipe(
+  return compose(
+    an,
     ...execution,
     map(() => hasChanged),
   )
@@ -301,16 +316,16 @@ export const anyTrue = <TErr = any>(...mappers: any[]): Result<boolean, TErr> =>
 
 // it would have to generate (event) => kickAsync(event).pipe(
 // but also it would mean to add: map(event => event.id) to get just the id.
-const startWithValInt = <TErr>() => <T>(value: T) => ok<T, TErr>(value) as Result<T, TErr>
+// const startWithValInt = <TErr>() => <T>(value: T) => ok<T, TErr>(value) as Result<T, TErr>
 
 // export const startWithVal = <TErr>() => <T>(value: T) => Promise.resolve(startWithValInt<TErr>()(value))
 // reversed curry:
-export const startWithVal = <T>(value: T) => <TErr>() => Promise.resolve(startWithValInt<TErr>()(value))
+export const startWithVal = <T>(value: T) => <TErr>() => TE.right<TErr, T>(value)
 // export const startWithVal2 = startWithVal()
 export const startWithVal2 = <T>(value: T) => startWithVal(value)()
 
-export type PipeFunction<TInput, TOutput, TErr> = (input: TInput) => Promise<Result<TOutput, TErr>>
-export type PipeFunctionN<TOutput, TErr> = () => Promise<Result<TOutput, TErr>>
+export type PipeFunction<TInput, TOutput, TErr> = (input: TInput) => AsyncResult<TOutput, TErr>
+export type PipeFunctionN<TOutput, TErr> = () => AsyncResult<TOutput, TErr>
 export type PipeFunction2<TInput, TOutput, TErr> = (input: TInput) => Result<TOutput, TErr>
 export type PipeFunction2N<TOutput, TErr> = () => Result<TOutput, TErr>
 
@@ -322,8 +337,8 @@ export type AnyResult<T = any, TErr = any> = Result<T, TErr>
 // Alternatively we can always create two variations :)
 // tslint:disable:max-line-length
 export function toFlatTup<TInput, TInputB, TInput2 extends readonly [TInput, TInputB], T, EMap>(
-  f: (x: TInput2) => Promise<Result<T, EMap>>,
-): <E>(input: readonly [TInput, TInputB]) => Promise<Result<readonly [T, TInput, TInputB], E>>
+  f: (x: TInput2) => AsyncResult<T, EMap>,
+): <E>(input: readonly [TInput, TInputB]) => AsyncResult<readonly [T, TInput, TInputB], E>
 export function toFlatTup<TInput, TInputB, TInput2 extends readonly [TInput, TInputB], T, EMap>(
   f: (x: TInput2) => Result<T, EMap>,
 ): <E>(input: readonly [TInput, TInputB]) => Result<readonly [T, TInput, TInputB], E>

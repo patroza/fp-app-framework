@@ -1,4 +1,4 @@
-import { err, PipeFunction, PipeFunctionN, Result, success } from "@fp-app/fp-ts-extensions"
+import { err, PipeFunction, PipeFunctionN, Result, success, AsyncResult } from "@fp-app/fp-ts-extensions"
 
 import Event from "../../event"
 import { getLogger } from "../../utils"
@@ -33,7 +33,7 @@ const publish = (
 export default publish
 
 // tslint:disable-next-line:max-line-length
-export type publishType = <TInput extends Event>(evt: TInput) => Promise<Result<void, Error>>
+export type publishType = <TInput extends Event>(evt: TInput) => AsyncResult<void, Error>
 
 export type DomainEventReturnType = void | IntegrationEventReturnType
 export interface IntegrationEventReturnType {

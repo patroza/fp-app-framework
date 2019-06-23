@@ -335,8 +335,8 @@ export const startWithVal2 = <T>(value: T) => startWithVal(value)()
 type ResultOrPromiseResult<T, E> = Result<T, E> | Promise<Result<T, E>>
 type ResultFunction<T, T2, E> = (r: Result<T, E>) => ResultOrPromiseResult<T2, E>
 
-export type PipeFunction<TInput, TOutput, TErr> = (input: TInput) => Promise<Result<TOutput, TErr>>
-export type PipeFunctionN<TOutput, TErr> = () => Promise<Result<TOutput, TErr>>
+export type PipeFunction<TInput, TOutput, TErr> = (input: TInput) => AsyncResult<TOutput, TErr>
+export type PipeFunctionN<TOutput, TErr> = () => AsyncResult<TOutput, TErr>
 export type PipeFunction2<TInput, TOutput, TErr> = (input: TInput) => Result<TOutput, TErr>
 export type PipeFunction2N<TOutput, TErr> = () => Result<TOutput, TErr>
 

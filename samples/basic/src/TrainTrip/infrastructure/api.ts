@@ -13,6 +13,7 @@ import {
   PipeFunction,
   sequenceAsync,
   startWithVal,
+  compose,
 } from "@fp-app/fp-ts-extensions"
 import { v4 } from "uuid"
 import { Pax } from "../PaxDefinition"
@@ -24,21 +25,28 @@ const getTrip = ({
 }: {
   getTemplate: getTemplateType
 }): PipeFunction<string, TripWithSelectedTravelClass, ApiError | InvalidStateError> => templateId =>
-  getTemplate(templateId).pipe(
+  compose(
+    getTemplate(templateId),
     mapErr(liftType<InvalidStateError | ApiError>()),
     flatMap(toTrip(getTemplate)),
   )
 
 const toTrip = (getTemplate: getTemplateType) => (tpl: Template) => {
   const currentTravelClass = tplToTravelClass(tpl)
-  return sequenceAsync(
-    [startWithVal(currentTravelClass)<ApiError>()].concat(
-      typedKeysOf(tpl.travelClasses)
-        .filter(x => x !== currentTravelClass.name)
-        .map(slKey => tpl.travelClasses[slKey]!)
-        .map(sl => getTemplate(sl.id).pipe(map(tplToTravelClass))),
+  return compose(
+    sequenceAsync(
+      [startWithVal(currentTravelClass)<ApiError>()].concat(
+        typedKeysOf(tpl.travelClasses)
+          .filter(x => x !== currentTravelClass.name)
+          .map(slKey => tpl.travelClasses[slKey]!)
+          .map(sl =>
+            compose(
+              getTemplate(sl.id),
+              map(tplToTravelClass),
+            ),
+          ),
+      ),
     ),
-  ).pipe(
     mapErr(liftType<InvalidStateError | ApiError>()),
     map(travelClasses => new Trip(travelClasses)),
     flatMap(trip => TripWithSelectedTravelClass.create(trip, currentTravelClass.name)),
@@ -73,7 +81,11 @@ const mockedTemplates: () => { [key: string]: Template } = () => ({
 
 const getPricingFake = ({ getTemplate }: { pricingApiUrl: string; getTemplate: getTemplateType }) => (
   templateId: string,
-) => getTemplate(templateId).pipe(map(getFakePriceFromTemplate))
+) =>
+  compose(
+    getTemplate(templateId),
+    map(getFakePriceFromTemplate),
+  )
 
 const getFakePriceFromTemplate = (_: any) => ({ price: { amount: 100, currency: "EUR" } })
 

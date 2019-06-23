@@ -19,6 +19,7 @@ import {
   toFlatTup,
   toTup,
   valueOrUndefined,
+  compose,
 } from "@fp-app/fp-ts-extensions"
 import FutureDate from "../FutureDate"
 import PaxDefinition, { Pax } from "../PaxDefinition"
@@ -49,17 +50,17 @@ export interface StateProposition {
 
 const validateStateProposition: PipeFunction<StateProposition, ValidatedStateProposition, ValidationError> = pipe(
   flatMap(({ travelClass, pax, startDate, ...rest }) =>
-    pipe(
+    compose(
       resultTuple(
-        pipe(
+        compose(
           valueOrUndefined(travelClass, TravelClassDefinition.create),
           mapErr(toFieldError("travelClass")),
         ),
-        pipe(
+        compose(
           valueOrUndefined(startDate, FutureDate.create),
           mapErr(toFieldError("startDate")),
         ),
-        pipe(
+        compose(
           valueOrUndefined(pax, PaxDefinition.create),
           mapErr(toFieldError("pax")),
         ),
