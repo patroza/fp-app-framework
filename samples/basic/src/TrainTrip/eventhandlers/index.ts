@@ -7,7 +7,7 @@ import {
   DbError,
   requestKey,
 } from "@fp-app/framework"
-import { flatMap, map, pipe, toTup, compose } from "@fp-app/fp-ts-extensions"
+import { flatMap, map, pipe, toTup, compose, TE, E } from "@fp-app/fp-ts-extensions"
 import lockTrainTrip from "../usecases/lockTrainTrip"
 import { CustomerRequestedChanges } from "./integration.events"
 
@@ -35,15 +35,21 @@ const createIntegrationEventHandler = createIntegrationEventHandlerWithDeps({
 createIntegrationEventHandler<TrainTripCreated, void, any>(
   /* on */ TrainTripCreated,
   "ScheduleCloudSync",
-  ({ trainTripPublisher }) =>
-    pipe(flatMap(({ trainTripId }) => async () => E.right(await trainTripPublisher.register(trainTripId)))),
+  ({ trainTripPublisher }) => (input: TrainTripCreated) =>
+    compose(
+      TE.right(input),
+      TE.chain(({ trainTripId }) => async () => E.right(await trainTripPublisher.register(trainTripId))),
+    ),
 )
 
 createIntegrationEventHandler<TrainTripStateChanged, void, any>(
   /* on */ TrainTripStateChanged,
   "EitherDebounceOrScheduleCloudSync",
-  ({ trainTripPublisher }) =>
-    pipe(map(({ trainTripId }) => async () => E.right(await trainTripPublisher.register(trainTripId)))),
+  ({ trainTripPublisher }) => (input: TrainTripStateChanged) =>
+    compose(
+      TE.right(input),
+      TE.chain(({ trainTripId }) => async () => E.right(await trainTripPublisher.register(trainTripId))),
+    ),
 )
 
 const createDomainEventHandler = createDomainEventHandlerWithDeps({ db: DbContextKey, getTrip: getTripKey })
@@ -66,8 +72,11 @@ createDomainEventHandler<TrainTripStateChanged, void, DbError>(
 createIntegrationEventHandler<UserInputReceived, void, any>(
   /* on */ UserInputReceived,
   "DebouncePendingCloudSync",
-  ({ trainTripPublisher }) =>
-    pipe(flatMap(({ trainTripId }) => async () => E.right(await trainTripPublisher.registerIfPending(trainTripId)))),
+  ({ trainTripPublisher }) => (input: TrainTripStateChanged) =>
+    compose(
+      TE.right(input),
+      flatMap(({ trainTripId }) => async () => E.right(await trainTripPublisher.registerIfPending(trainTripId))),
+    ),
 )
 
 // const createIntegrationCommandEventHandler = createIntegrationEventHandlerWithDeps({ db: DbContextKey, ...defaultDependencies })

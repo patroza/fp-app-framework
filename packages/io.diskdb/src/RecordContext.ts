@@ -21,6 +21,7 @@ import {
   compose,
   AsyncResult,
   E,
+  TE,
 } from "@fp-app/fp-ts-extensions"
 import { lock } from "proper-lockfile"
 import { deleteFile, exists, readFile, writeFile } from "./utils"
@@ -72,7 +73,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
   ): AsyncResult<void, DbError> =>
     compose(
       this.handleDeletions(forEachDelete),
-      flatMap(() => this.handleInsertionsAndUpdates(forEachSave)),
+      TE.chain(() => this.handleInsertionsAndUpdates(forEachSave)),
     )
 
   private readonly handleDeletions = (
@@ -123,7 +124,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
     return await lockRecordOnDisk(this.type, record.id, () =>
       compose(
         tryReadFromDb(this.type, record.id),
-        flatMap(
+        TE.chain(
           (storedSerialized): AsyncResult<void, DbError> => async () => {
             const { version } = JSON.parse(storedSerialized) as SerializedDBRecord
             if (version !== cachedRecord.version) {
@@ -134,14 +135,14 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
           },
         ),
       ),
-    )
+    )()
   }
 
   private readonly deleteRecord = (record: T): AsyncResult<void, DbError> =>
     lockRecordOnDisk(this.type, record.id, () =>
       compose(
         startWithVal(void 0)<DbError>(),
-        map(() => deleteFile(getFilename(this.type, record.id))),
+        TE.chain(() => async () => E.right(await deleteFile(getFilename(this.type, record.id)))),
       ),
     )
 
@@ -171,7 +172,7 @@ const lockRecordOnDisk = <T>(type: string, id: string, cb: PipeFunctionN<T, DbEr
   compose(
     tryLock(type, id),
     mapErr(liftType<DbError>()),
-    flatMap(release => async () => {
+    TE.chain(release => async () => {
       try {
         return await cb()()
       } finally {
