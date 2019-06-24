@@ -18,8 +18,6 @@ import {
   Result,
   success,
   valueOrUndefined,
-  pipe,
-  pipeE,
   E,
   compose,
 } from "@fp-app/fp-ts-extensions"
@@ -79,9 +77,12 @@ export default class TrainTrip extends Entity {
   proposeChanges(state: StateProposition) {
     return compose(
       this.confirmUserChangeAllowed(),
-      E.map(() => state),
-      E.mapLeft(liftType<ValidationError | ForbiddenError | InvalidStateError>()),
-      E.chain(this.applyDefinedChanges),
+      E.chain(() =>
+        compose(
+          this.applyDefinedChanges(state),
+          E.mapLeft(liftType<ValidationError | InvalidStateError | ForbiddenError>()),
+        ),
+      ),
       E.map(this.createChangeEvents),
     )
   }
@@ -134,9 +135,12 @@ export default class TrainTrip extends Entity {
   async changeTravelClass(travelClass: TravelClassDefinition) {
     return compose(
       this.confirmUserChangeAllowed(),
-      E.map(() => travelClass),
-      E.mapLeft(liftType<ForbiddenError | InvalidStateError>()),
-      E.chain(this.intChangeTravelClass),
+      E.chain(() =>
+        compose(
+          this.intChangeTravelClass(travelClass),
+          E.mapLeft(liftType<ForbiddenError | InvalidStateError>()),
+        ),
+      ),
       E.map(this.createChangeEvents),
     )
   }
