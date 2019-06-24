@@ -3,12 +3,11 @@ import {
   CombinedValidationError,
   combineValidationErrors,
   createCommandWithDeps,
-  DbError,
   InvalidStateError,
   toFieldError,
   ValidationError,
 } from "@fp-app/framework"
-import { err, ok, Result, resultTuple, tee, compose, E, TE } from "@fp-app/fp-ts-extensions"
+import { err, ok, Result, resultTuple, tee, compose, E, TE, liftType, TEtoTup } from "@fp-app/fp-ts-extensions"
 import FutureDate from "../FutureDate"
 import PaxDefinition, { Pax } from "../PaxDefinition"
 import TrainTrip from "../TrainTrip"
@@ -20,18 +19,30 @@ const createTrainTrip = createCommand<Input, string, CreateError>("createTrainTr
   //  pipe(
   (input: Input) =>
     compose(
-      TE.right(input),
-      TE.chain(i => TE.fromEither(validateCreateTrainTripInfo(i))),
-      TE.chain(proposal =>
-        // TODO: Tuple instead of going in
+      TE.right<CreateError, Input>(input),
+      TE.chain(i =>
         compose(
-          getTrip(proposal.templateId),
-          TE.map(trip => TrainTrip.create(proposal, trip)),
-          TE.map(tee(db.trainTrips.add)),
-          TE.map(trainTrip => trainTrip.id),
+          TE.fromEither(validateCreateTrainTripInfo(i)),
+          TE.mapLeft(liftType<CreateError>()),
         ),
       ),
-      // TODO tup
+      TE.chain(
+        TEtoTup(i =>
+          compose(
+            getTrip(i.templateId),
+            TE.mapLeft(liftType<CreateError>()),
+          ),
+        ),
+      ),
+      TE.chain(([trip, proposal]) =>
+        TE.fromEither(
+          compose(
+            E.right<CreateError, TrainTrip>(TrainTrip.create(proposal, trip)),
+            E.map(tee(db.trainTrips.add)),
+            E.map(trainTrip => trainTrip.id),
+          ),
+        ),
+      ),
     ),
 )
 
@@ -92,4 +103,4 @@ const validateCreateTrainTripInfo = ({ pax, startDate, templateId }: Input) =>
 const validateString = <T extends string>(str: string): Result<T, ValidationError> =>
   str ? ok(str as T) : err(new ValidationError("not a valid str"))
 
-type CreateError = CombinedValidationError | InvalidStateError | ValidationError | ApiError | DbError
+type CreateError = CombinedValidationError | InvalidStateError | ValidationError | ApiError
