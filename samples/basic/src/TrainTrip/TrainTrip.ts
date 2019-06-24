@@ -114,7 +114,7 @@ export default class TrainTrip extends Entity {
 
   ////////////
   //// Separate sample; not used other than testing
-  async changeStartDate(startDate: FutureDate) {
+  changeStartDate(startDate: FutureDate) {
     return compose(
       this.confirmUserChangeAllowed(),
       E.map(() => startDate),
@@ -123,7 +123,7 @@ export default class TrainTrip extends Entity {
     )
   }
 
-  async changePax(pax: PaxDefinition) {
+  changePax(pax: PaxDefinition) {
     return compose(
       this.confirmUserChangeAllowed(),
       E.map(() => pax),
@@ -132,7 +132,7 @@ export default class TrainTrip extends Entity {
     )
   }
 
-  async changeTravelClass(travelClass: TravelClassDefinition) {
+  changeTravelClass(travelClass: TravelClassDefinition) {
     return compose(
       this.confirmUserChangeAllowed(),
       E.chain(() =>
