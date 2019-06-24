@@ -1,14 +1,4 @@
-import {
-  flatMap,
-  flatTee,
-  liftType,
-  mapErr,
-  Result,
-  taskEither,
-  compose,
-  AsyncResult,
-  TE,
-} from "@fp-app/fp-ts-extensions"
+import { liftType, compose, AsyncResult, TE } from "@fp-app/fp-ts-extensions"
 import { benchLog, logger, using } from "../../utils"
 import { DbError } from "../errors"
 import { configureDependencies, NamedRequestHandler, UOWKey } from "../mediator"
@@ -46,6 +36,7 @@ const uowDecorator = configureDependencies(
         compose(
           unitOfWork.save(),
           TE.map(() => x),
+          TE.mapLeft(liftType<any | DbError>()),
         ),
       ),
     )

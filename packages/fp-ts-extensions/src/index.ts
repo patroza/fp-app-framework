@@ -1,7 +1,7 @@
 // export * from "fp-ts/lib/Either"
 
-import { Either, either, Right, Left, left, right } from "fp-ts/lib/Either"
-import { mapLeft, map } from "fp-ts/lib/TaskEither"
+import { Either, Right, Left, left, right } from "fp-ts/lib/Either"
+import { map } from "fp-ts/lib/TaskEither"
 import { pipe as pipeOriginal } from "fp-ts/lib/pipeable"
 
 import * as E from "fp-ts/lib/Either"
@@ -31,7 +31,6 @@ export const pipeE = (...args) => <T>(input: T) =>
     ...args,
   )
 export { map, compose, pipe }
-export const mapErr = TE.mapLeft
 
 import { flatten, zip } from "lodash"
 import { TaskEither } from "fp-ts/lib/TaskEither"
@@ -41,9 +40,6 @@ export const mapStatic = <TCurrent, TNew>(value: TNew) => map<TCurrent, TNew>(to
 export const toValue = <TNew>(value: TNew) => () => value
 export const toVoid = toValue<void>(void 0)
 // export const endResult = mapStatic<void>(void 0)
-
-export const flatMap = TE.chain
-export const biMap = TE.bimap
 
 // TODO: Should come with flatMap already wrapped aroun it
 export function flatTee<T, T2 extends T, TDontCare, E>(f: PipeFunction<T2, TDontCare, E>): PipeFunction<T, T, E>
@@ -74,23 +70,6 @@ export function tee(f: any) {
 }
 const intTee = (r: any, input: any) => (r._tag === "Right" ? ok(input) : err(r.left))
 
-// Easily pass input -> (input -> output) -> [input, output]
-export function toTup<TInput, TInput2 extends TInput, T, EMap>(
-  f: (x: TInput2) => AsyncResult<T, EMap>,
-): <E>(input: TInput) => AsyncResult<readonly [T, TInput], E>
-export function toTup<TInput, TInput2 extends TInput, T, EMap>(
-  f: (x: TInput2) => Result<T, EMap>,
-): <E>(input: TInput) => Result<readonly [T, TInput], E>
-export function toTup(f: any) {
-  return (input: any) => {
-    const r = f(input)
-    if (Promise.resolve(r) === r) {
-      return r.then((x: any) => intToTup(x, input))
-    } else {
-      return intToTup(r, input)
-    }
-  }
-}
 const intToTup = (r: any, input: any) => (r._tag === "Right" ? ok([r.right, input]) : err(r.left))
 
 // Easily pass input -> (input -> output) -> [input, output]
@@ -138,12 +117,11 @@ export function ifError(defaultVal: any) {
     return ok(defaultVal(result.left))
   }
 }
-export const toTuple = <T2>(value: T2) => <T>(v1: T) => [value, v1] as const
 
 export const joinError = <T>(result: Result<T, string[]>) =>
   pipe(
     result,
-    mapErr(x => x.join("\n")),
+    TE.mapLeft(x => x.join("\n")),
   )
 
 export function resultTuple<T, T2, E>(r1: Result<T, E>, r2: Result<T2, E>): Result<readonly [T, T2], E[]>
@@ -213,6 +191,7 @@ export const valueOrUndefined = <TInput, TOutput, TErrorOutput>(
   return resultCreator(input)
 }
 
+// Unused
 export const asyncValueOrUndefined = <TInput, TOutput, TErrorOutput>(
   input: TInput | undefined,
   resultCreator: PipeFunction<TInput, TOutput, TErrorOutput>,
@@ -220,7 +199,7 @@ export const asyncValueOrUndefined = <TInput, TOutput, TErrorOutput>(
   if (input === undefined) {
     return ok(undefined)
   }
-  return await resultCreator(input)
+  return await resultCreator(input)()
 }
 
 export const createResult = <TErrorOutput = string, TInput = any, TOutput = any>(
@@ -311,22 +290,6 @@ export type AnyResult<T = any, TErr = any> = Result<T, TErr>
 // from previous statements, the less important their output becomes..
 // Alternatively we can always create two variations :)
 // tslint:disable:max-line-length
-export function toFlatTup<TInput, TInputB, TInput2 extends readonly [TInput, TInputB], T, EMap>(
-  f: (x: TInput2) => AsyncResult<T, EMap>,
-): <E>(input: readonly [TInput, TInputB]) => AsyncResult<readonly [T, TInput, TInputB], E>
-export function toFlatTup<TInput, TInputB, TInput2 extends readonly [TInput, TInputB], T, EMap>(
-  f: (x: TInput2) => Result<T, EMap>,
-): <E>(input: readonly [TInput, TInputB]) => Result<readonly [T, TInput, TInputB], E>
-export function toFlatTup(f: any) {
-  return (input: any) => {
-    const r = f(input)
-    if (Promise.resolve(r) === r) {
-      return r.then((x: any) => intToFlatTup(x, input))
-    } else {
-      return intToFlatTup(r, input)
-    }
-  }
-}
 const intToFlatTup = (r: any, input: any) =>
   r._tag === "Right" ? ok([r.right, input[0], input[1]] as const) : err(r.left)
 

@@ -18,7 +18,7 @@ import {
   requestType,
   ValidationError,
 } from "@fp-app/framework"
-import { flatMap, Result, startWithVal, pipe, compose, TE, E } from "@fp-app/fp-ts-extensions"
+import { Result, compose, TE, E } from "@fp-app/fp-ts-extensions"
 import { fold } from "fp-ts/lib/Either"
 
 export default function generateKoaHandler<I, T, E extends ErrorBase, E2 extends ValidationError>(

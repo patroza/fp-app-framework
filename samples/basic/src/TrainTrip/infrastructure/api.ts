@@ -5,10 +5,8 @@ import { createTravelPlanType, getTemplateType, getTravelPlanType } from "@/Trai
 import { ApiError, ConnectionError, InvalidStateError, RecordNotFound, typedKeysOf } from "@fp-app/framework"
 import {
   err,
-  flatMap,
   liftType,
   map,
-  mapErr,
   ok,
   PipeFunction,
   sequenceAsync,
@@ -28,8 +26,8 @@ const getTrip = ({
 }): PipeFunction<string, TripWithSelectedTravelClass, ApiError | InvalidStateError> => templateId =>
   compose(
     getTemplate(templateId),
-    mapErr(liftType<InvalidStateError | ApiError>()),
-    flatMap(toTrip(getTemplate)),
+    TE.mapLeft(liftType<InvalidStateError | ApiError>()),
+    TE.chain(toTrip(getTemplate)),
   )
 
 const toTrip = (getTemplate: getTemplateType) => (tpl: Template) => {
@@ -49,10 +47,20 @@ const toTrip = (getTemplate: getTemplateType) => (tpl: Template) => {
   )
   return compose(
     seq,
-    // mapErr(liftType<InvalidStateError | ApiError>()),
+    TE.mapLeft(liftType<ApiError | InvalidStateError>()),
     // TODO: should be chain Trip.create
-    map(travelClasses => new Trip(travelClasses)),
-    flatMap(trip => async () => TripWithSelectedTravelClass.create(trip, currentTravelClass.name)),
+    TE.chain(i =>
+      compose(
+        TE.fromEither(Trip.create(i)),
+        TE.mapLeft(liftType<ApiError | InvalidStateError>()),
+      ),
+    ),
+    TE.chain(trip =>
+      compose(
+        TE.fromEither(TripWithSelectedTravelClass.create(trip, currentTravelClass.name)),
+        TE.mapLeft(liftType<ApiError | InvalidStateError>()),
+      ),
+    ),
   )
 }
 

@@ -9,13 +9,10 @@ import {
 } from "@fp-app/framework"
 import {
   err,
-  flatMap,
   liftType,
-  map,
   mapErr,
   ok,
   PipeFunctionN,
-  Result,
   startWithVal,
   success,
   compose,
@@ -171,7 +168,7 @@ interface CachedRecord<T> {
 const lockRecordOnDisk = <T>(type: string, id: string, cb: PipeFunctionN<T, DbError>) =>
   compose(
     tryLock(type, id),
-    mapErr(liftType<DbError>()),
+    TE.mapLeft(liftType<DbError>()),
     TE.chain(release => async () => {
       try {
         return await cb()()

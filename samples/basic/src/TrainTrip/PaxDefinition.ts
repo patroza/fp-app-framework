@@ -1,5 +1,5 @@
 import { createValidator, Joi, predicate, typedKeysOf, ValidationError } from "@fp-app/framework"
-import { flatMap, map, Result, pipe, compose, E } from "@fp-app/fp-ts-extensions"
+import { Result, compose, E } from "@fp-app/fp-ts-extensions"
 
 export default class PaxDefinition {
   static create(pax: Pax): Result<PaxDefinition, ValidationError> {
