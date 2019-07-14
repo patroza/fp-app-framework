@@ -10,7 +10,6 @@ import {
 import {
   err,
   liftType,
-  mapErr,
   ok,
   PipeFunctionN,
   startWithVal,
@@ -19,6 +18,7 @@ import {
   AsyncResult,
   E,
   TE,
+  isErr,
 } from "@fp-app/fp-ts-extensions"
 import { lock } from "proper-lockfile"
 import { deleteFile, exists, readFile, writeFile } from "./utils"
@@ -78,7 +78,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
   ): AsyncResult<void, DbError> => async () => {
     for (const e of this.removals) {
       const r = await this.deleteRecord(e)()
-      if (r._tag === "Left") {
+      if (isErr(r)) {
         return r
       }
       if (forEachDelete) {
@@ -97,7 +97,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
   ): AsyncResult<void, DbError> => async () => {
     for (const e of this.cache.entries()) {
       const r = await this.saveRecord(e[1].data)()
-      if (r._tag === "Left") {
+      if (isErr(r)) {
         return r
       }
       if (forEachSave) {

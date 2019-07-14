@@ -5,13 +5,12 @@ import {
   CombinedValidationError,
   executePostCommitHandlers,
   generateShortUuid,
-  InvalidStateError,
   logger,
   noop,
   RecordNotFound,
   setLogger,
 } from "@fp-app/framework"
-import { Err, Ok, Result, TE, T, compose } from "@fp-app/fp-ts-extensions"
+import { Result, isErr } from "@fp-app/fp-ts-extensions"
 import createRoot from "../root"
 import changeTrainTrip, { StateProposition } from "./usecases/changeTrainTrip"
 import createTrainTrip from "./usecases/createTrainTrip"
@@ -133,7 +132,7 @@ describe("usecases", () => {
         const state: StateProposition = { travelClass: "doesntexist" }
 
         const r = await root.request(changeTrainTrip, { trainTripId, ...state })()
-        expect(r._tag === "Left").toBe(true)
+        expect(isErr(r)).toBe(true)
         const error = unsafeUnwrapErr(r)
         expect(error).toBeInstanceOf(CombinedValidationError)
         expect(error.message).toBe("travelClass: doesntexist is not a valid travel class name")
@@ -146,7 +145,7 @@ describe("usecases", () => {
 
         const r = await root.request(changeTrainTrip, { trainTripId, ...state })()
 
-        expect(r._tag === "Left").toBe(true)
+        expect(isErr(r)).toBe(true)
         const error = unsafeUnwrapErr(r)
         expect(error).toBeInstanceOf(CombinedValidationError)
         const cve = error as CombinedValidationError

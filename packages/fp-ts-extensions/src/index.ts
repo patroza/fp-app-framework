@@ -58,9 +58,9 @@ export function tee(f: any) {
     }
   }
 }
-const intTee = (r: any, input: any) => (r._tag === "Right" ? ok(input) : err(r.left))
+const intTee = (r: any, input: any) => (isOk(r) ? ok(input) : err(r.left))
 
-const intToTup = (r: any, input: any) => (r._tag === "Right" ? ok([r.right, input]) : err(r.left))
+const intToTup = (r: any, input: any) => (isOk(r) ? ok([r.right, input]) : err(r.left))
 
 // Easily pass input -> (input -> output) -> [input, output]
 export function TEtoTup<TInput, TInput2 extends TInput, T, EMap>(
@@ -280,8 +280,7 @@ export type AnyResult<T = any, TErr = any> = Result<T, TErr>
 // from previous statements, the less important their output becomes..
 // Alternatively we can always create two variations :)
 // tslint:disable:max-line-length
-const intToFlatTup = (r: any, input: any) =>
-  r._tag === "Right" ? ok([r.right, input[0], input[1]] as const) : err(r.left)
+const intToFlatTup = (r: any, input: any) => (isOk(r) ? ok([r.right, input[0], input[1]] as const) : err(r.left))
 
 export function TEtoFlatTup<TInput, TInputB, TInput2 extends readonly [TInput, TInputB], T, EMap>(
   f: (x: TInput2) => AsyncResult<T, EMap>,
