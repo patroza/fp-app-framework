@@ -2,6 +2,7 @@ import { TrainTripPublisher } from "@/TrainTrip/eventhandlers"
 import { TrainTripId } from "@/TrainTrip/TrainTrip"
 import { getLogger, paramInject, requestInNewScopeKey, requestInNewScopeType } from "@fp-app/framework"
 import registerCloud from "../usecases/registerCloud"
+import { isErr } from "@fp-app/fp-ts-extensions"
 
 export default class TrainTripPublisherInMemory implements TrainTripPublisher {
   private readonly map = new Map<TrainTripId, NodeJS.Timeout>()
@@ -31,10 +32,10 @@ export default class TrainTripPublisherInMemory implements TrainTripPublisher {
     try {
       this.logger.log(`Publishing TrainTrip to Cloud: ${trainTripId}`)
       // Talk to the Cloud Service to sync with Cloud
-      const result = await this.request(registerCloud, { trainTripId })
-      if (result.isErr()) {
+      const result = await this.request(registerCloud, { trainTripId })()
+      if (isErr(result)) {
         // TODO: really handle error
-        this.logger.error(result.error)
+        this.logger.error(result.left)
       }
     } catch (err) {
       // TODO: really handle error
