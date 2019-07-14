@@ -7,7 +7,7 @@ import {
   toFieldError,
   ValidationError,
 } from "@fp-app/framework"
-import { err, ok, Result, resultTuple, tee, compose, E, TE, liftType, TEtoTup } from "@fp-app/fp-ts-extensions"
+import { err, ok, Result, resultTuple, tee, compose, E, TE, liftType, TEtoTup, pipe } from "@fp-app/fp-ts-extensions"
 import FutureDate from "../FutureDate"
 import PaxDefinition, { Pax } from "../PaxDefinition"
 import TrainTrip from "../TrainTrip"
@@ -16,34 +16,31 @@ import { DbContextKey, defaultDependencies, getTripKey } from "./types"
 const createCommand = createCommandWithDeps({ db: DbContextKey, getTrip: getTripKey, ...defaultDependencies })
 
 const createTrainTrip = createCommand<Input, string, CreateError>("createTrainTrip", ({ db, getTrip }) =>
-  //  pipe(
-  (input: Input) =>
-    compose(
-      TE.right<CreateError, Input>(input),
-      TE.chain(i =>
+  pipe(
+    TE.chain(i =>
+      compose(
+        TE.fromEither(validateCreateTrainTripInfo(i)),
+        TE.mapLeft(liftType<CreateError>()),
+      ),
+    ),
+    TE.chain(
+      TEtoTup(i =>
         compose(
-          TE.fromEither(validateCreateTrainTripInfo(i)),
+          getTrip(i.templateId),
           TE.mapLeft(liftType<CreateError>()),
         ),
       ),
-      TE.chain(
-        TEtoTup(i =>
-          compose(
-            getTrip(i.templateId),
-            TE.mapLeft(liftType<CreateError>()),
-          ),
-        ),
-      ),
-      TE.chain(([trip, proposal]) =>
-        TE.fromEither(
-          compose(
-            E.right<CreateError, TrainTrip>(TrainTrip.create(proposal, trip)),
-            E.map(tee(db.trainTrips.add)),
-            E.map(trainTrip => trainTrip.id),
-          ),
+    ),
+    TE.chain(([trip, proposal]) =>
+      TE.fromEither(
+        compose(
+          E.right<CreateError, TrainTrip>(TrainTrip.create(proposal, trip)),
+          E.map(tee(db.trainTrips.add)),
+          E.map(trainTrip => trainTrip.id),
         ),
       ),
     ),
+  ),
 )
 
 export default createTrainTrip

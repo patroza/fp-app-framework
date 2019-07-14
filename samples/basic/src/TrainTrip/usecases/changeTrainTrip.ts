@@ -17,6 +17,7 @@ import {
   TEtoFlatTup,
   TE,
   liftType,
+  pipe,
 } from "@fp-app/fp-ts-extensions"
 import FutureDate from "../FutureDate"
 import PaxDefinition, { Pax } from "../PaxDefinition"
@@ -26,33 +27,30 @@ import { DbContextKey, defaultDependencies } from "./types"
 const createCommand = createCommandWithDeps({ db: DbContextKey, ...defaultDependencies })
 
 const changeTrainTrip = createCommand<Input, void, ChangeTrainTripError>("changeTrainTrip", ({ db }) =>
-  //  pipe(
-  (input: Input) =>
-    compose(
-      TE.right<ChangeTrainTripError, Input>(input),
-      TE.chain(
-        TEtoTup(i =>
-          compose(
-            TE.fromEither(validateStateProposition(i)),
-            TE.mapLeft(liftType<ChangeTrainTripError>()),
-          ),
-        ),
-      ),
-      TE.chain(
-        TEtoFlatTup(([, i]) =>
-          compose(
-            db.trainTrips.load(i.trainTripId),
-            TE.mapLeft(liftType<ChangeTrainTripError>()),
-          ),
-        ),
-      ),
-      TE.chain(([trainTrip, proposal]) =>
+  pipe(
+    TE.chain(
+      TEtoTup(i =>
         compose(
-          TE.fromEither(trainTrip.proposeChanges(proposal)),
+          TE.fromEither(validateStateProposition(i)),
           TE.mapLeft(liftType<ChangeTrainTripError>()),
         ),
       ),
     ),
+    TE.chain(
+      TEtoFlatTup(([, i]) =>
+        compose(
+          db.trainTrips.load(i.trainTripId),
+          TE.mapLeft(liftType<ChangeTrainTripError>()),
+        ),
+      ),
+    ),
+    TE.chain(([trainTrip, proposal]) =>
+      compose(
+        TE.fromEither(trainTrip.proposeChanges(proposal)),
+        TE.mapLeft(liftType<ChangeTrainTripError>()),
+      ),
+    ),
+  ),
 )
 
 export default changeTrainTrip

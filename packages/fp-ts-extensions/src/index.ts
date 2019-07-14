@@ -19,18 +19,8 @@ export const ok = <TSuccess = never, TError = never>(a: TSuccess): Result<TSucce
 export type Ok<TSuccess> = Task<Right<TSuccess>>
 export type Err<TErr> = Task<Left<TErr>>
 const compose = pipeOriginal
-const pipe = (...args) => <T>(input: T) =>
-  compose(
-    TE.right(input),
-    ...args,
-  )
 
-export const pipeE = (...args) => <T>(input: T) =>
-  compose(
-    E.right(input),
-    ...args,
-  )
-export { map, compose, pipe }
+export { map, compose }
 
 import { flatten, zip } from "lodash"
 import { TaskEither } from "fp-ts/lib/TaskEither"
@@ -398,3 +388,43 @@ export function resultTuple3(input: any, ...resultFNs: ((input: any) => Result<a
 }
 
 export const success = <TErr>() => ok<void, TErr>(void 0)
+
+// const pipe = (...args) => <T>(input: T) =>
+//   compose(
+//     TE.right(input),
+//     ...args,
+//   )
+
+// export const pipeE = (...args) => <T>(input: T) =>
+//   compose(
+//     E.right(input),
+//     ...args,
+//   )
+
+export function pipe<TInput, TError, TOutput>(
+  ab: (c: TE.TaskEither<TError, TInput>) => TE.TaskEither<TError, TOutput>,
+): (input: TInput) => TE.TaskEither<TError, TOutput>
+export function pipe<TInput, TError, B, TOutput>(
+  ab: (a: TE.TaskEither<TError, TInput>) => TE.TaskEither<TError, B>,
+  bc: (c: TE.TaskEither<TError, B>) => TE.TaskEither<TError, TOutput>,
+): (input: TInput) => TE.TaskEither<TError, TOutput>
+export function pipe<TInput, TError, B, C, TOutput>(
+  ab: (a: TE.TaskEither<TError, TInput>) => TE.TaskEither<TError, B>,
+  bc: (b: TE.TaskEither<TError, B>) => TE.TaskEither<TError, C>,
+  cd: (c: TE.TaskEither<TError, C>) => TE.TaskEither<TError, TOutput>,
+): (input: TInput) => TE.TaskEither<TError, TOutput>
+export function pipe<TInput, TError, B, C, D, TOutput>(
+  ab: (a: TE.TaskEither<TError, TInput>) => TE.TaskEither<TError, B>,
+  bc: (b: TE.TaskEither<TError, B>) => TE.TaskEither<TError, C>,
+  cd: (b: TE.TaskEither<TError, C>) => TE.TaskEither<TError, D>,
+  de: (c: TE.TaskEither<TError, D>) => TE.TaskEither<TError, TOutput>,
+): (input: TInput) => TE.TaskEither<TError, TOutput>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function pipe<TInput, TError, TOutput>(...a: any[]) {
+  return (input: TInput) =>
+    compose<TE.TaskEither<TError, TInput>, TE.TaskEither<TError, TOutput>>(
+      TE.right<TError, TInput>(input),
+      // @ts-ignore
+      ...a,
+    )
+}
