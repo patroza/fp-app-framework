@@ -2,8 +2,11 @@ import { TrainTripPublisher } from "@/TrainTrip/eventhandlers"
 import { TrainTripId } from "@/TrainTrip/TrainTrip"
 import { getLogger, paramInject, requestInNewScopeKey, requestInNewScopeType } from "@fp-app/framework"
 import registerCloud from "../usecases/registerCloud"
-import { isErr } from "@fp-app/fp-ts-extensions"
+import { compose, TE } from "@fp-app/fp-ts-extensions"
 
+/**
+ * Poor man's queue, great for testing. Do not use in production, or you may loose queued tasks on server restart
+ */
 export default class TrainTripPublisherInMemory implements TrainTripPublisher {
   private readonly map = new Map<TrainTripId, NodeJS.Timeout>()
   // TODO: easy way how to inject a configured logger
@@ -32,11 +35,10 @@ export default class TrainTripPublisherInMemory implements TrainTripPublisher {
     try {
       this.logger.log(`Publishing TrainTrip to Cloud: ${trainTripId}`)
       // Talk to the Cloud Service to sync with Cloud
-      const result = await this.request(registerCloud, { trainTripId })
-      if (isErr(result)) {
-        // TODO: really handle error
-        this.logger.error(result.left)
-      }
+      await compose(
+        this.request(registerCloud, { trainTripId }),
+        TE.mapLeft(err => this.logger.error(err)),
+      )()
     } catch (err) {
       // TODO: really handle error
       this.logger.error(err)

@@ -12,7 +12,6 @@ export { E, T, TE }
 
 export const result = TE.taskEither
 export type AsyncResult<TSuccess, TError> = TaskEither<TError, TSuccess>
-export type ResultPromise<TSuccess, TError> = Promise<Either<TError, TSuccess>>
 export type Result<TSuccess, TError> = Either<TError, TSuccess>
 export const err = <TSuccess = never, TError = never>(e: TError): Result<TSuccess, TError> => left<TError, TSuccess>(e)
 export const ok = <TSuccess = never, TError = never>(a: TSuccess): Result<TSuccess, TError> =>
