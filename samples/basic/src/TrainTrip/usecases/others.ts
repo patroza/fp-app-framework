@@ -45,9 +45,8 @@ type ChangeStartDateError = ValidationError | ForbiddenError | DbError
 
 export const changeTravelClass = createCommand<ChangeTravelClassInput, void, ChangeTravelClassError>(
   "changeTravelClass",
-  ({ db }) => (input: ChangeTravelClassInput) =>
-    compose(
-      TE.right<ChangeTravelClassError, ChangeTravelClassInput>(input),
+  ({ db }) =>
+    pipe(
       TE.chain(
         TEtoTup(({ travelClass }) =>
           compose(
