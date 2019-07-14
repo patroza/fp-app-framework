@@ -1,4 +1,4 @@
-import { PipeFunction, Result, AsyncResult } from "@fp-app/fp-ts-extensions"
+import { PipeFunction, Result, AsyncResult, ResultPromise } from "@fp-app/fp-ts-extensions"
 import chalk from "chalk"
 import Event from "../../event"
 import { Constructor, getLogger, setFunctionName, typedKeysOf } from "../../utils"
@@ -176,7 +176,7 @@ export type requestType = <TInput, TOutput, TError>(
 export type requestInNewScopeType = <TInput, TOutput, TError>(
   requestHandler: NamedHandlerWithDependencies<any, TInput, TOutput, TError>,
   input: TInput,
-) => AsyncResult<TOutput, TError>
+) => ResultPromise<TOutput, TError>
 
 export type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<TInput, TOutput, TErr> & HandlerInfo<any>
 

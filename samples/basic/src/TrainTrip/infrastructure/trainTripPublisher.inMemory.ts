@@ -32,7 +32,7 @@ export default class TrainTripPublisherInMemory implements TrainTripPublisher {
     try {
       this.logger.log(`Publishing TrainTrip to Cloud: ${trainTripId}`)
       // Talk to the Cloud Service to sync with Cloud
-      const result = await this.request(registerCloud, { trainTripId })()
+      const result = await this.request(registerCloud, { trainTripId })
       if (isErr(result)) {
         // TODO: really handle error
         this.logger.error(result.left)

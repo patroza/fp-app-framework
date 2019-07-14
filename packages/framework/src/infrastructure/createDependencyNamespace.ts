@@ -127,7 +127,7 @@ export default function createDependencyNamespace(namespace: string, requestScop
     })
 
   const requestInNewContext: requestInNewScopeType = (key: any, evt: any) =>
-    setupChildContext(() => container.getF(requestKey)(key, evt))
+    setupChildContext(() => container.getF(requestKey)(key, evt)())
   container.registerSingletonF(requestKey, factoryOf(request, i => i(key => container.getConcrete(key))))
   container.registerInstanceF(requestInNewScopeKey, requestInNewContext)
 
