@@ -52,9 +52,9 @@
   },
   "scripts": {
     "prettier": "prettier --write \"src/**/*.ts\"",
-    "test": "jest",
+    "test": "TSC_WATCHFILE=UseFsEventsWithFallbackDynamicPolling jest",
     "test:compile": "tsc --noEmit",
     "test:lint": "eslint \"src/**/*.ts\"",
-    "testsuite": "yarn test:compile && yarn test:lint && yarn test"
+    "testsuite": "TSC_WATCHFILE=UseFsEventsWithFallbackDynamicPolling yarn test:compile && yarn test:lint && yarn test"
   }
 }

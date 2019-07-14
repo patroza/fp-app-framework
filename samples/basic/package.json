@@ -47,12 +47,12 @@
     "tslint": "^5.16.0"
   },
   "scripts": {
-    "start": "nodemon --exec ts-node --transpile-only -r tsconfig-paths/register --files src/start-server.ts",
+    "start": "TSC_WATCHFILE=UseFsEventsWithFallbackDynamicPolling nodemon --exec ts-node --transpile-only -r tsconfig-paths/register --files src/start-server.ts",
     "start:prod": "ts-node --transpile-only -r tsconfig-paths/register --files src/start-server.ts",
     "prettier": "prettier --write \"src/**/*.ts\"",
-    "test": "jest",
+    "test": "TSC_WATCHFILE=UseFsEventsWithFallbackDynamicPolling jest",
     "test:compile": "tsc --noEmit",
     "test:lint": "eslint \"src/**/*.ts\"",
-    "testsuite": "yarn test:compile && yarn test:lint && yarn test"
+    "testsuite": "TSC_WATCHFILE=UseFsEventsWithFallbackDynamicPolling yarn test:compile && yarn test:lint && yarn test"
   }
 }
