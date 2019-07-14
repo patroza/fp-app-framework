@@ -10,7 +10,7 @@ import {
   RecordNotFound,
   setLogger,
 } from "@fp-app/framework"
-import { Result, isErr } from "@fp-app/fp-ts-extensions"
+import { Result, isErr, isOk } from "@fp-app/fp-ts-extensions"
 import createRoot from "../root"
 import changeTrainTrip, { StateProposition } from "./usecases/changeTrainTrip"
 import createTrainTrip from "./usecases/createTrainTrip"
@@ -60,14 +60,14 @@ beforeEach(() =>
 )
 
 const unsafeUnwrap = <A, E>(e: Result<A, E>) => {
-  if (e._tag === "Left") {
+  if (isErr(e)) {
     throw new Error()
   }
   return e.right
 }
 
 const unsafeUnwrapErr = <A, E>(e: Result<A, E>) => {
-  if (e._tag === "Right") {
+  if (isOk(e)) {
     throw new Error()
   }
   return e.left

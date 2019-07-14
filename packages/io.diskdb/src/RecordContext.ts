@@ -83,7 +83,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
       }
       if (forEachDelete) {
         const rEs = await forEachDelete(e)()
-        if (rEs._tag === "Left") {
+        if (isErr(rEs)) {
           return rEs
         }
       }
@@ -102,7 +102,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
       }
       if (forEachSave) {
         const rEs = await forEachSave(e[1].data)()
-        if (rEs._tag === "Left") {
+        if (isErr(rEs)) {
           return rEs
         }
       }

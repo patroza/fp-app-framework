@@ -89,7 +89,7 @@ export function ifErrorflatMap<T, TNew, E>(
 ): (result: Result<T, E>) => Result<TNew, E>
 export function ifErrorflatMap(defaultVal: any) {
   return (result: Result<any, any>) => {
-    if (result._tag === "Right") {
+    if (isOk(result)) {
       return result
     } else {
       return defaultVal(result.left)
@@ -101,7 +101,7 @@ export function ifErrorflatMap(defaultVal: any) {
 export function ifError<T, E, TNew>(defaultVal: (e: E) => TNew): (result: Result<T, E>) => Result<TNew, E>
 export function ifError(defaultVal: any) {
   return (result: any) => {
-    if (result._tag === "Right") {
+    if (isOk(result)) {
       return result
     }
     return ok(defaultVal(result.left))
