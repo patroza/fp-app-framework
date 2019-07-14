@@ -42,16 +42,16 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
     this.removals.push(record)
   }
 
-  readonly load = (id: string): AsyncResult<T, DbError> => async () => {
+  readonly load = (id: string): AsyncResult<T, DbError> => {
     const cachedRecord = this.cache.get(id)
     if (cachedRecord) {
-      return ok(cachedRecord.data)
+      return TE.fromEither(ok(cachedRecord.data))
     }
     return compose(
-      await tryReadFromDb(this.type, id)(),
-      E.map(serializedStr => JSON.parse(serializedStr) as SerializedDBRecord),
-      E.map(({ data, version }) => ({ data: this.deserializer(data), version })),
-      E.map(({ version, data }) => {
+      tryReadFromDb(this.type, id),
+      TE.map(serializedStr => JSON.parse(serializedStr) as SerializedDBRecord),
+      TE.map(({ data, version }) => ({ data: this.deserializer(data), version })),
+      TE.map(({ version, data }) => {
         this.cache.set(id, { version, data })
         return data
       }),
