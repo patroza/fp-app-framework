@@ -1875,10 +1875,10 @@ form-data@~2.3.2:
     combined-stream "^1.0.6"
     mime-types "^2.1.12"
 
-fp-ts@2.0.0-rc.7:
-  version "2.0.0-rc.7"
-  resolved "https://registry.yarnpkg.com/fp-ts/-/fp-ts-2.0.0-rc.7.tgz#19149496b75b9d8fa2bd9348918e802c347dac48"
-  integrity sha512-IqlDzoGfePseUvSjEv0vMe0rx4lSMTtvGn0bw8NkqIDWXFq1cqfq7uBvCz2v4/HCcoSE4YLBXpKZBC0vIdMGdw==
+fp-ts@2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/fp-ts/-/fp-ts-2.0.2.tgz#8f27d76e24097c3ab4e766ea7526872d6ba0555d"
+  integrity sha512-ZCeu5MkqNDBWe1ewjZQ9Q9JNcPKEKXpitYzJ4ygCWpfJ3skW3imZ45EqsZd+9N8rkBvmsb64ToZTI2xXNO9IcQ==
 
 fragment-cache@^0.2.1:
   version "0.2.1"
@@ -3443,10 +3443,6 @@ neo-async@^2.6.0:
   version "2.6.1"
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.1.tgz#ac27ada66167fa8849a6addd837f6b189ad2081c"
   integrity sha512-iyam8fBuCUpWeKPGpaNMetEocMt364qkCsfL9JuhjXX6dRnguRVOfk2GZaDpPjcOKiiXCPINZC1GczQ7iTq3Zw==
-
-"neverthrow@https://github.com/patroza/neverthrow.git#909a1de01bb3760f8e9433648ad783e93e5f289b":
-  version "1.0.2"
-  resolved "https://github.com/patroza/neverthrow.git#909a1de01bb3760f8e9433648ad783e93e5f289b"
 
 nice-try@^1.0.4:
   version "1.0.5"

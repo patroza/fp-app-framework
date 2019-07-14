@@ -9,6 +9,7 @@
     "chalk": "^2.4.2",
     "cls-hooked": "^4.2.2",
     "invariant": "^2.2.4",
+    "fp-ts": "2.0.2",
     "joi-to-json-schema": "^5.0.0",
     "koa": "^2.7.0",
     "koa-basic-auth": "^4.0.0",
