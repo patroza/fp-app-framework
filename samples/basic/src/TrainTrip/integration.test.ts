@@ -83,7 +83,7 @@ describe("usecases", () => {
         const r = root.request(getTrainTrip, { trainTripId })
         const result = await r()
 
-        expect(result._tag).toBe("Right")
+        expect(isOk(result)).toBe(true)
         // We don't want to leak accidentally domain objects
         expect(unsafeUnwrap(result)).toEqual({
           allowUserModification: true,
@@ -115,8 +115,8 @@ describe("usecases", () => {
         const result = await root.request(changeTrainTrip, { trainTripId, ...state })()
         const newTrainTripResult = await root.request(getTrainTrip, { trainTripId })()
 
-        expect(result._tag).toBe("Right")
-        expect(newTrainTripResult._tag).toBe("Right")
+        expect(isOk(result)).toBe(true)
+        expect(isOk(newTrainTripResult)).toBe(true)
         // We don't want to leak accidentally domain objects
         expect(unsafeUnwrap(result)).toBe(void 0)
         const r = unsafeUnwrap(newTrainTripResult)
@@ -162,10 +162,10 @@ describe("usecases", () => {
         const result = await root.request(lockTrainTrip, { trainTripId })()
 
         const newTrainTripResult = await root.request(getTrainTrip, { trainTripId })()
-        expect(result._tag).toBe("Right")
+        expect(isOk(result)).toBe(true)
         // We don't want to leak accidentally domain objects
         expect(unsafeUnwrap(result)).toBe(void 0)
-        expect(currentTrainTripResult._tag).toBe("Right")
+        expect(isOk(currentTrainTripResult)).toBe(true)
         expect(unsafeUnwrap(currentTrainTripResult).allowUserModification).toBe(true)
         expect(unsafeUnwrap(newTrainTripResult).allowUserModification).toBe(false)
         expect(executePostCommitHandlersMock).toBeCalledTimes(1)
@@ -180,12 +180,12 @@ describe("usecases", () => {
         const result = await root.request(deleteTrainTrip, { trainTripId })()
 
         const newTrainTripResult = await root.request(getTrainTrip, { trainTripId })()
-        expect(result._tag).toBe("Right")
+        expect(isOk(result)).toBe(true)
         // We don't want to leak accidentally domain objects
         expect(unsafeUnwrap(result)).toBe(void 0)
-        expect(currentTrainTripResult._tag).toBe("Right")
+        expect(isOk(currentTrainTripResult)).toBe(true)
         expect(unsafeUnwrap(currentTrainTripResult).allowUserModification).toBe(true)
-        expect(newTrainTripResult._tag).toBe("Left")
+        expect(isErr(newTrainTripResult)).toBe(true)
         expect(unsafeUnwrapErr(newTrainTripResult)).toBeInstanceOf(RecordNotFound)
         expect(executePostCommitHandlersMock).toBeCalledTimes(0)
       }))
@@ -195,7 +195,7 @@ describe("usecases", () => {
     it("works", () =>
       createRootAndBind(async () => {
         const result = await root.request(registerCloud, { trainTripId })()
-        expect(result._tag).toBe("Right")
+        expect(isOk(result)).toBe(true)
         expect(unsafeUnwrap(result)).toBe(void 0)
         expect(executePostCommitHandlersMock).toBeCalledTimes(0)
       }))
