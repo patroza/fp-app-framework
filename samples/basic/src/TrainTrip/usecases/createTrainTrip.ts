@@ -7,7 +7,19 @@ import {
   toFieldError,
   ValidationError,
 } from "@fp-app/framework"
-import { err, ok, Result, resultTuple, tee, pipe, E, TE, liftType, TEtoTup, compose } from "@fp-app/fp-ts-extensions"
+import {
+  err,
+  ok,
+  Result,
+  resultTuple,
+  tee,
+  pipe,
+  E,
+  TE,
+  liftType,
+  chainTupTask,
+  compose,
+} from "@fp-app/fp-ts-extensions"
 import FutureDate from "../FutureDate"
 import PaxDefinition, { Pax } from "../PaxDefinition"
 import TrainTrip from "../TrainTrip"
@@ -23,12 +35,10 @@ const createTrainTrip = createCommand<Input, string, CreateError>("createTrainTr
         TE.mapLeft(liftType<CreateError>()),
       ),
     ),
-    TE.chain(
-      TEtoTup(i =>
-        pipe(
-          getTrip(i.templateId),
-          TE.mapLeft(liftType<CreateError>()),
-        ),
+    chainTupTask(i =>
+      pipe(
+        getTrip(i.templateId),
+        TE.mapLeft(liftType<CreateError>()),
       ),
     ),
     TE.chain(([trip, proposal]) =>

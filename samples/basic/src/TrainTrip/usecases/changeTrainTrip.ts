@@ -12,7 +12,7 @@ import {
   resultTuple,
   valueOrUndefined,
   pipe,
-  TEtoTup,
+  chainTupTask,
   E,
   TEtoFlatTup,
   TE,
@@ -28,12 +28,10 @@ const createCommand = createCommandWithDeps({ db: DbContextKey, ...defaultDepend
 
 const changeTrainTrip = createCommand<Input, void, ChangeTrainTripError>("changeTrainTrip", ({ db }) =>
   compose(
-    TE.chain(
-      TEtoTup(i =>
-        pipe(
-          TE.fromEither(validateStateProposition(i)),
-          TE.mapLeft(liftType<ChangeTrainTripError>()),
-        ),
+    chainTupTask(i =>
+      pipe(
+        TE.fromEither(validateStateProposition(i)),
+        TE.mapLeft(liftType<ChangeTrainTripError>()),
       ),
     ),
     TE.chain(

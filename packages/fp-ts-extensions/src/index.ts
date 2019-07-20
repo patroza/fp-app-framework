@@ -70,26 +70,28 @@ export function tee(f: any) {
 }
 
 // Easily pass input -> (input -> output) -> [input, output]
-export function TEtoTup<TInput, TInput2 extends TInput, T, EMap>(
-  f: (x: TInput2) => AsyncResult<T, EMap>,
-): (input: TInput) => AsyncResult<readonly [T, TInput], EMap>
-export function TEtoTup(f: any) {
-  return (input: any) =>
+export function chainTupTask<TInput, T, E>(
+  f: (x: TInput) => AsyncResult<T, E>,
+): (inp: AsyncResult<TInput, E>) => AsyncResult<readonly [T, TInput], E>
+export function chainTupTask(f: any) {
+  return TE.chain((input: any) =>
     pipe(
       f(input),
       TE.map(x => [x, input] as const),
-    )
+    ),
+  )
 }
 
-export function EtoTup<TInput, TInput2 extends TInput, T, EMap>(
-  f: (x: TInput2) => Result<T, EMap>,
-): (input: TInput) => Result<readonly [T, TInput], EMap>
-export function EtoTup(f: any) {
-  return (input: any) =>
+export function chainTup<TInput, T, E>(
+  f: (x: TInput) => Result<T, E>,
+): (inp: Result<TInput, E>) => Result<readonly [T, TInput], E>
+export function chainTup(f: any) {
+  return E.chain((input: any) =>
     pipe(
       f(input),
       E.map(x => [x, input] as const),
-    )
+    ),
+  )
 }
 
 // export function ifErrorflatMap<T, TNew, E>(defaultVal: (e: E) => AsyncResult<TNew, E>): (result: Result<T, E>) => AsyncResult<TNew, E>;
