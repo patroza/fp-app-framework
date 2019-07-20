@@ -20,6 +20,9 @@ export type Ok<TSuccess> = Task<Right<TSuccess>>
 export type Err<TErr> = Task<Left<TErr>>
 const compose = pipeOriginal
 
+export const okTask = <TSuccess = never, TError = never>(a: TSuccess) => TE.fromEither(ok<TSuccess, TError>(a))
+export const errTask = <TSuccess = never, TError = never>(e: TError) => TE.fromEither(err<TSuccess, TError>(e))
+
 export { map, compose }
 
 import { flatten, zip } from "lodash"

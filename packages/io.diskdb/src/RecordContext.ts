@@ -19,6 +19,7 @@ import {
   E,
   TE,
   isErr,
+  okTask,
 } from "@fp-app/fp-ts-extensions"
 import { lock } from "proper-lockfile"
 import { deleteFile, exists, readFile, writeFile } from "./utils"
@@ -45,7 +46,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
   readonly load = (id: string): AsyncResult<T, DbError> => {
     const cachedRecord = this.cache.get(id)
     if (cachedRecord) {
-      return TE.fromEither(ok(cachedRecord.data))
+      return okTask(cachedRecord.data)
     }
     return compose(
       tryReadFromDb(this.type, id),
