@@ -291,27 +291,28 @@ export type AnyResult<T = any, TErr = any> = Result<T, TErr>
 // We create tuples in reverse, under the assumption that the further away we are
 // from previous statements, the less important their output becomes..
 // Alternatively we can always create two variations :)
-// tslint:disable:max-line-length
-const intToFlatTup = (r: any, input: any) => (isOk(r) ? ok([r.right, input[0], input[1]] as const) : err(r.left))
-
 export function chainFlatTupTask<TInput, TInputB, TInput2 extends readonly [TInput, TInputB], T, E>(
   f: (x: TInput2) => AsyncResult<T, E>,
 ): (input: AsyncResult<readonly [TInput, TInputB], E>) => AsyncResult<readonly [T, TInput, TInputB], E>
 export function chainFlatTupTask(f: any) {
-  return TE.chain((input: any) => async () => {
-    const r = await f(input)()
-    return intToFlatTup(r, input)
-  })
+  return TE.chain((input: any) =>
+    pipe(
+      f(input),
+      TE.map(x => [x, ...input] as const),
+    ),
+  )
 }
 
 export function chainFlatTup<TInput, TInputB, TInput2 extends readonly [TInput, TInputB], T, E>(
   f: (x: TInput2) => Result<T, E>,
 ): (input: Result<readonly [TInput, TInputB], E>) => Result<readonly [T, TInput, TInputB], E>
 export function chainFlatTup(f: any) {
-  return E.chain((input: any) => {
-    const r = f(input)
-    return intToFlatTup(r, input)
-  })
+  return E.chain((input: any) =>
+    pipe(
+      f(input),
+      E.map(x => [x, ...input] as const),
+    ),
+  )
 }
 
 export function toMagicTup<T1, T2, T3>(input: readonly [[T1, T2], T3]): readonly [T1, T2, T3]
