@@ -33,18 +33,26 @@ export const toValue = <TNew>(value: TNew) => () => value
 export const toVoid = toValue<void>(void 0)
 // export const endResult = mapStatic<void>(void 0)
 
-// TODO: Should come with flatMap already wrapped aroun it
-export function flatTee<T, T2 extends T, TDontCare, E>(f: PipeFunction<T2, TDontCare, E>): PipeFunction<T, T, E>
-export function flatTee<T, T2 extends T, TDontCare, E>(f: PipeFunction2<T2, TDontCare, E>): (input: T) => Result<T, E>
-export function flatTee(f: any) {
-  return (input: any) => {
-    const r = f(input)
-    if (Promise.resolve(r) === r) {
-      return r.then((x: any) => intTee(x, input))
-    } else {
-      return intTee(r, input)
-    }
-  }
+export function chainTee<T, TDontCare, E>(f: PipeFunction2<T, TDontCare, E>): (inp: Result<T, E>) => Result<T, E>
+export function chainTee(f: any) {
+  return E.chain((input: any) =>
+    pipe(
+      f(input),
+      E.map(() => input),
+    ),
+  )
+}
+
+export function chainTeeTask<T, TDontCare, E>(
+  f: PipeFunction<T, TDontCare, E>,
+): (inp: AsyncResult<T, E>) => AsyncResult<T, E>
+export function chainTeeTask(f: any) {
+  return TE.chain((input: any) =>
+    pipe(
+      f(input),
+      TE.map(() => input),
+    ),
+  )
 }
 
 // TODO: Should come with map already wrapped aroun it
@@ -60,29 +68,28 @@ export function tee(f: any) {
     }
   }
 }
-const intTee = (r: any, input: any) => (isOk(r) ? ok(input) : err(r.left))
-
-const intToTup = (r: any, input: any) => (isOk(r) ? ok([r.right, input]) : err(r.left))
 
 // Easily pass input -> (input -> output) -> [input, output]
 export function TEtoTup<TInput, TInput2 extends TInput, T, EMap>(
   f: (x: TInput2) => AsyncResult<T, EMap>,
 ): (input: TInput) => AsyncResult<readonly [T, TInput], EMap>
 export function TEtoTup(f: any) {
-  return (input: any) => async () => {
-    const r = await f(input)()
-    return intToTup(r, input)
-  }
+  return (input: any) =>
+    pipe(
+      f(input),
+      TE.map(x => [x, input] as const),
+    )
 }
 
 export function EtoTup<TInput, TInput2 extends TInput, T, EMap>(
   f: (x: TInput2) => Result<T, EMap>,
 ): (input: TInput) => Result<readonly [T, TInput], EMap>
 export function EtoTup(f: any) {
-  return (input: any) => {
-    const r = f(input)
-    return intToTup(r, input)
-  }
+  return (input: any) =>
+    pipe(
+      f(input),
+      E.map(x => [x, input] as const),
+    )
 }
 
 // export function ifErrorflatMap<T, TNew, E>(defaultVal: (e: E) => AsyncResult<TNew, E>): (result: Result<T, E>) => AsyncResult<TNew, E>;

@@ -1,4 +1,4 @@
-import { err, success, pipe, AsyncResult, E, isErr } from "@fp-app/fp-ts-extensions"
+import { err, success, pipe, AsyncResult, E, isErr, tee } from "@fp-app/fp-ts-extensions"
 import Event from "../event"
 import { EventHandlerWithDependencies } from "./mediator"
 import { publishType } from "./mediator/publish"
@@ -47,11 +47,7 @@ export default class DomainEventHandler {
       this.processedEvents = processedEvents
       return pipe(
         await commit()(),
-        // tee(map(this.publishIntegrationEvents)),
-        E.map(x => {
-          this.publishIntegrationEvents()
-          return x
-        }),
+        E.map(tee(() => this.publishIntegrationEvents())),
       )
     }
   }
