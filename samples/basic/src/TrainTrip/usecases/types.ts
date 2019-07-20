@@ -8,7 +8,7 @@ import {
   RequestContextBase,
   UnitOfWork,
 } from "@fp-app/framework"
-import { PipeFunction, Result, AsyncResult } from "@fp-app/fp-ts-extensions"
+import { PipeFunction, AsyncResult } from "@fp-app/fp-ts-extensions"
 import { TrainTripPublisher } from "../eventhandlers"
 import { getTrip, sendCloudSyncFake, Template, TravelPlan } from "../infrastructure/api"
 import PaxDefinition from "../PaxDefinition"

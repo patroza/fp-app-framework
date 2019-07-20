@@ -1,4 +1,4 @@
-import { PipeFunction, PipeFunctionN, Result, AsyncResult } from "@fp-app/fp-ts-extensions"
+import { PipeFunction, PipeFunctionN, AsyncResult } from "@fp-app/fp-ts-extensions"
 import Event from "../event"
 import { Disposable } from "../utils"
 import DomainEventHandler from "./domainEventHandler"

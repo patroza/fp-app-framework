@@ -1,4 +1,4 @@
-import { err, map, Result, success, tee, pipe, AsyncResult, TE, E, isErr } from "@fp-app/fp-ts-extensions"
+import { err, success, pipe, AsyncResult, E, isErr } from "@fp-app/fp-ts-extensions"
 import Event from "../event"
 import { EventHandlerWithDependencies } from "./mediator"
 import { publishType } from "./mediator/publish"

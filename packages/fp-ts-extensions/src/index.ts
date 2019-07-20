@@ -67,7 +67,7 @@ const intToTup = (r: any, input: any) => (isOk(r) ? ok([r.right, input]) : err(r
 // Easily pass input -> (input -> output) -> [input, output]
 export function TEtoTup<TInput, TInput2 extends TInput, T, EMap>(
   f: (x: TInput2) => AsyncResult<T, EMap>,
-): <E>(input: TInput) => AsyncResult<readonly [T, TInput], EMap>
+): (input: TInput) => AsyncResult<readonly [T, TInput], EMap>
 export function TEtoTup(f: any) {
   return (input: any) => async () => {
     const r = await f(input)()
@@ -77,7 +77,7 @@ export function TEtoTup(f: any) {
 
 export function EtoTup<TInput, TInput2 extends TInput, T, EMap>(
   f: (x: TInput2) => Result<T, EMap>,
-): <E>(input: TInput) => Result<readonly [T, TInput], E>
+): (input: TInput) => Result<readonly [T, TInput], EMap>
 export function EtoTup(f: any) {
   return (input: any) => {
     const r = f(input)
@@ -248,6 +248,7 @@ export const anyTrue = <TErr = any>(...mappers: any[]): Result<boolean, TErr> =>
   const execution = flatten(zip(mappers, items))
 
   const an = ok<boolean, TErr>(false) as any
+  // @ts-ignore
   return pipe(
     an,
     ...execution,
@@ -286,7 +287,7 @@ const intToFlatTup = (r: any, input: any) => (isOk(r) ? ok([r.right, input[0], i
 
 export function TEtoFlatTup<TInput, TInputB, TInput2 extends readonly [TInput, TInputB], T, EMap>(
   f: (x: TInput2) => AsyncResult<T, EMap>,
-): <E>(input: readonly [TInput, TInputB]) => AsyncResult<readonly [T, TInput, TInputB], EMap>
+): (input: readonly [TInput, TInputB]) => AsyncResult<readonly [T, TInput, TInputB], EMap>
 export function TEtoFlatTup(f: any) {
   return (input: any) => async () => {
     const r = await f(input)()
@@ -296,7 +297,7 @@ export function TEtoFlatTup(f: any) {
 
 export function EtoFlatTup<TInput, TInputB, TInput2 extends readonly [TInput, TInputB], T, EMap>(
   f: (x: TInput2) => Result<T, EMap>,
-): <E>(input: readonly [TInput, TInputB]) => Result<readonly [T, TInput, TInputB], E>
+): (input: readonly [TInput, TInputB]) => Result<readonly [T, TInput, TInputB], EMap>
 export function EtoFlatTup(f: any) {
   return (input: any) => {
     const r = f(input)
