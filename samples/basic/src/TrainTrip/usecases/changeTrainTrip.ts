@@ -14,7 +14,7 @@ import {
   pipe,
   chainTupTask,
   E,
-  TEtoFlatTup,
+  chainFlatTupTask,
   TE,
   liftType,
   compose,
@@ -34,12 +34,10 @@ const changeTrainTrip = createCommand<Input, void, ChangeTrainTripError>("change
         TE.mapLeft(liftType<ChangeTrainTripError>()),
       ),
     ),
-    TE.chain(
-      TEtoFlatTup(([, i]) =>
-        pipe(
-          db.trainTrips.load(i.trainTripId),
-          TE.mapLeft(liftType<ChangeTrainTripError>()),
-        ),
+    chainFlatTupTask(([, i]) =>
+      pipe(
+        db.trainTrips.load(i.trainTripId),
+        TE.mapLeft(liftType<ChangeTrainTripError>()),
       ),
     ),
     TE.chain(([trainTrip, proposal]) =>

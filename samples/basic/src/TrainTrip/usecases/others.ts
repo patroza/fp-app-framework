@@ -1,7 +1,7 @@
 //// Separate endpoint sample; unused.
 
 import { createCommandWithDeps, ForbiddenError, InvalidStateError, ValidationError, DbError } from "@fp-app/framework"
-import { TE, pipe, chainTupTask, TEtoFlatTup, liftType, compose } from "@fp-app/fp-ts-extensions"
+import { TE, pipe, chainTupTask, chainFlatTupTask, liftType, compose } from "@fp-app/fp-ts-extensions"
 import FutureDate from "../FutureDate"
 import TravelClassDefinition, { TravelClassName } from "../TravelClassDefinition"
 import { DbContextKey, defaultDependencies } from "./types"
@@ -18,12 +18,10 @@ export const changeStartDate = createCommand<ChangeStartDateInput, void, ChangeS
           TE.mapLeft(liftType<ChangeStartDateError>()),
         ),
       ),
-      TE.chain(
-        TEtoFlatTup(([, i]) =>
-          pipe(
-            db.trainTrips.load(i.trainTripId),
-            TE.mapLeft(liftType<ChangeStartDateError>()),
-          ),
+      chainFlatTupTask(([, i]) =>
+        pipe(
+          db.trainTrips.load(i.trainTripId),
+          TE.mapLeft(liftType<ChangeStartDateError>()),
         ),
       ),
       TE.chain(([trainTrip, sd]) =>
@@ -54,7 +52,7 @@ export const changeTravelClass = createCommand<ChangeTravelClassInput, void, Cha
         ),
       ),
       TE.chain(
-        TEtoFlatTup(([, i]) =>
+        chainFlatTupTask(([, i]) =>
           pipe(
             db.trainTrips.load(i.trainTripId),
             TE.mapLeft(liftType<ChangeTravelClassError>()),

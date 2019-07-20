@@ -294,24 +294,24 @@ export type AnyResult<T = any, TErr = any> = Result<T, TErr>
 // tslint:disable:max-line-length
 const intToFlatTup = (r: any, input: any) => (isOk(r) ? ok([r.right, input[0], input[1]] as const) : err(r.left))
 
-export function TEtoFlatTup<TInput, TInputB, TInput2 extends readonly [TInput, TInputB], T, EMap>(
-  f: (x: TInput2) => AsyncResult<T, EMap>,
-): (input: readonly [TInput, TInputB]) => AsyncResult<readonly [T, TInput, TInputB], EMap>
-export function TEtoFlatTup(f: any) {
-  return (input: any) => async () => {
+export function chainFlatTupTask<TInput, TInputB, TInput2 extends readonly [TInput, TInputB], T, E>(
+  f: (x: TInput2) => AsyncResult<T, E>,
+): (input: AsyncResult<readonly [TInput, TInputB], E>) => AsyncResult<readonly [T, TInput, TInputB], E>
+export function chainFlatTupTask(f: any) {
+  return TE.chain((input: any) => async () => {
     const r = await f(input)()
     return intToFlatTup(r, input)
-  }
+  })
 }
 
-export function EtoFlatTup<TInput, TInputB, TInput2 extends readonly [TInput, TInputB], T, EMap>(
-  f: (x: TInput2) => Result<T, EMap>,
-): (input: readonly [TInput, TInputB]) => Result<readonly [T, TInput, TInputB], EMap>
-export function EtoFlatTup(f: any) {
-  return (input: any) => {
+export function chainFlatTup<TInput, TInputB, TInput2 extends readonly [TInput, TInputB], T, E>(
+  f: (x: TInput2) => Result<T, E>,
+): (input: Result<readonly [TInput, TInputB], E>) => Result<readonly [T, TInput, TInputB], E>
+export function chainFlatTup(f: any) {
+  return E.chain((input: any) => {
     const r = f(input)
     return intToFlatTup(r, input)
-  }
+  })
 }
 
 export function toMagicTup<T1, T2, T3>(input: readonly [[T1, T2], T3]): readonly [T1, T2, T3]
