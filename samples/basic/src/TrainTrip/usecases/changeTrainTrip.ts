@@ -11,13 +11,13 @@ import {
   ok,
   resultTuple,
   valueOrUndefined,
-  compose,
+  pipe,
   TEtoTup,
   E,
   TEtoFlatTup,
   TE,
   liftType,
-  pipe,
+  compose,
 } from "@fp-app/fp-ts-extensions"
 import FutureDate from "../FutureDate"
 import PaxDefinition, { Pax } from "../PaxDefinition"
@@ -27,10 +27,10 @@ import { DbContextKey, defaultDependencies } from "./types"
 const createCommand = createCommandWithDeps({ db: DbContextKey, ...defaultDependencies })
 
 const changeTrainTrip = createCommand<Input, void, ChangeTrainTripError>("changeTrainTrip", ({ db }) =>
-  pipe(
+  compose(
     TE.chain(
       TEtoTup(i =>
-        compose(
+        pipe(
           TE.fromEither(validateStateProposition(i)),
           TE.mapLeft(liftType<ChangeTrainTripError>()),
         ),
@@ -38,14 +38,14 @@ const changeTrainTrip = createCommand<Input, void, ChangeTrainTripError>("change
     ),
     TE.chain(
       TEtoFlatTup(([, i]) =>
-        compose(
+        pipe(
           db.trainTrips.load(i.trainTripId),
           TE.mapLeft(liftType<ChangeTrainTripError>()),
         ),
       ),
     ),
     TE.chain(([trainTrip, proposal]) =>
-      compose(
+      pipe(
         TE.fromEither(trainTrip.proposeChanges(proposal)),
         TE.mapLeft(liftType<ChangeTrainTripError>()),
       ),
@@ -66,17 +66,17 @@ export interface StateProposition {
 }
 
 const validateStateProposition = ({ travelClass, pax, startDate, ...rest }: StateProposition) =>
-  compose(
+  pipe(
     resultTuple(
-      compose(
+      pipe(
         valueOrUndefined(travelClass, TravelClassDefinition.create),
         E.mapLeft(toFieldError("travelClass")),
       ),
-      compose(
+      pipe(
         valueOrUndefined(startDate, FutureDate.create),
         E.mapLeft(toFieldError("startDate")),
       ),
-      compose(
+      pipe(
         valueOrUndefined(pax, PaxDefinition.create),
         E.mapLeft(toFieldError("pax")),
       ),

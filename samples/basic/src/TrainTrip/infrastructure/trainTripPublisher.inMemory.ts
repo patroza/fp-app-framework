@@ -2,7 +2,7 @@ import { TrainTripPublisher } from "@/TrainTrip/eventhandlers"
 import { TrainTripId } from "@/TrainTrip/TrainTrip"
 import { getLogger, paramInject, requestInNewScopeKey, requestInNewScopeType } from "@fp-app/framework"
 import registerCloud from "../usecases/registerCloud"
-import { compose, TE } from "@fp-app/fp-ts-extensions"
+import { pipe, TE } from "@fp-app/fp-ts-extensions"
 
 /**
  * Poor man's queue, great for testing. Do not use in production, or you may loose queued tasks on server restart
@@ -35,7 +35,7 @@ export default class TrainTripPublisherInMemory implements TrainTripPublisher {
     try {
       this.logger.log(`Publishing TrainTrip to Cloud: ${trainTripId}`)
       // Talk to the Cloud Service to sync with Cloud
-      await compose(
+      await pipe(
         this.request(registerCloud, { trainTripId }),
         TE.mapLeft(err => this.logger.error(err)),
       )()

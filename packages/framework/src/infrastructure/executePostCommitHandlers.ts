@@ -1,6 +1,6 @@
 import { benchLog, getLogger } from "../utils"
 import { NamedHandlerWithDependencies, requestInNewScopeType } from "./mediator"
-import { compose, TE } from "@fp-app/fp-ts-extensions"
+import { pipe, TE } from "@fp-app/fp-ts-extensions"
 
 const logger = getLogger("executePostCommitHandlers")
 
@@ -20,7 +20,7 @@ async function tryProcessEvents(executeIntegrationEvent: requestInNewScopeType, 
     for (const pch of hndlrs) {
       await benchLog(
         () =>
-          compose(
+          pipe(
             executeIntegrationEvent(pch, evt),
             TE.mapLeft(err => logger.warn(`Error during applying IntegrationEvents`, err)),
           )(),

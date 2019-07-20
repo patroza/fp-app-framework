@@ -19,7 +19,7 @@ import {
   success,
   valueOrUndefined,
   E,
-  compose,
+  pipe,
 } from "@fp-app/fp-ts-extensions"
 import isEqual from "lodash/fp/isEqual"
 import FutureDate from "./FutureDate"
@@ -75,10 +75,10 @@ export default class TrainTrip extends Entity {
   }
 
   proposeChanges(state: StateProposition) {
-    return compose(
+    return pipe(
       this.confirmUserChangeAllowed(),
       E.chain(() =>
-        compose(
+        pipe(
           this.applyDefinedChanges(state),
           E.mapLeft(liftType<ValidationError | InvalidStateError | ForbiddenError>()),
         ),
@@ -115,7 +115,7 @@ export default class TrainTrip extends Entity {
   ////////////
   //// Separate sample; not used other than testing
   changeStartDate(startDate: FutureDate) {
-    return compose(
+    return pipe(
       this.confirmUserChangeAllowed(),
       E.map(() => startDate),
       E.map(this.intChangeStartDate),
@@ -124,7 +124,7 @@ export default class TrainTrip extends Entity {
   }
 
   changePax(pax: PaxDefinition) {
-    return compose(
+    return pipe(
       this.confirmUserChangeAllowed(),
       E.map(() => pax),
       E.map(this.intChangePax),
@@ -133,10 +133,10 @@ export default class TrainTrip extends Entity {
   }
 
   changeTravelClass(travelClass: TravelClassDefinition) {
-    return compose(
+    return pipe(
       this.confirmUserChangeAllowed(),
       E.chain(() =>
-        compose(
+        pipe(
           this.intChangeTravelClass(travelClass),
           E.mapLeft(liftType<ForbiddenError | InvalidStateError>()),
         ),

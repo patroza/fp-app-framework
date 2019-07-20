@@ -18,7 +18,7 @@ import {
   requestType,
   ValidationError,
 } from "@fp-app/framework"
-import { Result, compose, TE, E, liftType } from "@fp-app/fp-ts-extensions"
+import { Result, pipe, TE, E, liftType } from "@fp-app/fp-ts-extensions"
 
 export default function generateKoaHandler<TDeps, I, T, E extends ErrorBase, E2 extends ValidationError>(
   request: requestType,
@@ -32,15 +32,15 @@ export default function generateKoaHandler<TDeps, I, T, E extends ErrorBase, E2 
 
     // DbError, because request handler is enhanced with it (decorator)
     // E2 because the validator enhances it.
-    const task = compose(
+    const task = pipe(
       TE.fromEither(
-        compose(
+        pipe(
           validate(input),
           E.mapLeft(liftType<DbError | E | E2>()),
         ),
       ),
       TE.chain(validatedInput =>
-        compose(
+        pipe(
           request(handler, validatedInput),
           TE.mapLeft(liftType<DbError | E | E2>()),
         ),

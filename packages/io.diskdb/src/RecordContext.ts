@@ -14,7 +14,7 @@ import {
   PipeFunctionN,
   startWithVal,
   success,
-  compose,
+  pipe,
   AsyncResult,
   E,
   TE,
@@ -48,7 +48,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
     if (cachedRecord) {
       return okTask(cachedRecord.data)
     }
-    return compose(
+    return pipe(
       tryReadFromDb(this.type, id),
       TE.map(serializedStr => JSON.parse(serializedStr) as SerializedDBRecord),
       TE.map(({ data, version }) => ({ data: this.deserializer(data), version })),
@@ -69,7 +69,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
     forEachSave?: (item: T) => AsyncResult<void, DbError>,
     forEachDelete?: (item: T) => AsyncResult<void, DbError>,
   ): AsyncResult<void, DbError> =>
-    compose(
+    pipe(
       this.handleDeletions(forEachDelete),
       TE.chain(() => this.handleInsertionsAndUpdates(forEachSave)),
     )
@@ -120,7 +120,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
     }
 
     return await lockRecordOnDisk(this.type, record.id, () =>
-      compose(
+      pipe(
         tryReadFromDb(this.type, record.id),
         TE.chain(
           (storedSerialized): AsyncResult<void, DbError> => async () => {
@@ -138,7 +138,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
 
   private readonly deleteRecord = (record: T): AsyncResult<void, DbError> =>
     lockRecordOnDisk(this.type, record.id, () =>
-      compose(
+      pipe(
         startWithVal(void 0)<DbError>(),
         TE.chain(() => async () => E.right(await deleteFile(getFilename(this.type, record.id)))),
       ),
@@ -167,7 +167,7 @@ interface CachedRecord<T> {
 }
 
 const lockRecordOnDisk = <T>(type: string, id: string, cb: PipeFunctionN<T, DbError>) =>
-  compose(
+  pipe(
     tryLock(type, id),
     TE.mapLeft(liftType<DbError>()),
     TE.chain(release => async () => {

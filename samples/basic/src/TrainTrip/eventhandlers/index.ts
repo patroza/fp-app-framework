@@ -9,7 +9,7 @@ import {
   ApiError,
   InvalidStateError,
 } from "@fp-app/framework"
-import { compose, TE, E, liftType, pipe } from "@fp-app/fp-ts-extensions"
+import { pipe, TE, E, liftType, compose } from "@fp-app/fp-ts-extensions"
 import lockTrainTrip from "../usecases/lockTrainTrip"
 import { CustomerRequestedChanges } from "./integration.events"
 
@@ -38,14 +38,14 @@ createIntegrationEventHandler<TrainTripCreated, void, never>(
   /* on */ TrainTripCreated,
   "ScheduleCloudSync",
   ({ trainTripPublisher }) =>
-    pipe(TE.chain(({ trainTripId }) => async () => E.right(await trainTripPublisher.register(trainTripId)))),
+    compose(TE.chain(({ trainTripId }) => async () => E.right(await trainTripPublisher.register(trainTripId)))),
 )
 
 createIntegrationEventHandler<TrainTripStateChanged, void, never>(
   /* on */ TrainTripStateChanged,
   "EitherDebounceOrScheduleCloudSync",
   ({ trainTripPublisher }) =>
-    pipe(TE.chain(({ trainTripId }) => async () => E.right(await trainTripPublisher.register(trainTripId)))),
+    compose(TE.chain(({ trainTripId }) => async () => E.right(await trainTripPublisher.register(trainTripId)))),
 )
 
 const createDomainEventHandler = createDomainEventHandlerWithDeps({ db: DbContextKey, getTrip: getTripKey })
@@ -54,15 +54,15 @@ createDomainEventHandler<TrainTripStateChanged, void, RefreshTripInfoError>(
   /* on */ TrainTripStateChanged,
   "RefreshTripInfo",
   ({ db, getTrip }) =>
-    pipe(
+    compose(
       TE.chain(({ trainTripId }) =>
-        compose(
+        pipe(
           db.trainTrips.load(trainTripId),
           TE.mapLeft(liftType<RefreshTripInfoError>()),
         ),
       ),
       TE.chain(trainTrip =>
-        compose(
+        pipe(
           getTrip(trainTrip.currentTravelClassConfiguration.travelClass.templateId),
           TE.map(trip => trainTrip.updateTrip(trip)),
           TE.mapLeft(liftType<RefreshTripInfoError>()),
@@ -75,7 +75,9 @@ createIntegrationEventHandler<UserInputReceived, void, never>(
   /* on */ UserInputReceived,
   "DebouncePendingCloudSync",
   ({ trainTripPublisher }) =>
-    pipe(TE.chain(({ trainTripId }) => async () => E.right(await trainTripPublisher.registerIfPending(trainTripId)))),
+    compose(
+      TE.chain(({ trainTripId }) => async () => E.right(await trainTripPublisher.registerIfPending(trainTripId))),
+    ),
 )
 
 // const createIntegrationCommandEventHandler = createIntegrationEventHandlerWithDeps({ db: DbContextKey, ...defaultDependencies })

@@ -7,7 +7,7 @@ import {
   toFieldError,
   ValidationError,
 } from "@fp-app/framework"
-import { err, ok, Result, resultTuple, tee, compose, E, TE, liftType, TEtoTup, pipe } from "@fp-app/fp-ts-extensions"
+import { err, ok, Result, resultTuple, tee, pipe, E, TE, liftType, TEtoTup, compose } from "@fp-app/fp-ts-extensions"
 import FutureDate from "../FutureDate"
 import PaxDefinition, { Pax } from "../PaxDefinition"
 import TrainTrip from "../TrainTrip"
@@ -16,16 +16,16 @@ import { DbContextKey, defaultDependencies, getTripKey } from "./types"
 const createCommand = createCommandWithDeps({ db: DbContextKey, getTrip: getTripKey, ...defaultDependencies })
 
 const createTrainTrip = createCommand<Input, string, CreateError>("createTrainTrip", ({ db, getTrip }) =>
-  pipe(
+  compose(
     TE.chain(i =>
-      compose(
+      pipe(
         TE.fromEither(validateCreateTrainTripInfo(i)),
         TE.mapLeft(liftType<CreateError>()),
       ),
     ),
     TE.chain(
       TEtoTup(i =>
-        compose(
+        pipe(
           getTrip(i.templateId),
           TE.mapLeft(liftType<CreateError>()),
         ),
@@ -33,7 +33,7 @@ const createTrainTrip = createCommand<Input, string, CreateError>("createTrainTr
     ),
     TE.chain(([trip, proposal]) =>
       TE.fromEither(
-        compose(
+        pipe(
           E.right<CreateError, TrainTrip>(TrainTrip.create(proposal, trip)),
           E.map(tee(db.trainTrips.add)),
           E.map(trainTrip => trainTrip.id),
@@ -50,20 +50,20 @@ export interface Input {
   startDate: string
 }
 
-// the problem is that the fp-ts pipe doesnt return a data last function, but data first ;-)
+// the problem is that the fp-ts compose doesnt return a data last function, but data first ;-)
 
 const validateCreateTrainTripInfo = ({ pax, startDate, templateId }: Input) =>
-  compose(
+  pipe(
     resultTuple(
-      compose(
+      pipe(
         PaxDefinition.create(pax),
         E.mapLeft(toFieldError("pax")),
       ),
-      compose(
+      pipe(
         FutureDate.create(startDate),
         E.mapLeft(toFieldError("startDate")),
       ),
-      compose(
+      pipe(
         validateString(templateId),
         E.mapLeft(toFieldError("templateId")),
       ),
@@ -80,18 +80,18 @@ const validateCreateTrainTripInfo = ({ pax, startDate, templateId }: Input) =>
     // flatMap(input =>
     //   resultTuple3(
     //     input,
-    //     ({ pax }) => PaxDefinition.create(pax).pipe(mapErr(toFieldError('pax'))),
-    //     ({ startDate }) => FutureDate.create(startDate).pipe(mapErr(toFieldError('startDate'))),
-    //     ({ templateId }) => validateString(templateId).pipe(mapErr(toFieldError('templateId'))),
+    //     ({ pax }) => PaxDefinition.create(pax).compose(mapErr(toFieldError('pax'))),
+    //     ({ startDate }) => FutureDate.create(startDate).compose(mapErr(toFieldError('startDate'))),
+    //     ({ templateId }) => validateString(templateId).compose(mapErr(toFieldError('templateId'))),
     //   ).mapErr(combineValidationErrors),
     // ),
 
     // Alt 2
     // Why doesn't this work?
     // flatMap(resultTuple2(
-    //   ({pax}) => PaxDefinition.create(pax).pipe(mapErr(toFieldError('pax'))),
-    //   ({startDate}) => FutureDate.create(startDate).pipe(mapErr(toFieldError('startDate'))),
-    //   ({templateId}) => validateString(templateId).pipe(mapErr(toFieldError('templateId'))),
+    //   ({pax}) => PaxDefinition.create(pax).compose(mapErr(toFieldError('pax'))),
+    //   ({startDate}) => FutureDate.create(startDate).compose(mapErr(toFieldError('startDate'))),
+    //   ({templateId}) => validateString(templateId).compose(mapErr(toFieldError('templateId'))),
     // )),
     // mapErr(combineValidationErrors),
   )

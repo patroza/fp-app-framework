@@ -1,9 +1,9 @@
 import { createValidator, Joi, predicate, typedKeysOf, ValidationError } from "@fp-app/framework"
-import { Result, compose, E } from "@fp-app/fp-ts-extensions"
+import { Result, pipe, E } from "@fp-app/fp-ts-extensions"
 
 export default class PaxDefinition {
   static create(pax: Pax): Result<PaxDefinition, ValidationError> {
-    return compose(
+    return pipe(
       validate(pax),
       E.chain(predicate(p => typedKeysOf(p).some(k => p[k] > 0), "pax requires at least 1 person")),
       E.chain(

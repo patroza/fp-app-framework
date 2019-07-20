@@ -3,17 +3,7 @@
 import TrainTrip, { Price } from "@/TrainTrip/TrainTrip"
 import { createTravelPlanType, getTemplateType, getTravelPlanType } from "@/TrainTrip/usecases/types"
 import { ApiError, ConnectionError, InvalidStateError, RecordNotFound, typedKeysOf } from "@fp-app/framework"
-import {
-  err,
-  liftType,
-  map,
-  ok,
-  PipeFunction,
-  sequenceAsync,
-  startWithVal,
-  compose,
-  TE,
-} from "@fp-app/fp-ts-extensions"
+import { err, liftType, map, ok, PipeFunction, sequenceAsync, startWithVal, pipe, TE } from "@fp-app/fp-ts-extensions"
 import { v4 } from "uuid"
 import { Pax } from "../PaxDefinition"
 import { TravelClassName } from "../TravelClassDefinition"
@@ -24,7 +14,7 @@ const getTrip = ({
 }: {
   getTemplate: getTemplateType
 }): PipeFunction<string, TripWithSelectedTravelClass, ApiError | InvalidStateError> => templateId =>
-  compose(
+  pipe(
     getTemplate(templateId),
     TE.mapLeft(liftType<InvalidStateError | ApiError>()),
     TE.chain(toTrip(getTemplate)),
@@ -38,25 +28,25 @@ const toTrip = (getTemplate: getTemplateType) => (tpl: Template) => {
         .filter(x => x !== currentTravelClass.name)
         .map(slKey => tpl.travelClasses[slKey]!)
         .map(sl =>
-          compose(
+          pipe(
             getTemplate(sl.id),
             map(tplToTravelClass),
           ),
         ),
     ),
   )
-  return compose(
+  return pipe(
     seq,
     TE.mapLeft(liftType<ApiError | InvalidStateError>()),
     // TODO: should be chain Trip.create
     TE.chain(i =>
-      compose(
+      pipe(
         TE.fromEither(Trip.create(i)),
         TE.mapLeft(liftType<ApiError | InvalidStateError>()),
       ),
     ),
     TE.chain(trip =>
-      compose(
+      pipe(
         TE.fromEither(TripWithSelectedTravelClass.create(trip, currentTravelClass.name)),
         TE.mapLeft(liftType<ApiError | InvalidStateError>()),
       ),
@@ -93,14 +83,15 @@ const mockedTemplates: () => { [key: string]: Template } = () => ({
 const getPricingFake = ({ getTemplate }: { pricingApiUrl: string; getTemplate: getTemplateType }) => (
   templateId: string,
 ) =>
-  compose(
+  pipe(
     getTemplate(templateId),
     map(getFakePriceFromTemplate),
   )
 
-const getFakePriceFromTemplate = (_: any) => ({ price: { amount: 100, currency: "EUR" } })
+const getFakePriceFromTemplate = () => ({ price: { amount: 100, currency: "EUR" } })
 
-const createTravelPlanFake = ({  }: { travelPlanApiUrl: string }): createTravelPlanType => async () => ok(v4())
+const createTravelPlanFake = ({  }: { travelPlanApiUrl: string }): createTravelPlanType => () => async () =>
+  ok<string, ConnectionError>(v4())
 
 const sendCloudSyncFake = ({  }: { cloudUrl: string }): PipeFunction<TrainTrip, string, ConnectionError> => () =>
   TE.right<ConnectionError, string>(v4())

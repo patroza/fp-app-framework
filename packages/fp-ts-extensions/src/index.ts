@@ -2,7 +2,7 @@
 
 import { Either, Right, Left, left, right } from "fp-ts/lib/Either"
 import { map } from "fp-ts/lib/TaskEither"
-import { pipe as pipeOriginal } from "fp-ts/lib/pipeable"
+import { pipe } from "fp-ts/lib/pipeable"
 
 import * as E from "fp-ts/lib/Either"
 import * as T from "fp-ts/lib/Task"
@@ -18,17 +18,16 @@ export const ok = <TSuccess = never, TError = never>(a: TSuccess): Result<TSucce
   right<TError, TSuccess>(a)
 export type Ok<TSuccess> = Task<Right<TSuccess>>
 export type Err<TErr> = Task<Left<TErr>>
-const compose = pipeOriginal
 
 export const okTask = <TSuccess = never, TError = never>(a: TSuccess) => TE.fromEither(ok<TSuccess, TError>(a))
 export const errTask = <TSuccess = never, TError = never>(e: TError) => TE.fromEither(err<TSuccess, TError>(e))
 
-export { map, compose }
+export { map, pipe }
 
 import { flatten, zip } from "lodash"
 import { TaskEither } from "fp-ts/lib/TaskEither"
 import { Task } from "fp-ts/lib/Task"
-// useful tools for .pipe( continuations
+// useful tools for .compose( continuations
 export const mapStatic = <TCurrent, TNew>(value: TNew) => map<TCurrent, TNew>(toValue(value))
 export const toValue = <TNew>(value: TNew) => () => value
 export const toVoid = toValue<void>(void 0)
@@ -114,7 +113,7 @@ export function ifError(defaultVal: any) {
 export const joinError = <T>(result: Result<T, string[]>) =>
   pipe(
     result,
-    TE.mapLeft(x => x.join("\n")),
+    E.mapLeft(x => x.join("\n")),
   )
 
 export function resultTuple<T, T2, E>(r1: Result<T, E>, r2: Result<T2, E>): Result<readonly [T, T2], E[]>
@@ -146,7 +145,7 @@ export function resultTuple(...results: Result<any, any>[]) {
 }
 
 export const sequence = <T, E>(results: Result<T, E>[]): Result<T[], E> => {
-  return compose(
+  return pipe(
     resultAll(results),
     E.mapLeft(flattenErrors),
   )
@@ -249,7 +248,7 @@ export const anyTrue = <TErr = any>(...mappers: any[]): Result<boolean, TErr> =>
   const execution = flatten(zip(mappers, items))
 
   const an = ok<boolean, TErr>(false) as any
-  return compose(
+  return pipe(
     an,
     ...execution,
     map(() => hasChanged),
@@ -257,11 +256,11 @@ export const anyTrue = <TErr = any>(...mappers: any[]): Result<boolean, TErr> =>
 }
 
 // TODO: what if you could replace
-// (event) => kickAsync(event).pipe(
+// (event) => kickAsync(event).compose(
 // with:
-// pipe(
+// compose(
 
-// it would have to generate (event) => kickAsync(event).pipe(
+// it would have to generate (event) => kickAsync(event).compose(
 // but also it would mean to add: map(event => event.id) to get just the id.
 // const startWithValInt = <TErr>() => <T>(value: T) => ok<T, TErr>(value) as Result<T, TErr>
 
@@ -391,40 +390,40 @@ export function resultTuple3(input: any, ...resultFNs: ((input: any) => Result<a
 
 export const success = <TErr>() => ok<void, TErr>(void 0)
 
-// const pipe = (...args) => <T>(input: T) =>
-//   compose(
+// const compose = (...args) => <T>(input: T) =>
+//   pipe(
 //     TE.right(input),
 //     ...args,
 //   )
 
 // export const pipeE = (...args) => <T>(input: T) =>
-//   compose(
+//   pipe(
 //     E.right(input),
 //     ...args,
 //   )
 
-export function pipe<TInput, TError, TOutput>(
+export function compose<TInput, TError, TOutput>(
   ab: (c: TE.TaskEither<TError, TInput>) => TE.TaskEither<TError, TOutput>,
 ): (input: TInput) => TE.TaskEither<TError, TOutput>
-export function pipe<TInput, TError, B, TOutput>(
+export function compose<TInput, TError, B, TOutput>(
   ab: (a: TE.TaskEither<TError, TInput>) => TE.TaskEither<TError, B>,
   bc: (c: TE.TaskEither<TError, B>) => TE.TaskEither<TError, TOutput>,
 ): (input: TInput) => TE.TaskEither<TError, TOutput>
-export function pipe<TInput, TError, B, C, TOutput>(
+export function compose<TInput, TError, B, C, TOutput>(
   ab: (a: TE.TaskEither<TError, TInput>) => TE.TaskEither<TError, B>,
   bc: (b: TE.TaskEither<TError, B>) => TE.TaskEither<TError, C>,
   cd: (c: TE.TaskEither<TError, C>) => TE.TaskEither<TError, TOutput>,
 ): (input: TInput) => TE.TaskEither<TError, TOutput>
-export function pipe<TInput, TError, B, C, D, TOutput>(
+export function compose<TInput, TError, B, C, D, TOutput>(
   ab: (a: TE.TaskEither<TError, TInput>) => TE.TaskEither<TError, B>,
   bc: (b: TE.TaskEither<TError, B>) => TE.TaskEither<TError, C>,
   cd: (b: TE.TaskEither<TError, C>) => TE.TaskEither<TError, D>,
   de: (c: TE.TaskEither<TError, D>) => TE.TaskEither<TError, TOutput>,
 ): (input: TInput) => TE.TaskEither<TError, TOutput>
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function pipe<TInput, TError, TOutput>(...a: any[]) {
+export function compose<TInput, TError, TOutput>(...a: any[]) {
   return (input: TInput) =>
-    compose<TE.TaskEither<TError, TInput>, TE.TaskEither<TError, TOutput>>(
+    pipe<TE.TaskEither<TError, TInput>, TE.TaskEither<TError, TOutput>>(
       TE.right<TError, TInput>(input),
       // @ts-ignore
       ...a,
