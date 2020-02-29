@@ -437,3 +437,32 @@ export function compose<TInput, TError, TOutput>(...a: any[]) {
       ...a,
     )
 }
+
+export function composeE<TInput, TError, TOutput>(
+  ab: (c: E.Either<TError, TInput>) => E.Either<TError, TOutput>,
+): (input: TInput) => E.Either<TError, TOutput>
+export function composeE<TInput, TError, B, TOutput>(
+  ab: (a: E.Either<TError, TInput>) => E.Either<TError, B>,
+  bc: (c: E.Either<TError, B>) => E.Either<TError, TOutput>,
+): (input: TInput) => E.Either<TError, TOutput>
+export function composeE<TInput, TError, B, C, TOutput>(
+  ab: (a: E.Either<TError, TInput>) => E.Either<TError, B>,
+  bc: (b: E.Either<TError, B>) => E.Either<TError, C>,
+  cd: (c: E.Either<TError, C>) => E.Either<TError, TOutput>,
+): (input: TInput) => E.Either<TError, TOutput>
+export function composeE<TInput, TError, B, C, D, TOutput>(
+  ab: (a: E.Either<TError, TInput>) => E.Either<TError, B>,
+  bc: (b: E.Either<TError, B>) => E.Either<TError, C>,
+  cd: (b: E.Either<TError, C>) => E.Either<TError, D>,
+  de: (c: E.Either<TError, D>) => E.Either<TError, TOutput>,
+): (input: TInput) => E.Either<TError, TOutput>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function composeE<TInput, TError, TOutput>(...a: any[]) {
+  return (input: TInput) =>
+    pipe<E.Either<TError, TInput>, E.Either<TError, TOutput>>(
+      E.right<TError, TInput>(input),
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // @ts-ignore
+      ...a,
+    )
+}
