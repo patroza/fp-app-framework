@@ -49,7 +49,7 @@
     "prettier": "prettier --write \"src/**/*.ts\"",
     "test": "TSC_WATCHFILE=UseFsEventsWithFallbackDynamicPolling jest",
     "test:compile": "tsc --noEmit",
-    "test:lint": "eslint \"src/**/*.ts\"",
-    "testsuite": "TSC_WATCHFILE=UseFsEventsWithFallbackDynamicPolling yarn test:compile && yarn test:lint && yarn test"
+    "lint": "eslint \"src/**/*.ts\"",
+    "testsuite": "TSC_WATCHFILE=UseFsEventsWithFallbackDynamicPolling yarn test:compile && yarn lint && yarn test"
   }
 }
