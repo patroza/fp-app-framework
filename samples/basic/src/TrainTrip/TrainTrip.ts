@@ -29,7 +29,7 @@ import Trip, { TravelClass, TripWithSelectedTravelClass } from "./Trip"
 
 export default class TrainTrip extends Entity {
   /** the primary way to create a new TrainTrip */
-  static create({ startDate, pax }: { startDate: FutureDate; pax: PaxDefinition }, trip: TripWithSelectedTravelClass) {
+  static create({ pax, startDate }: { startDate: FutureDate; pax: PaxDefinition }, trip: TripWithSelectedTravelClass) {
     const travelClassConfiguration = trip.travelClasses.map(x => new TravelClassConfiguration(x))
     const currentTravelClassConfiguration = travelClassConfiguration.find(
       x => x.travelClass.name === trip.currentTravelClass.name,
@@ -136,10 +136,7 @@ export default class TrainTrip extends Entity {
     return pipe(
       this.confirmUserChangeAllowed(),
       E.chain(() =>
-        pipe(
-          this.intChangeTravelClass(travelClass),
-          E.mapLeft(liftType<ForbiddenError | InvalidStateError>()),
-        ),
+        pipe(this.intChangeTravelClass(travelClass), E.mapLeft(liftType<ForbiddenError | InvalidStateError>())),
       ),
       E.map(this.createChangeEvents),
     )
@@ -147,7 +144,7 @@ export default class TrainTrip extends Entity {
   //// End Separate sample; not used other than testing
   ////////////
 
-  private readonly applyDefinedChanges = ({ startDate, pax, travelClass }: StateProposition) =>
+  private readonly applyDefinedChanges = ({ pax, startDate, travelClass }: StateProposition) =>
     anyTrue<ValidationError | InvalidStateError>(
       E.map(() => applyIfNotUndefined(startDate, this.intChangeStartDate)),
       E.map(() => applyIfNotUndefined(pax, this.intChangePax)),

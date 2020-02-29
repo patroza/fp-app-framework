@@ -29,18 +29,8 @@ const createCommand = createCommandWithDeps({ db: DbContextKey, getTrip: getTrip
 
 const createTrainTrip = createCommand<Input, string, CreateError>("createTrainTrip", ({ db, getTrip }) =>
   compose(
-    TE.chain(i =>
-      pipe(
-        TE.fromEither(validateCreateTrainTripInfo(i)),
-        TE.mapLeft(liftType<CreateError>()),
-      ),
-    ),
-    chainTupTask(i =>
-      pipe(
-        getTrip(i.templateId),
-        TE.mapLeft(liftType<CreateError>()),
-      ),
-    ),
+    TE.chain(i => pipe(TE.fromEither(validateCreateTrainTripInfo(i)), TE.mapLeft(liftType<CreateError>()))),
+    chainTupTask(i => pipe(getTrip(i.templateId), TE.mapLeft(liftType<CreateError>()))),
     TE.chain(([trip, proposal]) =>
       TE.fromEither(
         pipe(
@@ -65,18 +55,9 @@ export interface Input {
 const validateCreateTrainTripInfo = ({ pax, startDate, templateId }: Input) =>
   pipe(
     resultTuple(
-      pipe(
-        PaxDefinition.create(pax),
-        E.mapLeft(toFieldError("pax")),
-      ),
-      pipe(
-        FutureDate.create(startDate),
-        E.mapLeft(toFieldError("startDate")),
-      ),
-      pipe(
-        validateString(templateId),
-        E.mapLeft(toFieldError("templateId")),
-      ),
+      pipe(PaxDefinition.create(pax), E.mapLeft(toFieldError("pax"))),
+      pipe(FutureDate.create(startDate), E.mapLeft(toFieldError("startDate"))),
+      pipe(validateString(templateId), E.mapLeft(toFieldError("templateId"))),
     ),
     E.mapLeft(combineValidationErrors),
 

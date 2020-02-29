@@ -28,23 +28,10 @@ const createCommand = createCommandWithDeps({ db: DbContextKey, ...defaultDepend
 
 const changeTrainTrip = createCommand<Input, void, ChangeTrainTripError>("changeTrainTrip", ({ db }) =>
   compose(
-    chainTupTask(i =>
-      pipe(
-        TE.fromEither(validateStateProposition(i)),
-        TE.mapLeft(liftType<ChangeTrainTripError>()),
-      ),
-    ),
-    chainFlatTupTask(([, i]) =>
-      pipe(
-        db.trainTrips.load(i.trainTripId),
-        TE.mapLeft(liftType<ChangeTrainTripError>()),
-      ),
-    ),
+    chainTupTask(i => pipe(TE.fromEither(validateStateProposition(i)), TE.mapLeft(liftType<ChangeTrainTripError>()))),
+    chainFlatTupTask(([, i]) => pipe(db.trainTrips.load(i.trainTripId), TE.mapLeft(liftType<ChangeTrainTripError>()))),
     TE.chain(([trainTrip, proposal]) =>
-      pipe(
-        TE.fromEither(trainTrip.proposeChanges(proposal)),
-        TE.mapLeft(liftType<ChangeTrainTripError>()),
-      ),
+      pipe(TE.fromEither(trainTrip.proposeChanges(proposal)), TE.mapLeft(liftType<ChangeTrainTripError>())),
     ),
   ),
 )
@@ -61,21 +48,12 @@ export interface StateProposition {
   travelClass?: string
 }
 
-const validateStateProposition = ({ travelClass, pax, startDate, ...rest }: StateProposition) =>
+const validateStateProposition = ({ pax, startDate, travelClass, ...rest }: StateProposition) =>
   pipe(
     resultTuple(
-      pipe(
-        valueOrUndefined(travelClass, TravelClassDefinition.create),
-        E.mapLeft(toFieldError("travelClass")),
-      ),
-      pipe(
-        valueOrUndefined(startDate, FutureDate.create),
-        E.mapLeft(toFieldError("startDate")),
-      ),
-      pipe(
-        valueOrUndefined(pax, PaxDefinition.create),
-        E.mapLeft(toFieldError("pax")),
-      ),
+      pipe(valueOrUndefined(travelClass, TravelClassDefinition.create), E.mapLeft(toFieldError("travelClass"))),
+      pipe(valueOrUndefined(startDate, FutureDate.create), E.mapLeft(toFieldError("startDate"))),
+      pipe(valueOrUndefined(pax, PaxDefinition.create), E.mapLeft(toFieldError("pax"))),
       ok(rest),
     ),
     E.mapLeft(combineValidationErrors),

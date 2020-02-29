@@ -28,7 +28,10 @@ export default class TrainTripPublisherInMemory implements TrainTripPublisher {
     if (current) {
       clearTimeout(current)
     }
-    this.map.set(trainTripId, setTimeout(() => this.tryPublishTrainTrip(trainTripId), CLOUD_PUBLISH_DELAY))
+    this.map.set(
+      trainTripId,
+      setTimeout(() => this.tryPublishTrainTrip(trainTripId), CLOUD_PUBLISH_DELAY),
+    )
   }
 
   private tryPublishTrainTrip = async (trainTripId: string) => {

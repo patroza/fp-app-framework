@@ -14,7 +14,7 @@ export default class KoaRouteBuilder extends RouteBuilder<Koa.Context> {
       router.use(authMiddleware(this.userPass)())
     }
 
-    this.setup.forEach(({ method, path, requestHandler, validator, errorHandler, responseTransform }) => {
+    this.setup.forEach(({ errorHandler, method, path, requestHandler, responseTransform, validator }) => {
       router.register(
         path,
         [method],
@@ -40,17 +40,14 @@ export const extendWithHalLinks = (config: HALConfig) => <TOutput>(output: TOutp
 
 // TODO: Perhaps a transformer would be more flexible.
 export const generateHalLinks = (ctx: Koa.Context, halConfig: HALConfig, data: any) => {
-  const halLinks = typedKeysOf(halConfig).reduce(
-    (prev, cur) => {
-      let href = halConfig[cur]
-      if (href.startsWith(".")) {
-        href = href.replace(".", ctx.URL.pathname)
-      }
-      Object.keys(data).forEach(x => (href = href.replace(`:${x}`, data[x])))
-      prev[cur] = { href }
-      return prev
-    },
-    {} as any,
-  )
+  const halLinks = typedKeysOf(halConfig).reduce((prev, cur) => {
+    let href = halConfig[cur]
+    if (href.startsWith(".")) {
+      href = href.replace(".", ctx.URL.pathname)
+    }
+    Object.keys(data).forEach(x => (href = href.replace(`:${x}`, data[x])))
+    prev[cur] = { href }
+    return prev
+  }, {} as any)
   return halLinks
 }

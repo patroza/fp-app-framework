@@ -8,7 +8,10 @@ const executePostCommitHandlers = ({ executeIntegrationEvent }: { executeIntegra
   eventsMap: eventsMapType,
 ) => {
   const processEvents = pipe(
-    TE.tryCatch(() => tryProcessEvents(executeIntegrationEvent, eventsMap), x => x as Error),
+    TE.tryCatch(
+      () => tryProcessEvents(executeIntegrationEvent, eventsMap),
+      x => x as Error,
+    ),
     TE.mapLeft(err => logger.error("Unexpected error during applying IntegrationEvents", err)),
   )
   process.nextTick(processEvents)

@@ -14,11 +14,7 @@ const getTrip = ({
 }: {
   getTemplate: getTemplateType
 }): PipeFunction<string, TripWithSelectedTravelClass, ApiError | InvalidStateError> => templateId =>
-  pipe(
-    getTemplate(templateId),
-    TE.mapLeft(liftType<InvalidStateError | ApiError>()),
-    TE.chain(toTrip(getTemplate)),
-  )
+  pipe(getTemplate(templateId), TE.mapLeft(liftType<InvalidStateError | ApiError>()), TE.chain(toTrip(getTemplate)))
 
 const toTrip = (getTemplate: getTemplateType) => (tpl: Template) => {
   const currentTravelClass = tplToTravelClass(tpl)
@@ -27,24 +23,14 @@ const toTrip = (getTemplate: getTemplateType) => (tpl: Template) => {
       typedKeysOf(tpl.travelClasses)
         .filter(x => x !== currentTravelClass.name)
         .map(slKey => tpl.travelClasses[slKey]!)
-        .map(sl =>
-          pipe(
-            getTemplate(sl.id),
-            map(tplToTravelClass),
-          ),
-        ),
+        .map(sl => pipe(getTemplate(sl.id), map(tplToTravelClass))),
     ),
   )
   return pipe(
     seq,
     TE.mapLeft(liftType<ApiError | InvalidStateError>()),
     // TODO: should be chain Trip.create
-    TE.chain(i =>
-      pipe(
-        TE.fromEither(Trip.create(i)),
-        TE.mapLeft(liftType<ApiError | InvalidStateError>()),
-      ),
-    ),
+    TE.chain(i => pipe(TE.fromEither(Trip.create(i)), TE.mapLeft(liftType<ApiError | InvalidStateError>()))),
     TE.chain(trip =>
       pipe(
         TE.fromEither(TripWithSelectedTravelClass.create(trip, currentTravelClass.name)),
@@ -61,7 +47,7 @@ const getTplLevelName = (tpl: Template) =>
 
 // Typescript support for partial application is not really great, so we try currying instead for now
 // https://stackoverflow.com/questions/50400120/using-typescript-for-partial-application
-const getTemplateFake = ({  }: { templateApiUrl: string }): getTemplateType => templateId => async () => {
+const getTemplateFake = ({}: { templateApiUrl: string }): getTemplateType => templateId => async () => {
   const tpl = mockedTemplates()[templateId] as Template | undefined
   if (!tpl) {
     return err(new RecordNotFound("Template", templateId))
@@ -82,21 +68,17 @@ const mockedTemplates: () => { [key: string]: Template } = () => ({
 
 const getPricingFake = ({ getTemplate }: { pricingApiUrl: string; getTemplate: getTemplateType }) => (
   templateId: string,
-) =>
-  pipe(
-    getTemplate(templateId),
-    map(getFakePriceFromTemplate),
-  )
+) => pipe(getTemplate(templateId), map(getFakePriceFromTemplate))
 
 const getFakePriceFromTemplate = () => ({ price: { amount: 100, currency: "EUR" } })
 
-const createTravelPlanFake = ({  }: { travelPlanApiUrl: string }): createTravelPlanType => () => async () =>
+const createTravelPlanFake = ({}: { travelPlanApiUrl: string }): createTravelPlanType => () => async () =>
   ok<string, ConnectionError>(v4())
 
-const sendCloudSyncFake = ({  }: { cloudUrl: string }): PipeFunction<TrainTrip, string, ConnectionError> => () =>
+const sendCloudSyncFake = ({}: { cloudUrl: string }): PipeFunction<TrainTrip, string, ConnectionError> => () =>
   TE.right<ConnectionError, string>(v4())
 
-const getTravelPlanFake = ({  }: { travelPlanApiUrl: string }): getTravelPlanType => travelPlanId =>
+const getTravelPlanFake = ({}: { travelPlanApiUrl: string }): getTravelPlanType => travelPlanId =>
   TE.right({ id: travelPlanId } as TravelPlan)
 
 export { createTravelPlanFake, getPricingFake, getTemplateFake, getTrip, sendCloudSyncFake, getTravelPlanFake }

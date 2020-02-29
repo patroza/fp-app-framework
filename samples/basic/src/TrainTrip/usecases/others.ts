@@ -13,22 +13,13 @@ export const changeStartDate = createCommand<ChangeStartDateInput, void, ChangeS
   ({ db }) =>
     compose(
       chainTupTask(({ startDate }) =>
-        pipe(
-          TE.fromEither(FutureDate.create(startDate)),
-          TE.mapLeft(liftType<ChangeStartDateError>()),
-        ),
+        pipe(TE.fromEither(FutureDate.create(startDate)), TE.mapLeft(liftType<ChangeStartDateError>())),
       ),
       chainFlatTupTask(([, i]) =>
-        pipe(
-          db.trainTrips.load(i.trainTripId),
-          TE.mapLeft(liftType<ChangeStartDateError>()),
-        ),
+        pipe(db.trainTrips.load(i.trainTripId), TE.mapLeft(liftType<ChangeStartDateError>())),
       ),
       TE.chain(([trainTrip, sd]) =>
-        pipe(
-          TE.fromEither(trainTrip.changeStartDate(sd)),
-          TE.mapLeft(liftType<ChangeStartDateError>()),
-        ),
+        pipe(TE.fromEither(trainTrip.changeStartDate(sd)), TE.mapLeft(liftType<ChangeStartDateError>())),
       ),
     ),
 )
@@ -44,22 +35,13 @@ export const changeTravelClass = createCommand<ChangeTravelClassInput, void, Cha
   ({ db }) =>
     compose(
       chainTupTask(({ travelClass }) =>
-        pipe(
-          TE.fromEither(TravelClassDefinition.create(travelClass)),
-          TE.mapLeft(liftType<ChangeTravelClassError>()),
-        ),
+        pipe(TE.fromEither(TravelClassDefinition.create(travelClass)), TE.mapLeft(liftType<ChangeTravelClassError>())),
       ),
       chainFlatTupTask(([, i]) =>
-        pipe(
-          db.trainTrips.load(i.trainTripId),
-          TE.mapLeft(liftType<ChangeTravelClassError>()),
-        ),
+        pipe(db.trainTrips.load(i.trainTripId), TE.mapLeft(liftType<ChangeTravelClassError>())),
       ),
       TE.chain(([trainTrip, sl]) =>
-        pipe(
-          TE.fromEither(trainTrip.changeTravelClass(sl)),
-          TE.mapLeft(liftType<ChangeTravelClassError>()),
-        ),
+        pipe(TE.fromEither(trainTrip.changeTravelClass(sl)), TE.mapLeft(liftType<ChangeTravelClassError>())),
       ),
     ),
 )

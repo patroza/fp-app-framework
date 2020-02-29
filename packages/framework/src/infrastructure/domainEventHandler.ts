@@ -45,10 +45,7 @@ export default class DomainEventHandler {
         updateEvents()
       }
       this.processedEvents = processedEvents
-      return pipe(
-        await commit()(),
-        E.map(tee(() => this.publishIntegrationEvents())),
-      )
+      return pipe(await commit()(), E.map(tee(() => this.publishIntegrationEvents())))
     }
   }
 

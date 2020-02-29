@@ -151,10 +151,7 @@ export function resultTuple(...results: Result<any, any>[]) {
 }
 
 export const sequence = <T, E>(results: Result<T, E>[]): Result<T[], E> => {
-  return pipe(
-    resultAll(results),
-    E.mapLeft(flattenErrors),
-  )
+  return pipe(resultAll(results), E.mapLeft(flattenErrors))
 }
 
 export const resultAll = <T, E>(results: Result<T, E>[]): Result<T[], E[]> => {

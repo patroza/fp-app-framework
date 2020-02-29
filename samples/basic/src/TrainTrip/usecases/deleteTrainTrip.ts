@@ -7,12 +7,7 @@ const createCommand = createCommandWithDeps({ db: DbContextKey, ...defaultDepend
 const deleteTrainTrip = createCommand<Input, void, DeleteTrainTripError>("deleteTrainTrip", ({ db }) =>
   compose(
     TE.map(({ trainTripId }) => trainTripId),
-    TE.chain(i =>
-      pipe(
-        db.trainTrips.load(i),
-        TE.mapLeft(liftType<DeleteTrainTripError>()),
-      ),
-    ),
+    TE.chain(i => pipe(db.trainTrips.load(i), TE.mapLeft(liftType<DeleteTrainTripError>()))),
     TE.map(x => {
       // TODO: this should normally be on a different object.
       x.delete()

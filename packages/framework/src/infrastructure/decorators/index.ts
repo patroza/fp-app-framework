@@ -31,12 +31,7 @@ const uowDecorator = configureDependencies(
     return pipe(
       request(key, input),
       TE.mapLeft(liftType<any | DbError>()),
-      chainTeeTask(() =>
-        pipe(
-          unitOfWork.save(),
-          TE.mapLeft(liftType<any | DbError>()),
-        ),
-      ),
+      chainTeeTask(() => pipe(unitOfWork.save(), TE.mapLeft(liftType<any | DbError>()))),
     )
   },
 )

@@ -33,18 +33,8 @@ export default function generateKoaHandler<TDeps, I, T, E extends ErrorBase, E2 
     // DbError, because request handler is enhanced with it (decorator)
     // E2 because the validator enhances it.
     const task = pipe(
-      TE.fromEither(
-        pipe(
-          validate(input),
-          E.mapLeft(liftType<DbError | E | E2>()),
-        ),
-      ),
-      TE.chain(validatedInput =>
-        pipe(
-          request(handler, validatedInput),
-          TE.mapLeft(liftType<DbError | E | E2>()),
-        ),
-      ),
+      TE.fromEither(pipe(validate(input), E.mapLeft(liftType<DbError | E | E2>()))),
+      TE.chain(validatedInput => pipe(request(handler, validatedInput), TE.mapLeft(liftType<DbError | E | E2>()))),
       TE.bimap(
         err => (handleErrorOrPassthrough(ctx)(err) ? handleDefaultError(ctx)(err) : undefined),
         result => {

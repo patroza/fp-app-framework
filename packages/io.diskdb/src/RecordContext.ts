@@ -52,7 +52,7 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
       tryReadFromDb(this.type, id),
       TE.map(serializedStr => JSON.parse(serializedStr) as SerializedDBRecord),
       TE.map(({ data, version }) => ({ data: this.deserializer(data), version })),
-      TE.map(({ version, data }) => {
+      TE.map(({ data, version }) => {
         this.cache.set(id, { version, data })
         return data
       }),

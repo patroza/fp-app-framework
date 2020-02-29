@@ -28,10 +28,10 @@ const createRoot = () => {
     addToLoggingContext,
     bindLogger,
     container,
-    setupRequestContext,
-
     publishInNewContext,
+
     request,
+    setupRequestContext,
   } = createDependencyNamespace(namespace, RequestContextKey)
 
   container.registerScopedC2(DbContextKey, DiskDBContext)
@@ -39,7 +39,10 @@ const createRoot = () => {
 
   container.registerSingletonC2(TrainTripPublisherKey, TrainTripPublisherInMemory)
   container.registerSingletonC2(trainTripReadContextKey, TrainTripReadContext)
-  container.registerSingletonF(sendCloudSyncKey, factoryOf(sendCloudSyncFake, f => f({ cloudUrl: "" })))
+  container.registerSingletonF(
+    sendCloudSyncKey,
+    factoryOf(sendCloudSyncFake, f => f({ cloudUrl: "" })),
+  )
   container.registerSingletonF(getTripKey, () => {
     const { getTrip: getTripF } = createInventoryClient({ templateApiUrl: "http://localhost:8110" })
     return getTripF

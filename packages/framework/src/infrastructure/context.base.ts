@@ -16,7 +16,10 @@ export default abstract class ContextBase implements Disposable {
     if (this.disposed) {
       throw new Error("The context is already disposed")
     }
-    return this.eventHandler.commitAndPostEvents(() => this.getAndClearEvents(), () => this.saveImpl())
+    return this.eventHandler.commitAndPostEvents(
+      () => this.getAndClearEvents(),
+      () => this.saveImpl(),
+    )
   }
 
   dispose() {

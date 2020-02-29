@@ -56,10 +56,7 @@ createDomainEventHandler<TrainTripStateChanged, void, RefreshTripInfoError>(
   ({ db, getTrip }) =>
     compose(
       TE.chain(({ trainTripId }) =>
-        pipe(
-          db.trainTrips.load(trainTripId),
-          TE.mapLeft(liftType<RefreshTripInfoError>()),
-        ),
+        pipe(db.trainTrips.load(trainTripId), TE.mapLeft(liftType<RefreshTripInfoError>())),
       ),
       TE.chain(trainTrip =>
         pipe(

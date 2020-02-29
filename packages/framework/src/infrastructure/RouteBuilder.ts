@@ -31,7 +31,7 @@ export default abstract class RouteBuilder<TContext> {
 
   protected userPass?: string
   protected setup: RegisteredRoute<TContext>[] = []
-  protected basicAuthEnabled: boolean = false
+  protected basicAuthEnabled = false
 
   abstract build(request: requestType): any
 
@@ -53,15 +53,12 @@ export interface HALConfig {
 export type ResponseTransform<TContext, TOutput> = (output: TOutput, ctx: TContext) => any
 
 export function writeRouterSchema(routerMap: Map<string, RouteBuilder<any>>) {
-  const schema = [...routerMap.entries()].reduce(
-    (prev, [path, r]) => {
-      prev[path] = r
-        .getJsonSchema()
-        .map(([method, p, s2]) => ({ method, subPath: p, fullPath: `${path}${p}`, schema: s2 }))
-      return prev
-    },
-    {} as any,
-  )
+  const schema = [...routerMap.entries()].reduce((prev, [path, r]) => {
+    prev[path] = r
+      .getJsonSchema()
+      .map(([method, p, s2]) => ({ method, subPath: p, fullPath: `${path}${p}`, schema: s2 }))
+    return prev
+  }, {} as any)
   fs.writeFileSync("./router-schema.json", JSON.stringify(schema, undefined, 2))
 }
 

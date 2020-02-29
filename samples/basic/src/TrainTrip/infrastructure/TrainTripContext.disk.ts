@@ -46,7 +46,7 @@ export default class DiskDBContext extends ContextBase implements TrainTripConte
 }
 
 const TrainTripToView = (trip: TrainTrip): TrainTripView => {
-  const { isLocked, createdAt, id, pax, currentTravelClassConfiguration, startDate, travelClassConfiguration } = trip
+  const { createdAt, currentTravelClassConfiguration, id, isLocked, pax, startDate, travelClassConfiguration } = trip
   return {
     id,
 
@@ -56,7 +56,7 @@ const TrainTripToView = (trip: TrainTrip): TrainTripView => {
     pax: pax.value,
     startDate,
     travelClass: currentTravelClassConfiguration.travelClass.name,
-    travelClasses: travelClassConfiguration.map(({ travelClass: { templateId, name } }) => ({ templateId, name })),
+    travelClasses: travelClassConfiguration.map(({ travelClass: { name, templateId } }) => ({ templateId, name })),
   }
 }
 
@@ -64,12 +64,12 @@ const serializeTrainTrip = ({ events, ...rest }: any) => stringify(rest)
 
 function deserializeDbTrainTrip(serializedTrainTrip: string) {
   const {
-    id,
     createdAt,
     currentTravelClassConfiguration,
+    id,
     lockedAt,
-    startDate,
     pax: paxInput,
+    startDate,
     travelClassConfiguration,
     ...rest
   } = parse(serializedTrainTrip) as TrainTripDTO
@@ -100,7 +100,7 @@ const mapTravelClassConfigurationDTO = ({ travelClass, ...slRest }: { travelClas
   return slc
 }
 
-const mapTravelClassDTO = ({ createdAt, templateId, name }: TravelClassDTO): TravelClass => {
+const mapTravelClassDTO = ({ createdAt, name, templateId }: TravelClassDTO): TravelClass => {
   const sl = new TravelClass(templateId, name)
   Object.assign(sl, { createdAt: new Date(createdAt) })
   return sl
