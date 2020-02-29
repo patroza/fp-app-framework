@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // export * from "fp-ts/lib/Either"
 
 import { Either, Right, Left, left, right } from "fp-ts/lib/Either"
@@ -247,7 +248,7 @@ export const anyTrue = <TErr = any>(...mappers: any[]): Result<boolean, TErr> =>
   let hasChanged = false
 
   const mapHasChanged = map(a => (a ? (hasChanged = true) : null)) as any
-  const items = mappers.map(_ => mapHasChanged)
+  const items = mappers.map(() => mapHasChanged)
   const execution = flatten(zip(mappers, items))
 
   const an = ok<boolean, TErr>(false) as any

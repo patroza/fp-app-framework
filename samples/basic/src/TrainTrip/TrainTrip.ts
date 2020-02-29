@@ -31,11 +31,11 @@ export default class TrainTrip extends Entity {
   /** the primary way to create a new TrainTrip */
   static create({ pax, startDate }: { startDate: FutureDate; pax: PaxDefinition }, trip: TripWithSelectedTravelClass) {
     const travelClassConfiguration = trip.travelClasses.map(x => new TravelClassConfiguration(x))
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const currentTravelClassConfiguration = travelClassConfiguration.find(
       x => x.travelClass.name === trip.currentTravelClass.name,
     )!
 
-    // TODO: not trip.
     const t = new TrainTrip(
       generateUuid(),
       pax,
@@ -43,6 +43,9 @@ export default class TrainTrip extends Entity {
       travelClassConfiguration,
       currentTravelClassConfiguration,
     )
+    // TODO: Consider the creation of a train trip to have another starting point,
+    // like currentUser.createTrainTrip(), where the domain event then naturally
+    // occurs inside the currentUser instead :/
     t.registerDomainEvent(new TrainTripCreated(t.id))
 
     return t

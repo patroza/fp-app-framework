@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 jest.mock("@fp-app/framework/src/infrastructure/executePostCommitHandlers")
 
 import { CustomerRequestedChangesDTO } from "@/resolveIntegrationEvent"
@@ -50,7 +51,9 @@ beforeEach(() =>
 
     const result = await root.request(createTrainTrip, {
       pax: { adults: 2, children: 0, babies: 0, infants: 0, teenagers: 0 },
-      startDate: moment().add(1, "year"),
+      startDate: moment()
+        .add(1, "year")
+        .format("YYYY-MM-DD"),
       templateId,
     })()
 
@@ -76,9 +79,6 @@ const unsafeUnwrapErr = <A, E>(e: Result<A, E>) => {
 }
 
 describe("usecases", () => {
-  // describe("create", () => {
-  //   it("works", () => {})
-  // })
   describe("get", () => {
     it("works", () =>
       createRootAndBind(async () => {
