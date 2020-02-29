@@ -17,10 +17,10 @@ export const logger: logger = {
 const setLogger = (l: logLevels & Partial<AddLogging>) => Object.assign(logger, l)
 
 // TODO: add support for log context open/close (via using?), tracked via async namespace?
-const loggers = new Map()
+const loggers = new Map<string, typeof logger>()
 const getLogger = (name: string) => {
   if (loggers.has(name)) {
-    return loggers.get(name)
+    return loggers.get(name)!
   }
 
   // const levels = ["info", "log", "debug", "error", "warn"] as const
