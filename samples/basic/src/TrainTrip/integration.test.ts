@@ -11,6 +11,7 @@ import {
   setLogger,
 } from "@fp-app/framework"
 import { Result, isErr, isOk } from "@fp-app/fp-ts-extensions"
+import moment from "moment"
 import createRoot from "../root"
 import changeTrainTrip, { StateProposition } from "./usecases/changeTrainTrip"
 import createTrainTrip from "./usecases/createTrainTrip"
@@ -49,7 +50,7 @@ beforeEach(() =>
 
     const result = await root.request(createTrainTrip, {
       pax: { adults: 2, children: 0, babies: 0, infants: 0, teenagers: 0 },
-      startDate: "2020-01-01",
+      startDate: moment().add(1, "year"),
       templateId,
     })()
 
@@ -62,14 +63,14 @@ beforeEach(() =>
 
 const unsafeUnwrap = <A, E>(e: Result<A, E>) => {
   if (isErr(e)) {
-    throw new Error()
+    throw new Error(JSON.stringify(e))
   }
   return e.right
 }
 
 const unsafeUnwrapErr = <A, E>(e: Result<A, E>) => {
   if (isOk(e)) {
-    throw new Error()
+    throw new Error(JSON.stringify(e))
   }
   return e.left
 }
