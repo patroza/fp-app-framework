@@ -283,17 +283,13 @@ export default class SimpleContainer {
   }
 
   private readonly resolveDependencies = <TDependencies>(deps: TDependencies) =>
-    Object.keys(deps).reduce(
-      (prev, cur) => {
-        const dAny = deps as any
-        const key = dAny[cur]
-        const pAny = prev as any
-        pAny[cur] = this.getF(key)
-        return prev
-      },
-      // eslint-disable-next-line @typescript-eslint/no-object-literal-type-assertion
-      {} as TDependencies,
-    )
+    Object.keys(deps).reduce((prev, cur) => {
+      const dAny = deps as any
+      const key = dAny[cur]
+      const pAny = prev as any
+      pAny[cur] = this.getF(key)
+      return prev
+    }, {} as TDependencies)
 
   private tryCreateInstance = <T>(key: any) => {
     const factory = this.factories.get(key)

@@ -5,6 +5,6 @@ const generateUuid = () => v4()
 export default generateUuid
 
 const translator = short()
-export const generateShortUuid = translator.generate
-export const convertToShortUuid = translator.fromUUID
-export const convertToUuid = translator.toUUID
+export const generateShortUuid = translator.generate.bind(translator)
+export const convertToShortUuid = translator.fromUUID.bind(translator)
+export const convertToUuid = translator.toUUID.bind(translator)

@@ -251,6 +251,7 @@ export const anyTrue = <TErr = any>(...mappers: any[]): Result<boolean, TErr> =>
   const execution = flatten(zip(mappers, items))
 
   const an = ok<boolean, TErr>(false) as any
+  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
   return pipe(
     an,
@@ -430,6 +431,7 @@ export function compose<TInput, TError, TOutput>(...a: any[]) {
   return (input: TInput) =>
     pipe<TE.TaskEither<TError, TInput>, TE.TaskEither<TError, TOutput>>(
       TE.right<TError, TInput>(input),
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore
       ...a,
     )

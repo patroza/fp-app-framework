@@ -24,14 +24,10 @@ const getLogger = (name: string) => {
   }
 
   // const levels = ["info", "log", "debug", "error", "warn"] as const
-  const l = typedKeysOf(logLevels).reduce(
-    (prev, current) => {
-      prev[current] = (...args: any[]) => logger[current](chalk.yellow(`[${name}]`), ...args)
-      return prev
-    },
-    // eslint-disable-next-line @typescript-eslint/no-object-literal-type-assertion
-    {} as typeof logger,
-  )
+  const l = typedKeysOf(logLevels).reduce((prev, current) => {
+    prev[current] = (...args: any[]) => logger[current](chalk.yellow(`[${name}]`), ...args)
+    return prev
+  }, {} as typeof logger)
   l.addToLoggingContext = logger.addToLoggingContext
   loggers.set(name, l)
   return logger

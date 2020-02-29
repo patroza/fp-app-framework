@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
-/* eslint-disable @typescript-eslint/no-object-literal-type-assertion */
 import TrainTrip, { Price } from "@/TrainTrip/TrainTrip"
 import { createTravelPlanType, getTemplateType, getTravelPlanType } from "@/TrainTrip/usecases/types"
 import { ApiError, ConnectionError, InvalidStateError, RecordNotFound, typedKeysOf } from "@fp-app/framework"
@@ -47,7 +46,8 @@ const getTplLevelName = (tpl: Template) =>
 
 // Typescript support for partial application is not really great, so we try currying instead for now
 // https://stackoverflow.com/questions/50400120/using-typescript-for-partial-application
-const getTemplateFake = ({}: { templateApiUrl: string }): getTemplateType => templateId => async () => {
+// eslint-disable-next-line @typescript-eslint/require-await
+const getTemplateFake = (_: { templateApiUrl: string }): getTemplateType => templateId => async () => {
   const tpl = mockedTemplates()[templateId] as Template | undefined
   if (!tpl) {
     return err(new RecordNotFound("Template", templateId))
@@ -72,13 +72,14 @@ const getPricingFake = ({ getTemplate }: { pricingApiUrl: string; getTemplate: g
 
 const getFakePriceFromTemplate = () => ({ price: { amount: 100, currency: "EUR" } })
 
-const createTravelPlanFake = ({}: { travelPlanApiUrl: string }): createTravelPlanType => () => async () =>
+// eslint-disable-next-line @typescript-eslint/require-await
+const createTravelPlanFake = (_: { travelPlanApiUrl: string }): createTravelPlanType => () => async () =>
   ok<string, ConnectionError>(v4())
 
-const sendCloudSyncFake = ({}: { cloudUrl: string }): PipeFunction<TrainTrip, string, ConnectionError> => () =>
+const sendCloudSyncFake = (_: { cloudUrl: string }): PipeFunction<TrainTrip, string, ConnectionError> => () =>
   TE.right<ConnectionError, string>(v4())
 
-const getTravelPlanFake = ({}: { travelPlanApiUrl: string }): getTravelPlanType => travelPlanId =>
+const getTravelPlanFake = (_: { travelPlanApiUrl: string }): getTravelPlanType => travelPlanId =>
   TE.right({ id: travelPlanId } as TravelPlan)
 
 export { createTravelPlanFake, getPricingFake, getTemplateFake, getTrip, sendCloudSyncFake, getTravelPlanFake }

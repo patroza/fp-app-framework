@@ -37,6 +37,7 @@ module.exports =  {
     "@typescript-eslint/no-use-before-define": "off",
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/interface-name-prefix": "off",
+    "@typescript-eslint/unbound-method": "warn",
     // Place to specify ESLint rules. Can be used to overwrite rules specified from the extended configs
     // e.g. "@typescript-eslint/explicit-function-return-type": "off",
     "sort-destructure-keys/sort-destructure-keys": "error", // Mainly to sort render props

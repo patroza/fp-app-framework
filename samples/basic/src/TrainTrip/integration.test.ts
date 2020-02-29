@@ -54,6 +54,7 @@ beforeEach(() =>
     })()
 
     trainTripId = unsafeUnwrap(result)
+    // eslint-disable-next-line jest/no-standalone-expect
     expect(executePostCommitHandlersMock).toBeCalledTimes(1)
     executePostCommitHandlersMock.mockClear()
   }),
@@ -74,9 +75,9 @@ const unsafeUnwrapErr = <A, E>(e: Result<A, E>) => {
 }
 
 describe("usecases", () => {
-  describe("create", () => {
-    it("works", () => {})
-  })
+  // describe("create", () => {
+  //   it("works", () => {})
+  // })
   describe("get", () => {
     it("works", () =>
       createRootAndBind(async () => {

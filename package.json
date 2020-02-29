@@ -8,6 +8,6 @@
 	},
 	"scripts": {
 		"start": "cd samples/basic && yarn start",
-		"testsuite": "cd samples/basic && yarn testsuite && cd ../../packages/framework && yarn testsuite"
+		"testsuite": "cd packages/framework && yarn testsuite && cd ../../samples/basic && yarn testsuite"
 	}
 }

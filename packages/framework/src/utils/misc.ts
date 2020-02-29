@@ -16,6 +16,7 @@ export interface Disposable {
 }
 
 const using = async <T>(disposable: Disposable, fnc: () => Promise<T> | T) => {
+  // eslint-disable-next-line @typescript-eslint/unbound-method
   assert(!disposable || !!disposable.dispose, "The provided disposable must implement a `dispose` function")
   try {
     return await fnc()

@@ -23,6 +23,7 @@ export default class TrainTripPublisherInMemory implements TrainTripPublisher {
     return await this.register(trainTripId)
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   register = async (trainTripId: TrainTripId) => {
     const current = this.map.get(trainTripId)
     if (current) {
@@ -30,7 +31,9 @@ export default class TrainTripPublisherInMemory implements TrainTripPublisher {
     }
     this.map.set(
       trainTripId,
-      setTimeout(() => this.tryPublishTrainTrip(trainTripId), CLOUD_PUBLISH_DELAY),
+      setTimeout(() => {
+        this.tryPublishTrainTrip(trainTripId)
+      }, CLOUD_PUBLISH_DELAY),
     )
   }
 
