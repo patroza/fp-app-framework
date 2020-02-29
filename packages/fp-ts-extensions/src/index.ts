@@ -69,12 +69,9 @@ export function tee(f: any) {
   }
 }
 
-// Easily pass input -> (input -> output) -> [input, output]
-export function chainTupTask<TInput, T, E>(
-  f: (x: TInput) => AsyncResult<T, E>,
-): (inp: AsyncResult<TInput, E>) => AsyncResult<readonly [T, TInput], E>
-export function chainTupTask(f: any) {
-  return TE.chain((input: any) =>
+// Easily pass input -> (input -> output) -> [output, input]
+export function chainTupTask<TInput, T, E>(f: (x: TInput) => TaskEither<E, T>) {
+  return TE.chain((input: TInput) =>
     pipe(
       f(input),
       TE.map(x => [x, input] as const),

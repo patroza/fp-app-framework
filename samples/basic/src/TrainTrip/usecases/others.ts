@@ -43,20 +43,16 @@ export const changeTravelClass = createCommand<ChangeTravelClassInput, void, Cha
   "changeTravelClass",
   ({ db }) =>
     compose(
-      TE.chain(
-        chainTupTask(({ travelClass }) =>
-          pipe(
-            TE.fromEither(TravelClassDefinition.create(travelClass)),
-            TE.mapLeft(liftType<ChangeTravelClassError>()),
-          ),
+      chainTupTask(({ travelClass }) =>
+        pipe(
+          TE.fromEither(TravelClassDefinition.create(travelClass)),
+          TE.mapLeft(liftType<ChangeTravelClassError>()),
         ),
       ),
-      TE.chain(
-        chainFlatTupTask(([, i]) =>
-          pipe(
-            db.trainTrips.load(i.trainTripId),
-            TE.mapLeft(liftType<ChangeTravelClassError>()),
-          ),
+      chainFlatTupTask(([, i]) =>
+        pipe(
+          db.trainTrips.load(i.trainTripId),
+          TE.mapLeft(liftType<ChangeTravelClassError>()),
         ),
       ),
       TE.chain(([trainTrip, sl]) =>
