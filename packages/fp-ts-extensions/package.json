@@ -5,7 +5,7 @@
   "author": "Patrick Roza <contact@patrickroza.com>",
   "license": "MIT",
   "dependencies": {
-    "fp-ts": "2.0.2",
+    "fp-ts": "2.5.3",
     "tsconfig-paths": "^3.8.0",
     "typescript": "^3.5.2"
   },
