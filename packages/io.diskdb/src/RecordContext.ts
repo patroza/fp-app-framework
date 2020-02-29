@@ -62,7 +62,10 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
   // Internal
   readonly intGetAndClearEvents = () => {
     const items = [...this.cache.values()].map(x => x.data).concat(this.removals)
-    return items.reduce((prev, cur) => prev.concat(cur.intGetAndClearEvents()), [] as Event[])
+    return items.reduce(
+      (prev, cur) => prev.concat(cur.intGetAndClearEvents()),
+      [] as Event[],
+    )
   }
 
   readonly intSave = (
@@ -140,7 +143,9 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
     lockRecordOnDisk(this.type, record.id, () =>
       pipe(
         startWithVal(void 0)<DbError>(),
-        TE.chain(() => async () => E.right(await deleteFile(getFilename(this.type, record.id)))),
+        TE.chain(() => async () =>
+          E.right(await deleteFile(getFilename(this.type, record.id))),
+        ),
       ),
     )
 
@@ -148,7 +153,9 @@ export default class DiskRecordContext<T extends DBRecord> implements RecordCont
     const data = this.serializer(record)
 
     const serialized = JSON.stringify({ version: version + 1, data })
-    await writeFile(getFilename(this.type, record.id), serialized, { encoding: "utf-8" })
+    await writeFile(getFilename(this.type, record.id), serialized, {
+      encoding: "utf-8",
+    })
     this.cache.set(record.id, { version, data: record })
   }
 }
@@ -179,7 +186,10 @@ const lockRecordOnDisk = <T>(type: string, id: string, cb: PipeFunctionN<T, DbEr
     }),
   )
 
-const tryLock = (type: string, id: string): AsyncResult<() => Promise<void>, CouldNotAquireDbLockError> => async () => {
+const tryLock = (
+  type: string,
+  id: string,
+): AsyncResult<() => Promise<void>, CouldNotAquireDbLockError> => async () => {
   try {
     return ok(await lock(getFilename(type, id)))
   } catch (er) {
@@ -187,7 +197,10 @@ const tryLock = (type: string, id: string): AsyncResult<() => Promise<void>, Cou
   }
 }
 
-const tryReadFromDb = (type: string, id: string): AsyncResult<string, DbError> => async () => {
+const tryReadFromDb = (
+  type: string,
+  id: string,
+): AsyncResult<string, DbError> => async () => {
   try {
     const filePath = getFilename(type, id)
     if (!(await exists(filePath))) {

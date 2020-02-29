@@ -14,7 +14,9 @@ import { getTrip, sendCloudSyncFake, Template, TravelPlan } from "../infrastruct
 import PaxDefinition from "../PaxDefinition"
 
 export const getTripKey = generateKeyFromFn(getTrip)
-export const sendCloudSyncKey = generateKey<ReturnType<typeof sendCloudSyncFake>>("sendCloudSync")
+export const sendCloudSyncKey = generateKey<ReturnType<typeof sendCloudSyncFake>>(
+  "sendCloudSync",
+)
 export type getTravelPlanType = PipeFunction<string, TravelPlan, ApiError>
 export type getTemplateType = PipeFunction<string, Template, ApiError>
 export type getPricingType = (
@@ -42,6 +44,8 @@ export type RequestContext = RequestContextBase & { [key: string]: any }
 
 export const RequestContextKey = generateKey<RequestContext>("request-context")
 export const DbContextKey = generateKey<ReadonlyTrainTripContext>("db-context")
-export const TrainTripPublisherKey = generateKey<TrainTripPublisher>("trainTripPublisher")
+export const TrainTripPublisherKey = generateKey<TrainTripPublisher>(
+  "trainTripPublisher",
+)
 
 export const defaultDependencies = { context: RequestContextKey }

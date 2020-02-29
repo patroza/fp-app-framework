@@ -1,6 +1,11 @@
 import { TrainTripPublisher } from "@/TrainTrip/eventhandlers"
 import { TrainTripId } from "@/TrainTrip/TrainTrip"
-import { getLogger, paramInject, requestInNewScopeKey, requestInNewScopeType } from "@fp-app/framework"
+import {
+  getLogger,
+  paramInject,
+  requestInNewScopeKey,
+  requestInNewScopeType,
+} from "@fp-app/framework"
 import registerCloud from "../usecases/registerCloud"
 import { pipe, TE } from "@fp-app/fp-ts-extensions"
 
@@ -14,7 +19,9 @@ export default class TrainTripPublisherInMemory implements TrainTripPublisher {
   // function/class.
   private readonly logger = getLogger(this.constructor.name)
 
-  constructor(@paramInject(requestInNewScopeKey) private readonly request: requestInNewScopeType) {}
+  constructor(
+    @paramInject(requestInNewScopeKey) private readonly request: requestInNewScopeType,
+  ) {}
 
   registerIfPending = async (trainTripId: TrainTripId) => {
     if (!this.trainTripIsPending(trainTripId)) {

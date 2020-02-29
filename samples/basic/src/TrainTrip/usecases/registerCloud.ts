@@ -8,18 +8,20 @@ const createCommand = createCommandWithDeps({
   ...defaultDependencies,
 })
 
-const registerCloud = createCommand<Input, void, DbError>("registerCloud", ({ db, sendCloudSync }) =>
-  compose(
-    TE.map(({ trainTripId }) => trainTripId),
-    TE.chain(db.trainTrips.load),
-    TE.chain(trainTrip =>
-      pipe(
-        sendCloudSync(trainTrip), // tup
-        TE.map(opportunityId => trainTrip.assignOpportunity(opportunityId)),
-        TE.mapLeft(liftType<DbError>()),
+const registerCloud = createCommand<Input, void, DbError>(
+  "registerCloud",
+  ({ db, sendCloudSync }) =>
+    compose(
+      TE.map(({ trainTripId }) => trainTripId),
+      TE.chain(db.trainTrips.load),
+      TE.chain(trainTrip =>
+        pipe(
+          sendCloudSync(trainTrip), // tup
+          TE.map(opportunityId => trainTrip.assignOpportunity(opportunityId)),
+          TE.mapLeft(liftType<DbError>()),
+        ),
       ),
     ),
-  ),
 )
 
 export default registerCloud

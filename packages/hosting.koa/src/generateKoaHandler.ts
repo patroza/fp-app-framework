@@ -20,11 +20,20 @@ import {
 } from "@fp-app/framework"
 import { Result, pipe, TE, E, liftType } from "@fp-app/fp-ts-extensions"
 
-export default function generateKoaHandler<TDeps, I, T, E extends ErrorBase, E2 extends ValidationError>(
+export default function generateKoaHandler<
+  TDeps,
+  I,
+  T,
+  E extends ErrorBase,
+  E2 extends ValidationError
+>(
   request: requestType,
   handler: NamedHandlerWithDependencies<TDeps, I, T, E>,
   validate: (i: I) => Result<I, E2>,
-  handleErrorOrPassthrough: ErrorHandlerType<Koa.Context, DbError | E | E2> = defaultErrorPassthrough,
+  handleErrorOrPassthrough: ErrorHandlerType<
+    Koa.Context,
+    DbError | E | E2
+  > = defaultErrorPassthrough,
   responseTransform?: <TOutput>(input: T, ctx: Koa.Context) => TOutput,
 ) {
   const generateTask = (ctx: Koa.Context) => {
@@ -34,9 +43,15 @@ export default function generateKoaHandler<TDeps, I, T, E extends ErrorBase, E2 
     // E2 because the validator enhances it.
     const task = pipe(
       TE.fromEither(pipe(validate(input), E.mapLeft(liftType<DbError | E | E2>()))),
-      TE.chain(validatedInput => pipe(request(handler, validatedInput), TE.mapLeft(liftType<DbError | E | E2>()))),
+      TE.chain(validatedInput =>
+        pipe(
+          request(handler, validatedInput),
+          TE.mapLeft(liftType<DbError | E | E2>()),
+        ),
+      ),
       TE.bimap(
-        err => (handleErrorOrPassthrough(ctx)(err) ? handleDefaultError(ctx)(err) : undefined),
+        err =>
+          handleErrorOrPassthrough(ctx)(err) ? handleDefaultError(ctx)(err) : undefined,
         result => {
           if (responseTransform) {
             ctx.body = responseTransform(result, ctx)
@@ -92,7 +107,10 @@ const handleDefaultError = (ctx: Koa.Context) => (err: ErrorBase) => {
   } else if (err instanceof FieldValidationError) {
     ctx.body = {
       fields: {
-        [err.fieldName]: err.error instanceof CombinedValidationError ? combineErrors(err.error.errors) : err.message,
+        [err.fieldName]:
+          err.error instanceof CombinedValidationError
+            ? combineErrors(err.error.errors)
+            : err.message,
       },
       message,
     }

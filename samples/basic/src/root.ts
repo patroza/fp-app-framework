@@ -11,10 +11,17 @@ import { exists, mkdir } from "@fp-app/io.diskdb"
 import chalk from "chalk"
 import resolveEvent from "./resolveIntegrationEvent"
 import "./TrainTrip/eventhandlers" // To be ble to auto register them :/
-import { getPricingFake, getTemplateFake, getTrip, sendCloudSyncFake } from "./TrainTrip/infrastructure/api"
+import {
+  getPricingFake,
+  getTemplateFake,
+  getTrip,
+  sendCloudSyncFake,
+} from "./TrainTrip/infrastructure/api"
 import DiskDBContext from "./TrainTrip/infrastructure/TrainTripContext.disk"
 import TrainTripPublisherInMemory from "./TrainTrip/infrastructure/trainTripPublisher.inMemory"
-import TrainTripReadContext, { trainTripReadContextKey } from "./TrainTrip/infrastructure/TrainTripReadContext.disk"
+import TrainTripReadContext, {
+  trainTripReadContextKey,
+} from "./TrainTrip/infrastructure/TrainTripReadContext.disk"
 import {
   DbContextKey,
   getTripKey,
@@ -44,7 +51,9 @@ const createRoot = () => {
     factoryOf(sendCloudSyncFake, f => f({ cloudUrl: "" })),
   )
   container.registerSingletonF(getTripKey, () => {
-    const { getTrip: getTripF } = createInventoryClient({ templateApiUrl: "http://localhost:8110" })
+    const { getTrip: getTripF } = createInventoryClient({
+      templateApiUrl: "http://localhost:8110",
+    })
     return getTripF
   })
 
@@ -54,13 +63,19 @@ const createRoot = () => {
   // tslint:disable-next-line:no-console
   const consoleOrLogger = (key: any) => (key !== RequestContextKey ? logger : console)
   container.registerInitializerF("global", (i, key) =>
-    consoleOrLogger(key).debug(chalk.magenta(`Created function of ${key.name} (${i.name})`)),
+    consoleOrLogger(key).debug(
+      chalk.magenta(`Created function of ${key.name} (${i.name})`),
+    ),
   )
   container.registerInitializerC("global", (i, key) =>
-    consoleOrLogger(key).debug(chalk.magenta(`Created instance of ${key.name} (${i.constructor.name})`)),
+    consoleOrLogger(key).debug(
+      chalk.magenta(`Created instance of ${key.name} (${i.constructor.name})`),
+    ),
   )
   container.registerInitializerO("global", (i, key) =>
-    consoleOrLogger(key).debug(chalk.magenta(`Created object of ${key.name} (${i.constructor.name})`)),
+    consoleOrLogger(key).debug(
+      chalk.magenta(`Created object of ${key.name} (${i.constructor.name})`),
+    ),
   )
 
   return {

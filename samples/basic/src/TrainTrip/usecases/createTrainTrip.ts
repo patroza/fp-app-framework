@@ -25,22 +25,35 @@ import PaxDefinition, { Pax } from "../PaxDefinition"
 import TrainTrip from "../TrainTrip"
 import { DbContextKey, defaultDependencies, getTripKey } from "./types"
 
-const createCommand = createCommandWithDeps({ db: DbContextKey, getTrip: getTripKey, ...defaultDependencies })
+const createCommand = createCommandWithDeps({
+  db: DbContextKey,
+  getTrip: getTripKey,
+  ...defaultDependencies,
+})
 
-const createTrainTrip = createCommand<Input, string, CreateError>("createTrainTrip", ({ db, getTrip }) =>
-  compose(
-    TE.chain(i => pipe(TE.fromEither(validateCreateTrainTripInfo(i)), TE.mapLeft(liftType<CreateError>()))),
-    chainTupTask(i => pipe(getTrip(i.templateId), TE.mapLeft(liftType<CreateError>()))),
-    TE.chain(([trip, proposal]) =>
-      TE.fromEither(
+const createTrainTrip = createCommand<Input, string, CreateError>(
+  "createTrainTrip",
+  ({ db, getTrip }) =>
+    compose(
+      TE.chain(i =>
         pipe(
-          E.right<CreateError, TrainTrip>(TrainTrip.create(proposal, trip)),
-          E.map(tee(db.trainTrips.add)),
-          E.map(trainTrip => trainTrip.id),
+          TE.fromEither(validateCreateTrainTripInfo(i)),
+          TE.mapLeft(liftType<CreateError>()),
+        ),
+      ),
+      chainTupTask(i =>
+        pipe(getTrip(i.templateId), TE.mapLeft(liftType<CreateError>())),
+      ),
+      TE.chain(([trip, proposal]) =>
+        TE.fromEither(
+          pipe(
+            E.right<CreateError, TrainTrip>(TrainTrip.create(proposal, trip)),
+            E.map(tee(db.trainTrips.add)),
+            E.map(trainTrip => trainTrip.id),
+          ),
         ),
       ),
     ),
-  ),
 )
 
 export default createTrainTrip
@@ -91,4 +104,8 @@ const validateCreateTrainTripInfo = ({ pax, startDate, templateId }: Input) =>
 const validateString = <T extends string>(str: string): Result<T, ValidationError> =>
   str ? ok(str as T) : err(new ValidationError("not a valid str"))
 
-type CreateError = CombinedValidationError | InvalidStateError | ValidationError | ApiError
+type CreateError =
+  | CombinedValidationError
+  | InvalidStateError
+  | ValidationError
+  | ApiError

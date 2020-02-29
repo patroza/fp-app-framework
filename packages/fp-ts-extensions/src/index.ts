@@ -19,17 +19,25 @@ export { E, T, TE }
 export const result = TE.taskEither
 export type AsyncResult<TSuccess, TError> = TaskEither<TError, TSuccess>
 export type Result<TSuccess, TError> = Either<TError, TSuccess>
-export const err = <TSuccess = never, TError = never>(e: TError): Result<TSuccess, TError> => left<TError, TSuccess>(e)
-export const ok = <TSuccess = never, TError = never>(a: TSuccess): Result<TSuccess, TError> =>
-  right<TError, TSuccess>(a)
+export const err = <TSuccess = never, TError = never>(
+  e: TError,
+): Result<TSuccess, TError> => left<TError, TSuccess>(e)
+export const ok = <TSuccess = never, TError = never>(
+  a: TSuccess,
+): Result<TSuccess, TError> => right<TError, TSuccess>(a)
 export type Ok<TSuccess> = Task<Right<TSuccess>>
 export type Err<TErr> = Task<Left<TErr>>
 
-export const okTask = <TSuccess = never, TError = never>(a: TSuccess) => TE.fromEither(ok<TSuccess, TError>(a))
-export const errTask = <TSuccess = never, TError = never>(e: TError) => TE.fromEither(err<TSuccess, TError>(e))
+export const okTask = <TSuccess = never, TError = never>(a: TSuccess) =>
+  TE.fromEither(ok<TSuccess, TError>(a))
+export const errTask = <TSuccess = never, TError = never>(e: TError) =>
+  TE.fromEither(err<TSuccess, TError>(e))
 
 export const TFold = flow(E.fold, T.map)
-export const boolToEither = <T>(value: T, predicate: (value: T) => boolean): E.Either<T, T> => {
+export const boolToEither = <T>(
+  value: T,
+  predicate: (value: T) => boolean,
+): E.Either<T, T> => {
   if (!predicate(value)) {
     return err(value)
   }
@@ -39,12 +47,15 @@ export const boolToEither = <T>(value: T, predicate: (value: T) => boolean): E.E
 export { map, pipe }
 
 // useful tools for .compose( continuations
-export const mapStatic = <TCurrent, TNew>(value: TNew) => map<TCurrent, TNew>(toValue(value))
+export const mapStatic = <TCurrent, TNew>(value: TNew) =>
+  map<TCurrent, TNew>(toValue(value))
 export const toValue = <TNew>(value: TNew) => () => value
 export const toVoid = toValue<void>(void 0)
 // export const endResult = mapStatic<void>(void 0)
 
-export function chainTee<T, TDontCare, E>(f: PipeFunction2<T, TDontCare, E>): (inp: Result<T, E>) => Result<T, E>
+export function chainTee<T, TDontCare, E>(
+  f: PipeFunction2<T, TDontCare, E>,
+): (inp: Result<T, E>) => Result<T, E>
 export function chainTee(f: any) {
   return E.chain((input: any) =>
     pipe(
@@ -67,8 +78,12 @@ export function chainTeeTask(f: any) {
 }
 
 // TODO: Should come with map already wrapped aroun it
-export function tee<T, T2 extends T, TDontCare, E>(f: (x: T2) => Promise<TDontCare>): (input: T) => Promise<T>
-export function tee<T, T2 extends T, TDontCare, E>(f: (x: T2) => TDontCare): (input: T) => T
+export function tee<T, T2 extends T, TDontCare, E>(
+  f: (x: T2) => Promise<TDontCare>,
+): (input: T) => Promise<T>
+export function tee<T, T2 extends T, TDontCare, E>(
+  f: (x: T2) => TDontCare,
+): (input: T) => T
 export function tee(f: any) {
   return (input: any) => {
     const r = f(input)
@@ -117,7 +132,9 @@ export function ifErrorflatMap(defaultVal: any) {
 }
 
 // export function ifError<T, E, TNew>(defaultVal: (e: E) => Promise<TNew>): (result: Result<T, E>) => AsyncResult<TNew, E>;
-export function ifError<T, E, TNew>(defaultVal: (e: E) => TNew): (result: Result<T, E>) => Result<TNew, E>
+export function ifError<T, E, TNew>(
+  defaultVal: (e: E) => TNew,
+): (result: Result<T, E>) => Result<TNew, E>
 export function ifError(defaultVal: any) {
   return (result: any) => {
     if (isOk(result)) {
@@ -133,7 +150,10 @@ export const joinError = <T>(result: Result<T, string[]>) =>
     E.mapLeft(x => x.join("\n")),
   )
 
-export function resultTuple<T, T2, E>(r1: Result<T, E>, r2: Result<T2, E>): Result<readonly [T, T2], E[]>
+export function resultTuple<T, T2, E>(
+  r1: Result<T, E>,
+  r2: Result<T2, E>,
+): Result<readonly [T, T2], E[]>
 export function resultTuple<T, T2, T3, E>(
   r1: Result<T, E>,
   r2: Result<T2, E>,
@@ -177,11 +197,15 @@ export const resultAll = <T, E>(results: Result<T, E>[]): Result<T[], E[]> => {
 export const isErr = <T, TErr>(x: Result<T, TErr>): x is Left<TErr> => x._tag === "Left"
 export const isOk = <T, TErr>(x: Result<T, TErr>): x is Right<T> => x._tag === "Right"
 
-export const sequenceAsync = <T, E>(results: AsyncResult<T, E>[]): AsyncResult<T[], E> => {
+export const sequenceAsync = <T, E>(
+  results: AsyncResult<T, E>[],
+): AsyncResult<T[], E> => {
   return async () => sequence(await Promise.all(results.map(x => x())))
 }
 
-export const resultAllAsync = <T, E>(results: AsyncResult<T, E>[]): AsyncResult<T[], E[]> => {
+export const resultAllAsync = <T, E>(
+  results: AsyncResult<T, E>[],
+): AsyncResult<T[], E[]> => {
   return async () => resultAll(await Promise.all(results.map(x => x())))
 }
 
@@ -286,9 +310,13 @@ export const startWithVal = <T>(value: T) => <TErr>() => TE.right<TErr, T>(value
 // export const startWithVal2 = startWithVal()
 export const startWithVal2 = <T>(value: T) => startWithVal(value)()
 
-export type PipeFunction<TInput, TOutput, TErr> = (input: TInput) => AsyncResult<TOutput, TErr>
+export type PipeFunction<TInput, TOutput, TErr> = (
+  input: TInput,
+) => AsyncResult<TOutput, TErr>
 export type PipeFunctionN<TOutput, TErr> = () => AsyncResult<TOutput, TErr>
-export type PipeFunction2<TInput, TOutput, TErr> = (input: TInput) => Result<TOutput, TErr>
+export type PipeFunction2<TInput, TOutput, TErr> = (
+  input: TInput,
+) => Result<TOutput, TErr>
 export type PipeFunction2N<TOutput, TErr> = () => Result<TOutput, TErr>
 
 // helper for addressing some issues with syntax highlighting in editor when using multiple generics
@@ -297,9 +325,17 @@ export type AnyResult<T = any, TErr = any> = Result<T, TErr>
 // We create tuples in reverse, under the assumption that the further away we are
 // from previous statements, the less important their output becomes..
 // Alternatively we can always create two variations :)
-export function chainFlatTupTask<TInput, TInputB, TInput2 extends readonly [TInput, TInputB], T, E>(
+export function chainFlatTupTask<
+  TInput,
+  TInputB,
+  TInput2 extends readonly [TInput, TInputB],
+  T,
+  E
+>(
   f: (x: TInput2) => AsyncResult<T, E>,
-): (input: AsyncResult<readonly [TInput, TInputB], E>) => AsyncResult<readonly [T, TInput, TInputB], E>
+): (
+  input: AsyncResult<readonly [TInput, TInputB], E>,
+) => AsyncResult<readonly [T, TInput, TInputB], E>
 export function chainFlatTupTask(f: any) {
   return TE.chain((input: any) =>
     pipe(
@@ -309,9 +345,17 @@ export function chainFlatTupTask(f: any) {
   )
 }
 
-export function chainFlatTup<TInput, TInputB, TInput2 extends readonly [TInput, TInputB], T, E>(
+export function chainFlatTup<
+  TInput,
+  TInputB,
+  TInput2 extends readonly [TInput, TInputB],
+  T,
+  E
+>(
   f: (x: TInput2) => Result<T, E>,
-): (input: Result<readonly [TInput, TInputB], E>) => Result<readonly [T, TInput, TInputB], E>
+): (
+  input: Result<readonly [TInput, TInputB], E>,
+) => Result<readonly [T, TInput, TInputB], E>
 export function chainFlatTup(f: any) {
   return E.chain((input: any) =>
     pipe(
@@ -321,7 +365,9 @@ export function chainFlatTup(f: any) {
   )
 }
 
-export function toMagicTup<T1, T2, T3>(input: readonly [[T1, T2], T3]): readonly [T1, T2, T3]
+export function toMagicTup<T1, T2, T3>(
+  input: readonly [[T1, T2], T3],
+): readonly [T1, T2, T3]
 export function toMagicTup([tup1, el]: any) {
   return tup1.concat([el])
 }
@@ -395,7 +441,10 @@ export function resultTuple3<TInput, T, T2, T3, T4, T5, E>(
   r4: (input: TInput) => Result<T4, E>,
   r5: (input: TInput) => Result<T5, E>,
 ): Result<readonly [T, T2, T3, T4, T5], E[]>
-export function resultTuple3(input: any, ...resultFNs: ((input: any) => Result<any, any>)[]) {
+export function resultTuple3(
+  input: any,
+  ...resultFNs: ((input: any) => Result<any, any>)[]
+) {
   const results = resultFNs.map(x => x(input))
   const errors = results.filter(isErr).map(x => x.left)
   if (errors.length) {

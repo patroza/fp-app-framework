@@ -14,7 +14,10 @@ export const setupNamespace = ({
   setupRequestContext,
 }: {
   setupRequestContext: <T>(
-    cb: (context: RequestContextBase, bindEmitter: (emitter: EventEmitter) => void) => Promise<T>,
+    cb: (
+      context: RequestContextBase,
+      bindEmitter: (emitter: EventEmitter) => void,
+    ) => Promise<T>,
   ) => Promise<T>
 }): Koa.Middleware => (ctx, next) =>
   setupRequestContext((context, bindEmitter) => {
@@ -31,12 +34,18 @@ export const setupNamespace = ({
 export const logRequestTime: Koa.Middleware = async (ctx, next) => {
   const reqPath = `${ctx.method} ${ctx.path}`
   const reqHeaders = ctx.headers
-  logger.log(`${chalk.bold(reqPath)} Start request`, { headers: JSON.parse(JSON.stringify(reqHeaders)) })
+  logger.log(`${chalk.bold(reqPath)} Start request`, {
+    headers: JSON.parse(JSON.stringify(reqHeaders)),
+  })
 
   onFinished(ctx.res, () => {
     const elapsed = calculateElapsed(ctx["start-time"])
     const elapsedFormatted = `${elapsed}ms`
-    logger.debug(`${chalk.bgWhite.black(elapsedFormatted)} ${chalk.bold(reqPath)} Closed HTTP request`)
+    logger.debug(
+      `${chalk.bgWhite.black(elapsedFormatted)} ${chalk.bold(
+        reqPath,
+      )} Closed HTTP request`,
+    )
   })
 
   await next()
@@ -46,17 +55,24 @@ export const logRequestTime: Koa.Middleware = async (ctx, next) => {
   const elapsed2 = calculateElapsed(ctx["start-time"])
   const elapsedFormatted2 = `${elapsed2}ms`
   logger.log(
-    `${chalk.bgWhite.black(elapsedFormatted2)} ${chalk.bold(reqPath)} Finished HTTP processing`,
+    `${chalk.bgWhite.black(elapsedFormatted2)} ${chalk.bold(
+      reqPath,
+    )} Finished HTTP processing`,
     JSON.parse(JSON.stringify({ status, headers })),
   )
 }
 
-export const authMiddleware = (defaultNamePass: string) => (namePass: string = defaultNamePass) => {
+export const authMiddleware = (defaultNamePass: string) => (
+  namePass: string = defaultNamePass,
+) => {
   const [name, pass] = namePass.split(":")
   return auth({ name, pass })
 }
 
-export const handleAuthenticationFailedMiddleware: Koa.Middleware = async (ctx, next) => {
+export const handleAuthenticationFailedMiddleware: Koa.Middleware = async (
+  ctx,
+  next,
+) => {
   try {
     await next()
   } catch (err) {

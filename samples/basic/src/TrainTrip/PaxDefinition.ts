@@ -1,13 +1,27 @@
-import { createValidator, Joi, predicate, typedKeysOf, ValidationError } from "@fp-app/framework"
+import {
+  createValidator,
+  Joi,
+  predicate,
+  typedKeysOf,
+  ValidationError,
+} from "@fp-app/framework"
 import { Result, pipe, E } from "@fp-app/fp-ts-extensions"
 
 export default class PaxDefinition {
   static create(pax: Pax): Result<PaxDefinition, ValidationError> {
     return pipe(
       validate(pax),
-      E.chain(predicate(p => typedKeysOf(p).some(k => p[k] > 0), "pax requires at least 1 person")),
       E.chain(
-        predicate(p => typedKeysOf(p).reduce((prev, cur) => (prev += p[cur]), 0) <= 6, "pax must be 6 or less people"),
+        predicate(
+          p => typedKeysOf(p).some(k => p[k] > 0),
+          "pax requires at least 1 person",
+        ),
+      ),
+      E.chain(
+        predicate(
+          p => typedKeysOf(p).reduce((prev, cur) => (prev += p[cur]), 0) <= 6,
+          "pax must be 6 or less people",
+        ),
       ),
       E.map(validatedPax => new PaxDefinition(validatedPax)),
     )

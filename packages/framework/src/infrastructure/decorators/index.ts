@@ -24,14 +24,19 @@ const uowDecorator = configureDependencies(
   { unitOfWork: UOWKey },
   "uowDecorator",
   ({ unitOfWork }): RequestDecorator => request => (key, input) => {
-    if (key[requestTypeSymbol] !== "COMMAND" && key[requestTypeSymbol] !== "INTEGRATIONEVENT") {
+    if (
+      key[requestTypeSymbol] !== "COMMAND" &&
+      key[requestTypeSymbol] !== "INTEGRATIONEVENT"
+    ) {
       return request(key, input)
     }
 
     return pipe(
       request(key, input),
       TE.mapLeft(liftType<any | DbError>()),
-      chainTeeTask(() => pipe(unitOfWork.save(), TE.mapLeft(liftType<any | DbError>()))),
+      chainTeeTask(() =>
+        pipe(unitOfWork.save(), TE.mapLeft(liftType<any | DbError>())),
+      ),
     )
   },
 )
@@ -39,5 +44,11 @@ const uowDecorator = configureDependencies(
 export { loggingDecorator, uowDecorator }
 
 type RequestDecorator = <TInput, TOutput, TError>(
-  request: (key: NamedRequestHandler<TInput, TOutput, TError>, input: TInput) => AsyncResult<TOutput, TError>,
-) => (key: NamedRequestHandler<TInput, TOutput, TError>, input: TInput) => AsyncResult<TOutput, TError>
+  request: (
+    key: NamedRequestHandler<TInput, TOutput, TError>,
+    input: TInput,
+  ) => AsyncResult<TOutput, TError>,
+) => (
+  key: NamedRequestHandler<TInput, TOutput, TError>,
+  input: TInput,
+) => AsyncResult<TOutput, TError>

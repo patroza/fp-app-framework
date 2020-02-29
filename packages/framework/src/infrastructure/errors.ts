@@ -2,7 +2,11 @@
 
 import { ErrorBase } from "../errors"
 
-export type DbError = RecordNotFound | ConnectionError | OptimisticLockError | CouldNotAquireDbLockError
+export type DbError =
+  | RecordNotFound
+  | ConnectionError
+  | OptimisticLockError
+  | CouldNotAquireDbLockError
 export type ApiError = RecordNotFound | ConnectionError
 
 export class ConnectionError extends ErrorBase {

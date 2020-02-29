@@ -24,16 +24,34 @@ import PaxDefinition, { Pax } from "../PaxDefinition"
 import TravelClassDefinition from "../TravelClassDefinition"
 import { DbContextKey, defaultDependencies } from "./types"
 
-const createCommand = createCommandWithDeps({ db: DbContextKey, ...defaultDependencies })
+const createCommand = createCommandWithDeps({
+  db: DbContextKey,
+  ...defaultDependencies,
+})
 
-const changeTrainTrip = createCommand<Input, void, ChangeTrainTripError>("changeTrainTrip", ({ db }) =>
-  compose(
-    chainTupTask(i => pipe(TE.fromEither(validateStateProposition(i)), TE.mapLeft(liftType<ChangeTrainTripError>()))),
-    chainFlatTupTask(([, i]) => pipe(db.trainTrips.load(i.trainTripId), TE.mapLeft(liftType<ChangeTrainTripError>()))),
-    TE.chain(([trainTrip, proposal]) =>
-      pipe(TE.fromEither(trainTrip.proposeChanges(proposal)), TE.mapLeft(liftType<ChangeTrainTripError>())),
+const changeTrainTrip = createCommand<Input, void, ChangeTrainTripError>(
+  "changeTrainTrip",
+  ({ db }) =>
+    compose(
+      chainTupTask(i =>
+        pipe(
+          TE.fromEither(validateStateProposition(i)),
+          TE.mapLeft(liftType<ChangeTrainTripError>()),
+        ),
+      ),
+      chainFlatTupTask(([, i]) =>
+        pipe(
+          db.trainTrips.load(i.trainTripId),
+          TE.mapLeft(liftType<ChangeTrainTripError>()),
+        ),
+      ),
+      TE.chain(([trainTrip, proposal]) =>
+        pipe(
+          TE.fromEither(trainTrip.proposeChanges(proposal)),
+          TE.mapLeft(liftType<ChangeTrainTripError>()),
+        ),
+      ),
     ),
-  ),
 )
 
 export default changeTrainTrip
@@ -48,11 +66,22 @@ export interface StateProposition {
   travelClass?: string
 }
 
-const validateStateProposition = ({ pax, startDate, travelClass, ...rest }: StateProposition) =>
+const validateStateProposition = ({
+  pax,
+  startDate,
+  travelClass,
+  ...rest
+}: StateProposition) =>
   pipe(
     resultTuple(
-      pipe(valueOrUndefined(travelClass, TravelClassDefinition.create), E.mapLeft(toFieldError("travelClass"))),
-      pipe(valueOrUndefined(startDate, FutureDate.create), E.mapLeft(toFieldError("startDate"))),
+      pipe(
+        valueOrUndefined(travelClass, TravelClassDefinition.create),
+        E.mapLeft(toFieldError("travelClass")),
+      ),
+      pipe(
+        valueOrUndefined(startDate, FutureDate.create),
+        E.mapLeft(toFieldError("startDate")),
+      ),
       pipe(valueOrUndefined(pax, PaxDefinition.create), E.mapLeft(toFieldError("pax"))),
       ok(rest),
     ),
@@ -65,4 +94,8 @@ const validateStateProposition = ({ pax, startDate, travelClass, ...rest }: Stat
     })),
   )
 
-type ChangeTrainTripError = ForbiddenError | InvalidStateError | ValidationError | DbError
+type ChangeTrainTripError =
+  | ForbiddenError
+  | InvalidStateError
+  | ValidationError
+  | DbError

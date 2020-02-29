@@ -1,4 +1,8 @@
-import { NamedHandlerWithDependencies, NamedRequestHandler, requestType } from "./registry"
+import {
+  NamedHandlerWithDependencies,
+  NamedRequestHandler,
+  requestType,
+} from "./registry"
 
 const request = (get: getRequestType): requestType => (requestHandler, input) => {
   const handler = get(requestHandler)

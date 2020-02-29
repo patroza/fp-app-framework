@@ -14,26 +14,47 @@ export default class KoaRouteBuilder extends RouteBuilder<Koa.Context> {
       router.use(authMiddleware(this.userPass)())
     }
 
-    this.setup.forEach(({ errorHandler, method, path, requestHandler, responseTransform, validator }) => {
-      router.register(
+    this.setup.forEach(
+      ({
+        errorHandler,
+        method,
         path,
-        [method],
-        generateKoaHandler(request, requestHandler, validator, errorHandler, responseTransform),
-      )
-    })
+        requestHandler,
+        responseTransform,
+        validator,
+      }) => {
+        router.register(
+          path,
+          [method],
+          generateKoaHandler(
+            request,
+            requestHandler,
+            validator,
+            errorHandler,
+            responseTransform,
+          ),
+        )
+      },
+    )
 
     return router
   }
 }
 
-export function createRouterFromMap(routerMap: Map<string, RouteBuilder<Koa.Context>>, request: requestType) {
+export function createRouterFromMap(
+  routerMap: Map<string, RouteBuilder<Koa.Context>>,
+  request: requestType,
+) {
   return [...routerMap.entries()].reduce((prev, cur) => {
     const koaRouter = cur[1].build(request)
     return prev.use(cur[0], koaRouter.allowedMethods(), koaRouter.routes())
   }, new KoaRouter())
 }
 
-export const extendWithHalLinks = (config: HALConfig) => <TOutput>(output: TOutput, ctx: Koa.Context) => ({
+export const extendWithHalLinks = (config: HALConfig) => <TOutput>(
+  output: TOutput,
+  ctx: Koa.Context,
+) => ({
   ...output,
   _links: generateHalLinks(ctx, config, output),
 })

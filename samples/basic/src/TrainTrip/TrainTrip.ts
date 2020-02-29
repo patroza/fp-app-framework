@@ -29,8 +29,13 @@ import Trip, { TravelClass, TripWithSelectedTravelClass } from "./Trip"
 
 export default class TrainTrip extends Entity {
   /** the primary way to create a new TrainTrip */
-  static create({ pax, startDate }: { startDate: FutureDate; pax: PaxDefinition }, trip: TripWithSelectedTravelClass) {
-    const travelClassConfiguration = trip.travelClasses.map(x => new TravelClassConfiguration(x))
+  static create(
+    { pax, startDate }: { startDate: FutureDate; pax: PaxDefinition },
+    trip: TripWithSelectedTravelClass,
+  ) {
+    const travelClassConfiguration = trip.travelClasses.map(
+      x => new TravelClassConfiguration(x),
+    )
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const currentTravelClassConfiguration = travelClassConfiguration.find(
       x => x.travelClass.name === trip.currentTravelClass.name,
@@ -68,7 +73,12 @@ export default class TrainTrip extends Entity {
     rest?: Partial<
       Omit<
         { -readonly [key in keyof TrainTrip]: TrainTrip[key] },
-        "id" | "pax" | "startDate" | "travelClassConfiguration" | "currentTravelClassConfiguration" | "trip"
+        | "id"
+        | "pax"
+        | "startDate"
+        | "travelClassConfiguration"
+        | "currentTravelClassConfiguration"
+        | "trip"
       >
     >,
     // rest?: Partial<{ -readonly [key in keyof TrainTrip]: TrainTrip[key] }>,
@@ -103,11 +113,14 @@ export default class TrainTrip extends Entity {
   readonly updateTrip = (trip: Trip) => {
     // This will clear all configurations upon trip update
     // TODO: Investigate a resolution mechanism to update existing configurations, depends on business case ;-)
-    this.w.travelClassConfiguration = trip.travelClasses.map(x => new TravelClassConfiguration(x))
+    this.w.travelClassConfiguration = trip.travelClasses.map(
+      x => new TravelClassConfiguration(x),
+    )
     const currentTravelClassConfiguration = this.travelClassConfiguration.find(
       x => this.currentTravelClassConfiguration.travelClass.name === x.travelClass.name,
     )
-    this.w.currentTravelClassConfiguration = currentTravelClassConfiguration || this.travelClassConfiguration[0]!
+    this.w.currentTravelClassConfiguration =
+      currentTravelClassConfiguration || this.travelClassConfiguration[0]!
   }
 
   // TODO: This seems like cheating, we're missing another Aggregate Root..
@@ -139,7 +152,10 @@ export default class TrainTrip extends Entity {
     return pipe(
       this.confirmUserChangeAllowed(),
       E.chain(() =>
-        pipe(this.intChangeTravelClass(travelClass), E.mapLeft(liftType<ForbiddenError | InvalidStateError>())),
+        pipe(
+          this.intChangeTravelClass(travelClass),
+          E.mapLeft(liftType<ForbiddenError | InvalidStateError>()),
+        ),
       ),
       E.map(this.createChangeEvents),
     )
@@ -147,7 +163,11 @@ export default class TrainTrip extends Entity {
   //// End Separate sample; not used other than testing
   ////////////
 
-  private readonly applyDefinedChanges = ({ pax, startDate, travelClass }: StateProposition) =>
+  private readonly applyDefinedChanges = ({
+    pax,
+    startDate,
+    travelClass,
+  }: StateProposition) =>
     anyTrue<ValidationError | InvalidStateError>(
       E.map(() => applyIfNotUndefined(startDate, this.intChangeStartDate)),
       E.map(() => applyIfNotUndefined(pax, this.intChangePax)),
@@ -176,8 +196,12 @@ export default class TrainTrip extends Entity {
     return true
   }
 
-  private readonly intChangeTravelClass = (travelClass: TravelClassDefinition): Result<boolean, InvalidStateError> => {
-    const slc = this.travelClassConfiguration.find(x => x.travelClass.name === travelClass.value)
+  private readonly intChangeTravelClass = (
+    travelClass: TravelClassDefinition,
+  ): Result<boolean, InvalidStateError> => {
+    const slc = this.travelClassConfiguration.find(
+      x => x.travelClass.name === travelClass.value,
+    )
     if (!slc) {
       return err(new InvalidStateError(`${travelClass.value} not available currently`))
     }

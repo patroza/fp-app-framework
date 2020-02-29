@@ -6,7 +6,10 @@ const resolveEvent = (): resolveEventType => (evt: IntegrationEvents) => {
 
   switch (evt.type) {
     case "CustomerRequestedChanges":
-      return new CustomerRequestedChanges(evt.payload.trainTripId, evt.payload.itineraryId)
+      return new CustomerRequestedChanges(
+        evt.payload.trainTripId,
+        evt.payload.itineraryId,
+      )
     default: {
       logger.warn("Received event, but have no handler: ", evt)
       return undefined

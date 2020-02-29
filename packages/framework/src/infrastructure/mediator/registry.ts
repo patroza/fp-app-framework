@@ -4,7 +4,10 @@ import Event from "../../event"
 import { Constructor, getLogger, setFunctionName, typedKeysOf } from "../../utils"
 import assert from "../../utils/assert"
 import { UnitOfWork } from "../context.base"
-import { registerDomainEventHandler, registerIntegrationEventHandler } from "../createDependencyNamespace"
+import {
+  registerDomainEventHandler,
+  registerIntegrationEventHandler,
+} from "../createDependencyNamespace"
 import {
   generateKey,
   InjectedDependencies,
@@ -21,18 +24,18 @@ export interface RequestContextBase {
   correllationId: string
 }
 
-export type EventHandlerWithDependencies<TDependencies, TInput, TOutput, TError> = HandlerWithDependencies<
+export type EventHandlerWithDependencies<
   TDependencies,
   TInput,
   TOutput,
   TError
->
-export type UsecaseWithDependencies<TDependencies, TInput, TOutput, TError> = HandlerWithDependencies<
+> = HandlerWithDependencies<TDependencies, TInput, TOutput, TError>
+export type UsecaseWithDependencies<
   TDependencies,
   TInput,
   TOutput,
   TError
->
+> = HandlerWithDependencies<TDependencies, TInput, TOutput, TError>
 
 export const configureDependencies = <TDependencies, T>(
   deps: TDependencies,
@@ -60,10 +63,12 @@ type HandlerWithDependencies<TDependencies, TInput, TOutput, TError> = WithDepen
 >
 
 // tslint:disable-next-line:max-line-length
-export type NamedHandlerWithDependencies<TDependencies, TInput, TOutput, TError> = WithDependencies<
+export type NamedHandlerWithDependencies<
   TDependencies,
-  NamedRequestHandler<TInput, TOutput, TError>
-> &
+  TInput,
+  TOutput,
+  TError
+> = WithDependencies<TDependencies, NamedRequestHandler<TInput, TOutput, TError>> &
   HandlerInfo<TDependencies>
 
 interface HandlerTypeInfo {
@@ -79,16 +84,20 @@ type HandlerType = "COMMAND" | "QUERY" | "DOMAINEVENT" | "INTEGRATIONEVENT"
 //   { name: string, type: HandlerType }
 // ]
 
-const registerUsecaseHandler = <TDependencies>(deps: TDependencies) => (name: string, type: HandlerType) => <
-  TInput,
-  TOutput,
-  TError
->(
+const registerUsecaseHandler = <TDependencies>(deps: TDependencies) => (
+  name: string,
+  type: HandlerType,
+) => <TInput, TOutput, TError>(
   handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TError>,
 ) => {
   assert(!typedKeysOf(deps).some(x => !deps[x]), "Dependencies must not be null")
 
-  const newHandler = handler as NamedHandlerWithDependencies<TDependencies, TInput, TOutput, TError>
+  const newHandler = handler as NamedHandlerWithDependencies<
+    TDependencies,
+    TInput,
+    TOutput,
+    TError
+  >
   newHandler[requestTypeSymbol] = type
   newHandler[injectSymbol] = deps
   setFunctionName(handler, name)
@@ -100,7 +109,11 @@ const registerUsecaseHandler = <TDependencies>(deps: TDependencies) => (name: st
 }
 
 // tslint:disable-next-line:max-line-length
-const createCommandWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(
+const createCommandWithDeps = <TDependencies>(deps: TDependencies) => <
+  TInput,
+  TOutput,
+  TErr
+>(
   name: string,
   handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>,
 ) => {
@@ -112,7 +125,11 @@ const createCommandWithDeps = <TDependencies>(deps: TDependencies) => <TInput, T
 }
 
 // tslint:disable-next-line:max-line-length
-const createQueryWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(
+const createQueryWithDeps = <TDependencies>(deps: TDependencies) => <
+  TInput,
+  TOutput,
+  TErr
+>(
   name: string,
   handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>,
 ) => {
@@ -124,7 +141,11 @@ const createQueryWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOu
 }
 
 // tslint:disable-next-line:max-line-length
-const createDomainEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(
+const createDomainEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <
+  TInput,
+  TOutput,
+  TErr
+>(
   event: Constructor<TInput>,
   name: string,
   handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>,
@@ -137,14 +158,21 @@ const createDomainEventHandlerWithDeps = <TDependencies>(deps: TDependencies) =>
 }
 
 // tslint:disable-next-line:max-line-length
-const createIntegrationEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <TInput, TOutput, TErr>(
+const createIntegrationEventHandlerWithDeps = <TDependencies>(deps: TDependencies) => <
+  TInput,
+  TOutput,
+  TErr
+>(
   event: Constructor<TInput>,
   name: string,
   handler: UsecaseWithDependencies<TDependencies, TInput, TOutput, TErr>,
 ) => {
   handler = wrapHandler(handler)
   const setupWithDeps = registerUsecaseHandler(deps)
-  const newHandler = setupWithDeps(`on${event.name}${name}`, "INTEGRATIONEVENT")(handler)
+  const newHandler = setupWithDeps(
+    `on${event.name}${name}`,
+    "INTEGRATIONEVENT",
+  )(handler)
   registerIntegrationEventHandler(event, handler)
   return newHandler
 }
@@ -175,10 +203,17 @@ export type requestType = <TInput, TOutput, TError>(
 
 export type requestInNewScopeType = requestType
 
-export type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<TInput, TOutput, TErr> & HandlerInfo<any>
+export type NamedRequestHandler<TInput, TOutput, TErr> = PipeFunction<
+  TInput,
+  TOutput,
+  TErr
+> &
+  HandlerInfo<any>
 
 export const requestKey = generateKey<requestType>("request")
-export const requestInNewScopeKey = generateKey<requestInNewScopeType>("requestInNewScope")
+export const requestInNewScopeKey = generateKey<requestInNewScopeType>(
+  "requestInNewScope",
+)
 
 // const dependencyMap = new Map<HandlerWithDependencies<any, any, any, any>, HandlerTuple<any, any, any, any>>()
 

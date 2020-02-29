@@ -1,4 +1,12 @@
-import { err, success, pipe, AsyncResult, E, isErr, tee } from "@fp-app/fp-ts-extensions"
+import {
+  err,
+  success,
+  pipe,
+  AsyncResult,
+  E,
+  isErr,
+  tee,
+} from "@fp-app/fp-ts-extensions"
 import Event from "../event"
 import { EventHandlerWithDependencies } from "./mediator"
 import { publishType } from "./mediator/publish"
@@ -63,7 +71,10 @@ export default class DomainEventHandler {
 
   private readonly publishIntegrationEvents = () => {
     this.events = []
-    const integrationEventsMap = new Map<any, EventHandlerWithDependencies<any, any, any, any>[]>()
+    const integrationEventsMap = new Map<
+      any,
+      EventHandlerWithDependencies<any, any, any, any>[]
+    >()
     for (const evt of this.processedEvents) {
       const integrationEventHandlers = this.getIntegrationHandlers(evt)
       if (!integrationEventHandlers || !integrationEventHandlers.length) {

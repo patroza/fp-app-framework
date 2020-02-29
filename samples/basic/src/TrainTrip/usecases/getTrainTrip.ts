@@ -11,13 +11,18 @@ import { Pax } from "../PaxDefinition"
 import { TravelClassName } from "../TravelClassDefinition"
 import { defaultDependencies } from "./types"
 
-const createQuery = createQueryWithDeps({ readCtx: trainTripReadContextKey, ...defaultDependencies })
+const createQuery = createQueryWithDeps({
+  readCtx: trainTripReadContextKey,
+  ...defaultDependencies,
+})
 
-const getTrainTrip = createQuery<Input, TrainTripView, DbError>("getTrainTrip", ({ readCtx }) =>
-  compose(
-    TE.map(({ trainTripId }) => trainTripId),
-    TE.chain(readCtx.read),
-  ),
+const getTrainTrip = createQuery<Input, TrainTripView, DbError>(
+  "getTrainTrip",
+  ({ readCtx }) =>
+    compose(
+      TE.map(({ trainTripId }) => trainTripId),
+      TE.chain(readCtx.read),
+    ),
 )
 
 export default getTrainTrip

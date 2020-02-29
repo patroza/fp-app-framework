@@ -22,7 +22,9 @@ import lockTrainTrip from "./usecases/lockTrainTrip"
 import registerCloud from "./usecases/registerCloud"
 
 let trainTripId: string
-let executePostCommitHandlersMock: jest.Mock<ReturnType<typeof executePostCommitHandlers>>
+let executePostCommitHandlersMock: jest.Mock<ReturnType<
+  typeof executePostCommitHandlers
+>>
 
 let root: ReturnType<typeof createRoot>
 
@@ -137,13 +139,19 @@ describe("usecases", () => {
         expect(isErr(r)).toBe(true)
         const error = unsafeUnwrapErr(r)
         expect(error).toBeInstanceOf(CombinedValidationError)
-        expect(error.message).toBe("travelClass: doesntexist is not a valid travel class name")
+        expect(error.message).toBe(
+          "travelClass: doesntexist is not a valid travel class name",
+        )
         expect(executePostCommitHandlersMock).toBeCalledTimes(0)
       }))
 
     it("errors on multiple invalid", () =>
       createRootAndBind(async () => {
-        const state: StateProposition = { travelClass: "bogus", pax: { children: 0 } as any, startDate: "2000-01-01" }
+        const state: StateProposition = {
+          travelClass: "bogus",
+          pax: { children: 0 } as any,
+          startDate: "2000-01-01",
+        }
 
         const r = await root.request(changeTrainTrip, { trainTripId, ...state })()
 
@@ -159,7 +167,9 @@ describe("usecases", () => {
   describe("able to lock the TrainTrip", () => {
     it("locks traintrip accordingly", () =>
       createRootAndBind(async () => {
-        const currentTrainTripResult = await root.request(getTrainTrip, { trainTripId })()
+        const currentTrainTripResult = await root.request(getTrainTrip, {
+          trainTripId,
+        })()
 
         const result = await root.request(lockTrainTrip, { trainTripId })()
 
@@ -177,7 +187,9 @@ describe("usecases", () => {
   describe("able to delete the TrainTrip", () => {
     it("deletes accordingly", () =>
       createRootAndBind(async () => {
-        const currentTrainTripResult = await root.request(getTrainTrip, { trainTripId })()
+        const currentTrainTripResult = await root.request(getTrainTrip, {
+          trainTripId,
+        })()
 
         const result = await root.request(deleteTrainTrip, { trainTripId })()
 

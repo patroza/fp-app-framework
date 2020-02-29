@@ -3,7 +3,13 @@ import { createNamespace, getNamespace } from "cls-hooked"
 import format from "date-fns/format"
 import { EventEmitter } from "events"
 import Event from "../event"
-import { Constructor, generateShortUuid, getLogger, removeElement, using } from "../utils"
+import {
+  Constructor,
+  generateShortUuid,
+  getLogger,
+  removeElement,
+  using,
+} from "../utils"
 import { loggingDecorator, uowDecorator } from "./decorators"
 import DomainEventHandler, { executePostCommitHandlersKey } from "./domainEventHandler"
 import executePostCommitHandlers from "./executePostCommitHandlers"
@@ -24,10 +30,15 @@ import { Either } from "fp-ts/lib/Either"
 
 const logger = getLogger("registry")
 
-export default function createDependencyNamespace(namespace: string, requestScopeKey: Key<RequestContextBase>) {
+export default function createDependencyNamespace(
+  namespace: string,
+  requestScopeKey: Key<RequestContextBase>,
+) {
   const ns = createNamespace(namespace)
-  const getDependencyScope = (): DependencyScope => getNamespace(namespace).get(dependencyScopeKey)
-  const setDependencyScope = (scope: DependencyScope) => getNamespace(namespace).set(dependencyScopeKey, scope)
+  const getDependencyScope = (): DependencyScope =>
+    getNamespace(namespace).get(dependencyScopeKey)
+  const setDependencyScope = (scope: DependencyScope) =>
+    getNamespace(namespace).set(dependencyScopeKey, scope)
   const hasDependencyScope = () => getDependencyScope() != null
 
   interface LoggingScope {
@@ -36,7 +47,8 @@ export default function createDependencyNamespace(namespace: string, requestScop
 
   const container = new SimpleContainer(getDependencyScope, setDependencyScope)
 
-  const getLoggingScope = (): LoggingScope => getNamespace(namespace).get(loggingScopeKey)
+  const getLoggingScope = (): LoggingScope =>
+    getNamespace(namespace).get(loggingScopeKey)
 
   const addToLoggingContext = (item: { [key: string]: any }) => {
     getLoggingScope().items.push(item)
@@ -50,7 +62,8 @@ export default function createDependencyNamespace(namespace: string, requestScop
     const datetime = new Date()
     const timestamp = format(datetime, "YYYY-MM-DD HH:mm:ss")
     const scope = getLoggingScope()
-    const items = scope && scope.items.reduce((prev, cur) => ({ ...prev, ...cur }), {} as any)
+    const items =
+      scope && scope.items.reduce((prev, cur) => ({ ...prev, ...cur }), {} as any)
     const id = context
       ? context.correllationId === context.id
         ? context.id
@@ -75,20 +88,26 @@ export default function createDependencyNamespace(namespace: string, requestScop
     })
 
   const setupRequestContext = <T>(
-    cb: (context: RequestContextBase, bindEmitter: typeof ns["bindEmitter"]) => Promise<T>,
+    cb: (
+      context: RequestContextBase,
+      bindEmitter: typeof ns["bindEmitter"],
+    ) => Promise<T>,
   ) =>
     ns.runPromise(() =>
       using(container.createScope(), () => {
         getNamespace(namespace).set(loggingScopeKey, { items: [] })
         logger.debug(chalk.magenta("Created request context"))
-        return cb(container.getO(requestScopeKey), (emitter: EventEmitter) => ns.bindEmitter(emitter))
+        return cb(container.getO(requestScopeKey), (emitter: EventEmitter) =>
+          ns.bindEmitter(emitter),
+        )
       }),
     )
 
   const publishDomainEventHandler = publish(evt =>
     (domainHandlerMap.get(evt.constructor) || []).map(x => container.getF(x)),
   )
-  const getIntegrationEventHandlers = (evt: Event) => integrationHandlerMap.get(evt.constructor)
+  const getIntegrationEventHandlers = (evt: Event) =>
+    integrationHandlerMap.get(evt.constructor)
   const publishIntegrationEventHandler = publish(evt =>
     (integrationHandlerMap.get(evt.constructor) || []).map(x => container.getF(x)),
   )
@@ -105,7 +124,9 @@ export default function createDependencyNamespace(namespace: string, requestScop
     const id = generateShortUuid()
     return { id, correllationId: id }
   })
-  getRegisteredRequestAndEventHandlers().forEach(h => container.registerScopedConcrete(h))
+  getRegisteredRequestAndEventHandlers().forEach(h =>
+    container.registerScopedConcrete(h),
+  )
 
   container.registerScopedConcrete(uowDecorator)
   container.registerSingletonConcrete(loggingDecorator)
@@ -113,7 +134,9 @@ export default function createDependencyNamespace(namespace: string, requestScop
 
   container.registerSingletonF(
     executePostCommitHandlersKey,
-    factoryOf(executePostCommitHandlers, i => i({ executeIntegrationEvent: container.getF(requestInNewScopeKey) })),
+    factoryOf(executePostCommitHandlers, i =>
+      i({ executeIntegrationEvent: container.getF(requestInNewScopeKey) }),
+    ),
   )
 
   const publishInNewContext = (evt: string, requestId: string) =>
@@ -127,8 +150,13 @@ export default function createDependencyNamespace(namespace: string, requestScop
       })(evt)
     })
 
-  const requestInNewContext: requestInNewScopeType = <TInput, TOutput>(key: any, evt: any) => () =>
-    setupChildContext<Either<TInput, TOutput>>(() => container.getF(requestKey)(key, evt)() as any)
+  const requestInNewContext: requestInNewScopeType = <TInput, TOutput>(
+    key: any,
+    evt: any,
+  ) => () =>
+    setupChildContext<Either<TInput, TOutput>>(
+      () => container.getF(requestKey)(key, evt)() as any,
+    )
   container.registerSingletonF(
     requestKey,
     factoryOf(request, i => i(key => container.getConcrete(key))),

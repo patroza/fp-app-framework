@@ -5,15 +5,17 @@ import { DbError } from "./errors"
 import { NamedHandlerWithDependencies, requestType } from "./mediator"
 
 export default abstract class RouteBuilder<TContext> {
-  private static register = <TContext>(method: METHODS, obj: RouteBuilder<TContext>) => <
-    TDependencies,
-    TInput,
-    TOutput,
-    TError,
-    TValidationError
-  >(
+  private static register = <TContext>(
+    method: METHODS,
+    obj: RouteBuilder<TContext>,
+  ) => <TDependencies, TInput, TOutput, TError, TValidationError>(
     path: string,
-    requestHandler: NamedHandlerWithDependencies<TDependencies, TInput, TOutput, TError>,
+    requestHandler: NamedHandlerWithDependencies<
+      TDependencies,
+      TInput,
+      TOutput,
+      TError
+    >,
     configuration: {
       errorHandler?: ErrorHandlerType<TContext, DbError | TError | TValidationError>
       responseTransform?: ResponseTransform<TContext, TOutput>
@@ -36,7 +38,9 @@ export default abstract class RouteBuilder<TContext> {
   abstract build(request: requestType): any
 
   getJsonSchema() {
-    return this.setup.map(({ method, path, validator }) => [method, path, validator.jsonSchema] as const)
+    return this.setup.map(
+      ({ method, path, validator }) => [method, path, validator.jsonSchema] as const,
+    )
   }
 
   enableBasicAuth(userPass: string) {
@@ -50,13 +54,19 @@ export interface HALConfig {
   [key: string]: string
 }
 
-export type ResponseTransform<TContext, TOutput> = (output: TOutput, ctx: TContext) => any
+export type ResponseTransform<TContext, TOutput> = (
+  output: TOutput,
+  ctx: TContext,
+) => any
 
 export function writeRouterSchema(routerMap: Map<string, RouteBuilder<any>>) {
   const schema = [...routerMap.entries()].reduce((prev, [path, r]) => {
-    prev[path] = r
-      .getJsonSchema()
-      .map(([method, p, s2]) => ({ method, subPath: p, fullPath: `${path}${p}`, schema: s2 }))
+    prev[path] = r.getJsonSchema().map(([method, p, s2]) => ({
+      method,
+      subPath: p,
+      fullPath: `${path}${p}`,
+      schema: s2,
+    }))
     return prev
   }, {} as any)
   fs.writeFileSync("./router-schema.json", JSON.stringify(schema, undefined, 2))

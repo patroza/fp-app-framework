@@ -5,9 +5,11 @@ export type Constructor<T> = new (...args: any[]) => T
 const asWritable = <T>(obj: T) => obj as Writeable<T>
 export type Writeable<T> = { -readonly [P in keyof T]-?: T[P] }
 
-const isTruthyFilter = <T>(item: T | null | undefined | void): item is T => Boolean(item)
+const isTruthyFilter = <T>(item: T | null | undefined | void): item is T =>
+  Boolean(item)
 
-const setFunctionName = (fnc: any, name: string) => Object.defineProperty(fnc, "name", { value: name })
+const setFunctionName = (fnc: any, name: string) =>
+  Object.defineProperty(fnc, "name", { value: name })
 
 export const typedKeysOf = <T>(obj: T) => Object.keys(obj) as (keyof T)[]
 
@@ -17,7 +19,10 @@ export interface Disposable {
 
 const using = async <T>(disposable: Disposable, fnc: () => Promise<T> | T) => {
   // eslint-disable-next-line @typescript-eslint/unbound-method
-  assert(!disposable || !!disposable.dispose, "The provided disposable must implement a `dispose` function")
+  assert(
+    !disposable || !!disposable.dispose,
+    "The provided disposable must implement a `dispose` function",
+  )
   try {
     return await fnc()
   } finally {
@@ -57,4 +62,13 @@ function immutableObj<T>() {
   }
 }
 
-export { asWritable, createLazy, isTruthyFilter, immutableObj, noop, removeElement, setFunctionName, using }
+export {
+  asWritable,
+  createLazy,
+  isTruthyFilter,
+  immutableObj,
+  noop,
+  removeElement,
+  setFunctionName,
+  using,
+}

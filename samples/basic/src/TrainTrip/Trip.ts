@@ -18,14 +18,20 @@ export default class Trip {
 
 // tslint:disable-next-line:max-classes-per-file
 export class TripWithSelectedTravelClass {
-  static create(trip: Trip, travelClassName: TravelClassName): Result<TripWithSelectedTravelClass, InvalidStateError> {
+  static create(
+    trip: Trip,
+    travelClassName: TravelClassName,
+  ): Result<TripWithSelectedTravelClass, InvalidStateError> {
     const selectedTravelClass = trip.travelClasses.find(x => x.name === travelClassName)
     if (!selectedTravelClass) {
       return err(new InvalidStateError("The service level is not available"))
     }
     return ok(new TripWithSelectedTravelClass(trip.travelClasses, selectedTravelClass))
   }
-  private constructor(readonly travelClasses: TravelClass[], readonly currentTravelClass: TravelClass) {}
+  private constructor(
+    readonly travelClasses: TravelClass[],
+    readonly currentTravelClass: TravelClass,
+  ) {}
 }
 // tslint:disable-next-line:max-classes-per-file
 export class TravelClass {

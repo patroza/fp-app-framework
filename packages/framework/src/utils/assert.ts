@@ -11,7 +11,8 @@ interface Assert {
  * @param {String} format
  * @param {...extra} extra
  */
-const assert = ((testValue: boolean, format: string, ...extra) => invariant(testValue, format, ...extra)) as Assert
+const assert = ((testValue: boolean, format: string, ...extra) =>
+  invariant(testValue, format, ...extra)) as Assert
 
 /**
  * Asserts that any of the specified properties are not null
@@ -28,7 +29,8 @@ const propertiesAreNotNull = (properties: { [key: string]: any }) => {
  * @param {*} value
  * @param {string} name
  */
-const isNotNull = (value: any, name: string) => invariant(value != null, `${name} must not be null`)
+const isNotNull = (value: any, name: string) =>
+  invariant(value != null, `${name} must not be null`)
 
 assert.isNotNull = propertiesAreNotNull
 

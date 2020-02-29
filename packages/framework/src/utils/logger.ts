@@ -25,7 +25,8 @@ const getLogger = (name: string) => {
 
   // const levels = ["info", "log", "debug", "error", "warn"] as const
   const l = typedKeysOf(logLevels).reduce((prev, current) => {
-    prev[current] = (...args: any[]) => logger[current](chalk.yellow(`[${name}]`), ...args)
+    prev[current] = (...args: any[]) =>
+      logger[current](chalk.yellow(`[${name}]`), ...args)
     return prev
   }, {} as typeof logger)
   l.addToLoggingContext = logger.addToLoggingContext
@@ -52,6 +53,10 @@ function calculateElapsed(start: [number, number]) {
 }
 
 const benchLog = <T>(wrappedFunction: () => Promise<T>, title?: string) =>
-  bench<T>(wrappedFunction, (t, elapsed) => logger.log(chalk.bgWhite.black(`${elapsed}ms`), t), title)
+  bench<T>(
+    wrappedFunction,
+    (t, elapsed) => logger.log(chalk.bgWhite.black(`${elapsed}ms`), t),
+    title,
+  )
 
 export { bench, benchLog, calculateElapsed, getLogger, setLogger }

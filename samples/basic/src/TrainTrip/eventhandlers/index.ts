@@ -1,5 +1,15 @@
-import { TrainTripCreated, TrainTripId, TrainTripStateChanged, UserInputReceived } from "@/TrainTrip/TrainTrip"
-import { DbContextKey, defaultDependencies, getTripKey, TrainTripPublisherKey } from "@/TrainTrip/usecases/types"
+import {
+  TrainTripCreated,
+  TrainTripId,
+  TrainTripStateChanged,
+  UserInputReceived,
+} from "@/TrainTrip/TrainTrip"
+import {
+  DbContextKey,
+  defaultDependencies,
+  getTripKey,
+  TrainTripPublisherKey,
+} from "@/TrainTrip/usecases/types"
 import {
   createDomainEventHandlerWithDeps,
   createIntegrationEventHandlerWithDeps,
@@ -38,17 +48,28 @@ createIntegrationEventHandler<TrainTripCreated, void, never>(
   /* on */ TrainTripCreated,
   "ScheduleCloudSync",
   ({ trainTripPublisher }) =>
-    compose(TE.chain(({ trainTripId }) => async () => E.right(await trainTripPublisher.register(trainTripId)))),
+    compose(
+      TE.chain(({ trainTripId }) => async () =>
+        E.right(await trainTripPublisher.register(trainTripId)),
+      ),
+    ),
 )
 
 createIntegrationEventHandler<TrainTripStateChanged, void, never>(
   /* on */ TrainTripStateChanged,
   "EitherDebounceOrScheduleCloudSync",
   ({ trainTripPublisher }) =>
-    compose(TE.chain(({ trainTripId }) => async () => E.right(await trainTripPublisher.register(trainTripId)))),
+    compose(
+      TE.chain(({ trainTripId }) => async () =>
+        E.right(await trainTripPublisher.register(trainTripId)),
+      ),
+    ),
 )
 
-const createDomainEventHandler = createDomainEventHandlerWithDeps({ db: DbContextKey, getTrip: getTripKey })
+const createDomainEventHandler = createDomainEventHandlerWithDeps({
+  db: DbContextKey,
+  getTrip: getTripKey,
+})
 
 createDomainEventHandler<TrainTripStateChanged, void, RefreshTripInfoError>(
   /* on */ TrainTripStateChanged,
@@ -56,7 +77,10 @@ createDomainEventHandler<TrainTripStateChanged, void, RefreshTripInfoError>(
   ({ db, getTrip }) =>
     compose(
       TE.chain(({ trainTripId }) =>
-        pipe(db.trainTrips.load(trainTripId), TE.mapLeft(liftType<RefreshTripInfoError>())),
+        pipe(
+          db.trainTrips.load(trainTripId),
+          TE.mapLeft(liftType<RefreshTripInfoError>()),
+        ),
       ),
       TE.chain(trainTrip =>
         pipe(
@@ -73,7 +97,9 @@ createIntegrationEventHandler<UserInputReceived, void, never>(
   "DebouncePendingCloudSync",
   ({ trainTripPublisher }) =>
     compose(
-      TE.chain(({ trainTripId }) => async () => E.right(await trainTripPublisher.registerIfPending(trainTripId))),
+      TE.chain(({ trainTripId }) => async () =>
+        E.right(await trainTripPublisher.registerIfPending(trainTripId)),
+      ),
     ),
 )
 

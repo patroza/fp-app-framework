@@ -1,6 +1,13 @@
 import TrainTrip, { TravelClassConfiguration } from "@/TrainTrip/TrainTrip"
 import { TrainTripContext } from "@/TrainTrip/usecases/types"
-import { autoinject, ContextBase, DbError, DomainEventHandler, Event, RecordContext } from "@fp-app/framework"
+import {
+  autoinject,
+  ContextBase,
+  DbError,
+  DomainEventHandler,
+  Event,
+  RecordContext,
+} from "@fp-app/framework"
 import { DiskRecordContext } from "@fp-app/io.diskdb"
 import { ok, AsyncResult } from "@fp-app/fp-ts-extensions"
 import { parse, stringify } from "flatted"
@@ -46,7 +53,15 @@ export default class DiskDBContext extends ContextBase implements TrainTripConte
 }
 
 const TrainTripToView = (trip: TrainTrip): TrainTripView => {
-  const { createdAt, currentTravelClassConfiguration, id, isLocked, pax, startDate, travelClassConfiguration } = trip
+  const {
+    createdAt,
+    currentTravelClassConfiguration,
+    id,
+    isLocked,
+    pax,
+    startDate,
+    travelClassConfiguration,
+  } = trip
   return {
     id,
 
@@ -56,7 +71,9 @@ const TrainTripToView = (trip: TrainTrip): TrainTripView => {
     pax: pax.value,
     startDate,
     travelClass: currentTravelClassConfiguration.travelClass.name,
-    travelClasses: travelClassConfiguration.map(({ travelClass: { name, templateId } }) => ({ templateId, name })),
+    travelClasses: travelClassConfiguration.map(
+      ({ travelClass: { name, templateId } }) => ({ templateId, name }),
+    ),
   }
 }
 
@@ -77,13 +94,17 @@ function deserializeDbTrainTrip(serializedTrainTrip: string) {
   // and we recreate proper object graph for properties that have behaviors
   // TODO: use type information or configuration, probably a library ;-)
 
-  const travelClassConfigurations = travelClassConfiguration.map(mapTravelClassConfigurationDTO)
+  const travelClassConfigurations = travelClassConfiguration.map(
+    mapTravelClassConfigurationDTO,
+  )
   const trainTrip = new TrainTrip(
     id,
     new (PaxDefinition as any)(paxInput.value),
     new Date(startDate),
     travelClassConfigurations,
-    travelClassConfigurations.find(x => x.travelClass.name === currentTravelClassConfiguration.travelClass.name)!,
+    travelClassConfigurations.find(
+      x => x.travelClass.name === currentTravelClassConfiguration.travelClass.name,
+    )!,
     {
       ...rest,
       createdAt: new Date(createdAt),
@@ -94,13 +115,22 @@ function deserializeDbTrainTrip(serializedTrainTrip: string) {
   return trainTrip
 }
 
-const mapTravelClassConfigurationDTO = ({ travelClass, ...slRest }: { travelClass: TravelClassDTO }) => {
+const mapTravelClassConfigurationDTO = ({
+  travelClass,
+  ...slRest
+}: {
+  travelClass: TravelClassDTO
+}) => {
   const slc = new TravelClassConfiguration(mapTravelClassDTO(travelClass))
   Object.assign(slc, slRest)
   return slc
 }
 
-const mapTravelClassDTO = ({ createdAt, name, templateId }: TravelClassDTO): TravelClass => {
+const mapTravelClassDTO = ({
+  createdAt,
+  name,
+  templateId,
+}: TravelClassDTO): TravelClass => {
   const sl = new TravelClass(templateId, name)
   Object.assign(sl, { createdAt: new Date(createdAt) })
   return sl

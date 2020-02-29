@@ -2,9 +2,13 @@ import { ValidationError } from "@fp-app/framework"
 import { err, ok, Result } from "@fp-app/fp-ts-extensions"
 
 export default class TravelClassDefinition {
-  static create(travelClassName: string): Result<TravelClassDefinition, ValidationError> {
+  static create(
+    travelClassName: string,
+  ): Result<TravelClassDefinition, ValidationError> {
     if (!validtravelClasses.some(x => x === travelClassName)) {
-      return err(new ValidationError(`${travelClassName} is not a valid travel class name`))
+      return err(
+        new ValidationError(`${travelClassName} is not a valid travel class name`),
+      )
     }
     return ok(new TravelClassDefinition(travelClassName))
   }

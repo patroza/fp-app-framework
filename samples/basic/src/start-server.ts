@@ -12,7 +12,13 @@ import createRoot from "./root"
 import createRootRouter from "./root.router"
 
 const startServer = async () => {
-  const { addToLoggingContext, bindLogger, initialize, request, setupRequestContext } = createRoot()
+  const {
+    addToLoggingContext,
+    bindLogger,
+    initialize,
+    request,
+    setupRequestContext,
+  } = createRoot()
 
   await initialize()
 
