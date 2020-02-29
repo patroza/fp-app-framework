@@ -1,5 +1,5 @@
 import { ValidationError } from "@fp-app/framework"
-import { ok, err, E, pipe, composeE } from "@fp-app/fp-ts-extensions"
+import { E, pipe, composeE, boolToEither } from "@fp-app/fp-ts-extensions"
 
 // Can use for input, but for storage we should just store as date.
 // because it is temporal; what is today valid may be invalid tomorrow etc.
@@ -26,13 +26,6 @@ export default class FutureDate {
   }
   */
   private constructor(readonly value: Date) {}
-}
-
-const boolToEither = <T>(value: T, predicate: (value: T) => boolean): E.Either<T, T> => {
-  if (!predicate(value)) {
-    return err(value)
-  }
-  return ok(value)
 }
 
 const isInFuture = (date: Date) => date > new Date()

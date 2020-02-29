@@ -9,6 +9,11 @@ import * as E from "fp-ts/lib/Either"
 import * as T from "fp-ts/lib/Task"
 import * as TE from "fp-ts/lib/TaskEither"
 
+import { flatten, zip } from "lodash"
+import { TaskEither } from "fp-ts/lib/TaskEither"
+import { Task } from "fp-ts/lib/Task"
+import { flow } from "fp-ts/lib/function"
+
 export { E, T, TE }
 
 export const result = TE.taskEither
@@ -23,11 +28,16 @@ export type Err<TErr> = Task<Left<TErr>>
 export const okTask = <TSuccess = never, TError = never>(a: TSuccess) => TE.fromEither(ok<TSuccess, TError>(a))
 export const errTask = <TSuccess = never, TError = never>(e: TError) => TE.fromEither(err<TSuccess, TError>(e))
 
+export const TFold = flow(E.fold, T.map)
+export const boolToEither = <T>(value: T, predicate: (value: T) => boolean): E.Either<T, T> => {
+  if (!predicate(value)) {
+    return err(value)
+  }
+  return ok(value)
+}
+
 export { map, pipe }
 
-import { flatten, zip } from "lodash"
-import { TaskEither } from "fp-ts/lib/TaskEither"
-import { Task } from "fp-ts/lib/Task"
 // useful tools for .compose( continuations
 export const mapStatic = <TCurrent, TNew>(value: TNew) => map<TCurrent, TNew>(toValue(value))
 export const toValue = <TNew>(value: TNew) => () => value
